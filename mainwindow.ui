@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>784</width>
-    <height>578</height>
+    <width>791</width>
+    <height>577</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,7 +19,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>784</width>
+     <width>791</width>
      <height>24</height>
     </rect>
    </property>
@@ -28,7 +28,7 @@
      <string>Fusion ffmpeg studio</string>
     </property>
     <addaction name="actionPreferences"/>
-    <addaction name="actionAbout_Fusion_ffmpeg_studio"/>
+    <addaction name="actionAbout"/>
    </widget>
    <addaction name="menuFusion_ffmpeg_studio"/>
   </widget>
@@ -43,7 +43,7 @@
     <string>Preferences</string>
    </property>
   </action>
-  <action name="actionAbout_Fusion_ffmpeg_studio">
+  <action name="actionAbout">
    <property name="text">
     <string>About Fusion ffmpeg studio</string>
    </property>
