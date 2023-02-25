@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>Resources/Images/GoProPlayerAppIcon.png</file>
+        <file>Resources/Images/Snow.jpg</file>
     </qresource>
 </RCC>

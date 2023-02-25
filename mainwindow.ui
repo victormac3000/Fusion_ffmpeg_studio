@@ -6,80 +6,316 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>803</width>
-    <height>143</height>
+    <width>802</width>
+    <height>616</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">#frame {
+background-color: #246EE9;
+}</string>
+  </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,2,0">
+   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0">
     <property name="spacing">
-     <number>5</number>
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
     </property>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout">
-      <item>
-       <widget class="QLabel" name="label">
-        <property name="font">
-         <font>
-          <family>Montserrat</family>
-          <pointsize>40</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>GOPRO FUSION FFMPEG STUDIO</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-     </layout>
+     <widget class="QFrame" name="frame">
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_6">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="label">
+         <property name="font">
+          <font>
+           <family>Montserrat</family>
+           <pointsize>40</pointsize>
+          </font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true"/>
+         </property>
+         <property name="text">
+          <string>GOPRO FUSION FFMPEG STUDIO</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_2">
-      <property name="spacing">
-       <number>10</number>
+     <widget class="QStackedWidget" name="stackedPane">
+      <property name="currentIndex">
+       <number>0</number>
       </property>
-      <item>
-       <widget class="QLabel" name="label_2">
-        <property name="font">
-         <font>
-          <family>Montserrat</family>
-          <pointsize>18</pointsize>
-         </font>
+      <widget class="QWidget" name="a_0_main">
+       <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,5">
+        <property name="spacing">
+         <number>0</number>
         </property>
-        <property name="text">
-         <string>Open the DCIM folder of the fusion to get started</string>
+        <property name="leftMargin">
+         <number>0</number>
         </property>
-        <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        <property name="topMargin">
+         <number>0</number>
         </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="open_folder_button">
-        <property name="text">
-         <string>Open</string>
+        <property name="rightMargin">
+         <number>0</number>
         </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item>
-     <spacer name="verticalSpacer">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>20</width>
-        <height>40</height>
-       </size>
-      </property>
-     </spacer>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="label_3">
+            <property name="maximumSize">
+             <size>
+              <width>800</width>
+              <height>500</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="pixmap">
+             <pixmap resource="Resources.qrc">:/Resources/Images/Snow.jpg</pixmap>
+            </property>
+            <property name="scaledContents">
+             <bool>true</bool>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QFrame" name="frame_2">
+          <property name="styleSheet">
+           <string notr="true">#frame_2 {
+background-color: #246EE9;
+}</string>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::StyledPanel</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Raised</enum>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout">
+           <property name="spacing">
+            <number>30</number>
+           </property>
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="label_2">
+             <property name="font">
+              <font>
+               <family>Montserrat</family>
+               <pointsize>18</pointsize>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true"/>
+             </property>
+             <property name="text">
+              <string>Open the DCIM folder of the fusion to get started</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="open_folder_button">
+             <property name="styleSheet">
+              <string notr="true"/>
+             </property>
+             <property name="text">
+              <string>Open</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="b_1_loading">
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <property name="spacing">
+         <number>0</number>
+        </property>
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="label_5">
+            <property name="maximumSize">
+             <size>
+              <width>800</width>
+              <height>500</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="pixmap">
+             <pixmap resource="Resources.qrc">:/Resources/Images/Snow.jpg</pixmap>
+            </property>
+            <property name="scaledContents">
+             <bool>true</bool>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QFrame" name="frame_3">
+          <property name="styleSheet">
+           <string notr="true">#frame_3 {
+background-color: #3EB489;
+}</string>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::StyledPanel</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Raised</enum>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <property name="spacing">
+            <number>0</number>
+           </property>
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QPushButton" name="pushButton">
+             <property name="text">
+              <string>Cancelar</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>501</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_4">
+             <property name="text">
+              <string>Cargando </string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QProgressBar" name="progressBar">
+             <property name="value">
+              <number>24</number>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </widget>
     </item>
    </layout>
   </widget>
@@ -88,7 +324,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>803</width>
+     <width>802</width>
      <height>24</height>
     </rect>
    </property>
@@ -117,6 +353,8 @@
    </property>
   </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="Resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

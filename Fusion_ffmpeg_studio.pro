@@ -16,13 +16,15 @@ SOURCES += \
     errorhandler.cpp \
     main.cpp \
     mainwindow.cpp \
-    preferences.cpp
+    preferences.cpp \
+    worker.cpp
 
 HEADERS += \
     about.h \
     errorhandler.h \
     mainwindow.h \
-    preferences.h
+    preferences.h \
+    worker.h
 
 FORMS += \
     about.ui \
