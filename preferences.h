@@ -3,7 +3,11 @@
 
 #include <QWidget>
 #include <QSettings>
+#include <QDir>
+#include <QFile>
 #include <QFileDialog>
+
+#include "errorhandler.h"
 
 namespace Ui {
 class Preferences;
@@ -23,7 +27,11 @@ private slots:
 
 private:
     Ui::Preferences *ui;
+    ErrorHandler *error;
     QSettings settings;
+    QString errorMsg;
+
+    bool canWrite(QString path);
 };
 
 #endif // PREFERENCES_H
