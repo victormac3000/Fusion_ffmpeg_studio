@@ -28,7 +28,7 @@
         <string/>
        </property>
        <property name="pixmap">
-        <pixmap resource="Resources.qrc">:/Resources/Images/GoProPlayerAppIcon.png</pixmap>
+        <pixmap resource="../Resources/Resources.qrc">:/Images/GoProPlayerAppIcon.png</pixmap>
        </property>
        <property name="scaledContents">
         <bool>true</bool>
@@ -123,7 +123,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="Resources.qrc"/>
+  <include location="../Resources/Resources.qrc"/>
  </resources>
  <connections/>
 </ui>

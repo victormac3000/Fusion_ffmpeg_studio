@@ -6,17 +6,22 @@
 #include <QDir>
 #include <QFile>
 
-class Worker : public QThread
+#include "models/fvideo.h"
+#include "models/fsegment.h"
+
+class Worker : public QObject
 {
     Q_OBJECT
 public:
     Worker(QObject *parent = nullptr);
 
 public slots:
-    void checkDCIMStructure(QDir dcim);
+    void loadDCIM(QDir dcim);
 
 signals:
-    void checkDCIMStructureDone(bool ok, QString errorMsg);
+    void loadDCIMUpdate(int percent);
+    void loadDCIMDone(QList<FVideo*> videos = QList<FVideo*>());
+    void loadDCIMError(QString error);
 
 private:
 

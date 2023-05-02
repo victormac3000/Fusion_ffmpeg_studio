@@ -12,24 +12,39 @@ TARGET = 'Fusion ffmpeg studio'
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    about.cpp \
-    errorhandler.cpp \
     main.cpp \
-    mainwindow.cpp \
-    preferences.cpp \
+    models/fsegment.cpp \
+    models/fvideo.cpp \
+    utils/dialogs.cpp \
+    utils/logger.cpp \
+    windows/about.cpp \
+    windows/mainwindow.cpp \
+    panes/editorpane.cpp \
+    panes/loadingpane.cpp \
+    panes/welcomepane.cpp \
+    windows/preferences.cpp \
     worker.cpp
 
 HEADERS += \
-    about.h \
-    errorhandler.h \
-    mainwindow.h \
-    preferences.h \
+    models/fsegment.h \
+    models/fvideo.h \
+    utils/dialogs.h \
+    utils/logger.h \
+    windows/about.h \
+    windows/mainwindow.h \
+    panes/editorpane.h \
+    panes/loadingpane.h \
+    panes/welcomepane.h \
+    windows/preferences.h \
     worker.h
 
 FORMS += \
-    about.ui \
-    mainwindow.ui \
-    preferences.ui
+    windows/about.ui \
+    windows/mainwindow.ui \
+    panes/editorpane.ui \
+    panes/loadingpane.ui \
+    panes/welcomepane.ui \
+    windows/preferences.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -37,4 +52,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 RESOURCES += \
-    Resources.qrc
+    Resources/Resources.qrc
+
+DISTFILES +=

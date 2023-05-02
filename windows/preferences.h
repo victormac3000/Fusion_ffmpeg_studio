@@ -7,7 +7,7 @@
 #include <QFile>
 #include <QFileDialog>
 
-#include "errorhandler.h"
+#include "utils/dialogs.h"
 
 namespace Ui {
 class Preferences;
@@ -27,7 +27,6 @@ private slots:
 
 private:
     Ui::Preferences *ui;
-    ErrorHandler *error;
     QSettings settings;
     QString errorMsg;
 

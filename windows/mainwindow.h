@@ -6,10 +6,11 @@
 #include <QDir>
 #include <QFile>
 
-#include <preferences.h>
-#include <about.h>
-#include <errorhandler.h>
-#include <worker.h>
+#include "panes/welcomepane.h"
+#include "preferences.h"
+#include "about.h"
+#include "utils/dialogs.h"
+#include "worker.h"
 
 #define MAIN_PANE 0
 #define LOADING_PANE 1
@@ -30,18 +31,14 @@ public:
 private slots:
     void displayAbout();
     void displayPreferences();
-    void openDCIMFolder();
-    void onCheckDCIMStructureDone(bool ok, QString errorMsg);
-
-signals:
-    void checkDCIMStructure(QDir dcim);
+    bool changePane(QWidget *pane);
 
 private:
     Ui::MainWindow *ui;
-    ErrorHandler *error;
-    Worker *worker;
-    QDir dcim;
-    QString errorMsg;
-    int pane;
+    QWidget *pane;
+    About *aboutWindow = nullptr;
+    Preferences *preferencesWindow = nullptr;
+
+    void clearLayout(QLayout* layout, bool deleteWidgets = true);
 };
 #endif // MAINWINDOW_H

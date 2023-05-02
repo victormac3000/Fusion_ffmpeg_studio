@@ -6,7 +6,6 @@ Preferences::Preferences(QWidget *parent) :
     ui(new Ui::Preferences)
 {
     ui->setupUi(this);
-    error = new ErrorHandler(this);
     connect(ui->change_working_dir, SIGNAL(clicked()), this, SLOT(changeWorkingDir()));
     connect(ui->change_rendered_dir, SIGNAL(clicked()), this, SLOT(changeRenderedDir()));
     if (settings.contains("workingDir") && !settings.value("workingDir").toString().isEmpty()) {
@@ -30,7 +29,8 @@ void Preferences::changeWorkingDir()
     if (proposedWd.isEmpty()) return;
 
     if (!canWrite(proposedWd)) {
-        error->warning("Cannot change the working directory:\n" + errorMsg);
+        Dialogs::warning("Cannot change the working directory:\n" + errorMsg);
+        qWarning() << "Cannot write to the proposed working directory: " << proposedWd;
         return;
     }
 
@@ -46,7 +46,8 @@ void Preferences::changeRenderedDir()
     if (proposedRd.isEmpty()) return;
 
     if (!canWrite(proposedRd)) {
-        error->warning("Cannot change the rendered directory:\n" + errorMsg);
+        Dialogs::warning("Cannot change the rendered directory:\n" + errorMsg);
+        qWarning() << "Cannot write to the proposed rendered directory: " << proposedRd;
         return;
     }
 
