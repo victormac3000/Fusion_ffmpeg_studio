@@ -6,78 +6,107 @@ Worker::Worker(QObject *parent)
 
 }
 
-void Worker::loadDCIM(QDir dcim)
+void Worker::loadDCIM(QString dcimPath)
 {
     QList<FVideo*> videos;
+    QDir dcim(dcimPath);
 
-    QDir front(dcim.absoluteFilePath(".") + QString("/100GFRNT"));
-    QDir back(dcim.absoluteFilePath(".") + QString("/100GBACK"));
+    emit loadDCIMUpdate(0, "Checking base folder");
+    QThread::sleep(1);
+
+    if (!dcim.exists()) {
+        emit loadDCIMError("Cannot open the selected DCIM folder");
+        qWarning() << "Could not open the DCIM foler, does not exist: " << dcimPath;
+        return;
+    }
+
+    QDir front(dcimPath + QString("/100GFRNT"));
+    QDir back(dcimPath + QString("/100GBACK"));
 
     if (!front.exists()) {
         emit loadDCIMError("Could not found the 100GFRNT folder inside the DCIM folder");
-        qWarning() << "Could not found the 100GFRNT folder inside the DCIM folder specified: " << dcim.absoluteFilePath(".");
-        return;
-    }
-    if (!back.exists()) {
-        emit loadDCIMError("Could not found the 100GBACK folder inside the DCIM folder");
-        qWarning() << "Could not found the 100GBACK folder inside the DCIM folder specified: " << dcim.absoluteFilePath(".");
+        qWarning() << "Could not found the 100GFRNT folder inside the DCIM folder specified: " << dcimPath;
         return;
     }
 
-    // Check front struct
+    if (!back.exists()) {
+        emit loadDCIMError("Could not found the 1RefRefRefRef00GBACK folder inside the DCIM folder");
+        qWarning() << "Could not found the 100GBACK folder inside the DCIM folder specified: " << dcimPath;
+        return;
+    }
+
+    emit loadDCIMUpdate(0, "Checking front folder files");
+    QThread::sleep(1);
+
     front.setNameFilters({"GPFR????.MP4"});
     QFileInfoList mainFrontSegments = front.entryInfoList(QDir::Files);
+
+    back.setNameFilters({"GPBK????.MP4"});
+    QFileInfoList mainBackSegments = back.entryInfoList(QDir::Files);
+
+    totalSegments = mainFrontSegments.length() + mainBackSegments.length();
 
     for (const QFileInfo &mainFrontSegment: mainFrontSegments) {
         bool isNumber = false;
         int vid = mainFrontSegment.fileName().mid(4,4).toInt(&isNumber);
         if (!isNumber) {
-            // Log that this GPFR is not a number
+            qWarning() << "Found a main front segment with an invalid ID: " << mainFrontSegment.absoluteFilePath();
             break;
         }
 
-
-        FVideo *video = new FVideo(this, vid);
+        FVideo *video = new FVideo(nullptr, vid);
         // Add main segment
         FSegment *mainSegment = new FSegment(
-            this, vid, 0,
-            new QFile(front.path() + "/GPFR" + QString::number(vid) + ".MP4"),
-            new QFile(front.path() + "/GPFR" + QString::number(vid) + ".LRV"),
-            new QFile(front.path() + "/GPFR" + QString::number(vid) + ".THM"),
-            new QFile(back.path() + "/GPBK" + QString::number(vid) + ".MP4"),
-            new QFile(back.path() + "/GPBK" + QString::number(vid) + ".LRV"),
-            new QFile(back.path() + "/GPBK" + QString::number(vid) + ".THM"),
-            new QFile(back.path() + "/GPBK" + QString::number(vid) + ".WAV")
+            video, 0,
+            new QFile(front.path() + "/GPFR" + video->getIdString() + ".MP4"),
+            new QFile(front.path() + "/GPFR" + video->getIdString() + ".LRV"),
+            new QFile(front.path() + "/GPFR" + video->getIdString() + ".THM"),
+            new QFile(back.path() + "/GPBK" + video->getIdString() + ".MP4"),
+            new QFile(back.path() + "/GPBK" + video->getIdString() + ".LRV"),
+            new QFile(back.path() + "/GPBK" + video->getIdString() + ".THM"),
+            new QFile(back.path() + "/GPBK" + video->getIdString() + ".WAV")
         );
-        if (!mainSegment->verify()) break;
         video->addSegment(mainSegment);
+        segmentComplete();
 
-        front.setNameFilters({"GF??" + QString::number(vid) + ".MP4"});
+        front.setNameFilters({"GF??" + video->getIdString() + ".MP4"});
         QFileInfoList mainSecSegments = front.entryInfoList(QDir::Files);
 
         for (const QFileInfo &mainSecSegment: mainSecSegments) {
             bool isNumber = false;
-            int segId = mainSecSegment.fileName().mid(3,2).toInt(&isNumber);
+            int segId = mainSecSegment.fileName().mid(2,2).toInt(&isNumber);
             if (!isNumber) {
-                // Log that this GF segment is not a number
+                qWarning() << "Found a secondary front segment with an invalid ID: " << mainFrontSegment.absoluteFilePath();
                 break;
             }
 
+            QString segIdString = QString::number(segId);
+            while (segIdString.length() < 2) segIdString.insert(0, "0");
+
             FSegment *secSegment = new FSegment(
-                this, vid, 0,
-                new QFile(front.path() + "/GF" + QString::number(segId) + QString::number(vid) + ".MP4"),
-                new QFile(front.path() + "/GF" + QString::number(segId) + QString::number(vid) + ".LRV"),
-                new QFile(front.path() + "/GF" + QString::number(segId) + QString::number(vid) + ".THM"),
-                new QFile(back.path() + "/GB" + QString::number(segId) + QString::number(vid) + ".MP4"),
-                new QFile(back.path() + "/GB" + QString::number(segId) + QString::number(vid) + ".LRV"),
-                new QFile(back.path() + "/GB" + QString::number(segId) + QString::number(vid) + ".THM"),
-                new QFile(back.path() + "/GB" + QString::number(segId) + QString::number(vid) + ".WAV")
+                video, 0,
+                new QFile(front.path() + "/GF" + segIdString + video->getIdString() + ".MP4"),
+                new QFile(front.path() + "/GF" + segIdString + video->getIdString() + ".LRV"),
+                new QFile(front.path() + "/GF" + segIdString + video->getIdString() + ".THM"),
+                new QFile(back.path() + "/GB" + segIdString + video->getIdString() + ".MP4"),
+                new QFile(back.path() + "/GB" + segIdString + video->getIdString() + ".LRV"),
+                new QFile(back.path() + "/GB" + segIdString + video->getIdString() + ".THM"),
+                new QFile(back.path() + "/GB" + segIdString + video->getIdString() + ".WAV")
             );
-            if (!secSegment->verify()) break;
-            video->addSegment(mainSegment);
+
+            video->addSegment(secSegment);
+            segmentComplete();
         }
 
     }
 
-    emit loadDCIMDone(videos);
+    emit loadDCIMDone(&videos);
+}
+
+void Worker::segmentComplete()
+{
+    doneSegments++;
+    int percent = (doneSegments/totalSegments)*100;
+    qDebug() << "New segment complete: " << doneSegments << " of " << totalSegments << " for a percentage of " << QString::number(percent);
+    emit loadDCIMUpdate(percent);
 }

@@ -5,21 +5,23 @@
 #include <QFile>
 #include <QFileInfo>
 
+#include "models/fformats.h"
+
 class FSegment : public QObject
 {
     Q_OBJECT
 public:
-    explicit FSegment(QObject *parent = nullptr, int video_id = -1, int id = -1);
-    FSegment(QObject *parent = nullptr, int video_id = -1, int id = -1,
-             QFile *front_mp4 = nullptr, QFile *front_lrv = nullptr, QFile *front_thm = nullptr,
-             QFile *back_mp4 = nullptr, QFile *back_lrv = nullptr, QFile *back_thm = nullptr, QFile *back_wav = nullptr);
+    explicit FSegment(QObject *parent = nullptr, int id = -1, QFile *front_mp4 = nullptr, QFile *front_lrv = nullptr, QFile *front_thm = nullptr,
+                      QFile *back_mp4 = nullptr, QFile *back_lrv = nullptr, QFile *back_thm = nullptr, QFile *back_wav = nullptr);
 
-    bool verify();
+    QString verify();
+
+    QString getIdString();
 
     QString toString();
 
 private:
-    int video_id;
+    QObject *video;
     int id;
 
     QFile *front_mp4 = nullptr;
@@ -30,6 +32,7 @@ private:
     QFile *back_lrv = nullptr;
     QFile *back_thm = nullptr;
     QFile *back_wav = nullptr;
+
 
 
 

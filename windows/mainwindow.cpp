@@ -32,8 +32,8 @@ bool MainWindow::changePane(QWidget *pane)
         return false;
     }
     clearLayout(ui->paneHolder);
-    ui->paneHolder->addWidget(pane);
     connect(pane, SIGNAL(changePane(QWidget*)), this, SLOT(changePane(QWidget*)));
+    ui->paneHolder->addWidget(pane);
     this->pane = pane;
     return true;
 }

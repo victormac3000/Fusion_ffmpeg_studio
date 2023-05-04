@@ -1,4 +1,4 @@
-QT       += core gui
+QT       += core gui multimedia
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -13,6 +13,7 @@ TARGET = 'Fusion ffmpeg studio'
 
 SOURCES += \
     main.cpp \
+    models/fformats.cpp \
     models/fsegment.cpp \
     models/fvideo.cpp \
     utils/dialogs.cpp \
@@ -26,6 +27,8 @@ SOURCES += \
     worker.cpp
 
 HEADERS += \
+    models/fformat.h \
+    models/fformats.h \
     models/fsegment.h \
     models/fvideo.h \
     utils/dialogs.h \

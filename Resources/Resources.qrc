@@ -2,5 +2,6 @@
     <qresource prefix="/">
         <file>Images/GoProPlayerAppIcon.png</file>
         <file>Images/Snow.jpg</file>
+        <file>Documents/Json/FusionFormats.json</file>
     </qresource>
 </RCC>

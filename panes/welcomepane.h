@@ -22,17 +22,13 @@ public:
 
 signals:
     void changePane(QWidget *pane);
-    void loadDCIM(QDir dcim);
 
 private slots:
     void openDCIMFolder();
-    void loadDCIMDone(QList<FVideo*> videos = QList<FVideo*>());
-    void loadDCIMError(QString error);
 
 private:
     Ui::WelcomePane *ui;
-    Worker worker;
-    QThread *workerThread;
+
 };
 
 #endif // WELCOMEPANE_H

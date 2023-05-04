@@ -16,14 +16,18 @@ public:
     Worker(QObject *parent = nullptr);
 
 public slots:
-    void loadDCIM(QDir dcim);
+    void loadDCIM(QString dcimPath);
 
 signals:
-    void loadDCIMUpdate(int percent);
-    void loadDCIMDone(QList<FVideo*> videos = QList<FVideo*>());
+    void loadDCIMUpdate(int percent = 0, QString message = "");
+    void loadDCIMDone(QList<FVideo*> *videos = nullptr);
     void loadDCIMError(QString error);
 
 private:
+    int doneSegments = 0;
+    int totalSegments = 0;
+
+    void segmentComplete();
 
 };
 

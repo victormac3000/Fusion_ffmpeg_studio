@@ -6,19 +6,35 @@ FVideo::FVideo(QObject *parent, int id)
     this->id = id;
 }
 
-bool FVideo::addSegment(FSegment *segment)
+void FVideo::addSegment(FSegment *segment)
 {
-    if (!segment->verify()) return false;
+    if (!segment->verify().isEmpty()) {
+        return;
+    }
     this->segments.append(segment);
-    return true;
+    return;
 }
 
 QString FVideo::verify()
 {
     for (FSegment *segment: this->segments) {
-        if (!segment->verify()) return "Error";
+        if (!segment->verify().isEmpty()) {
+            return "Error";
+        }
     }
     return "";
+}
+
+int FVideo::getId()
+{
+    return this->id;
+}
+
+QString FVideo::getIdString()
+{
+    QString vidIdString = QString::number(id);
+    while (vidIdString.length() < 4) vidIdString.insert(0, "0");
+    return vidIdString;
 }
 
 QString FVideo::toString()

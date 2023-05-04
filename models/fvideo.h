@@ -3,15 +3,17 @@
 
 #include <QObject>
 
-#include "fsegment.h"
+#include "models/fsegment.h"
 
 class FVideo : public QObject
 {
     Q_OBJECT
 public:
     explicit FVideo(QObject *parent = nullptr, int id = -1);
-    bool addSegment(FSegment *segment);
+    void addSegment(FSegment *segment);
     QString verify();
+    int getId();
+    QString getIdString();
 
     QString toString();
 
