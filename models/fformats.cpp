@@ -23,14 +23,23 @@ FFormats::FFormats(QObject *parent)
     for (QJsonValueRef objCandidate: mainArray) {
         if (objCandidate.isObject()) {
             QJsonObject obj = objCandidate.toObject();
-            if (obj.contains("name") && obj.contains("firmwareVersion") && obj.contains("height") &&
-                obj.contains("width") && obj.contains("fps")) {
+            if (obj.contains("name") && obj.contains("firmwareVersion") && obj.contains("video") &&
+                obj.contains("lowVideo") && obj.contains("thumnail")) {
+                if (!obj.value("video").isObject() || !obj.value("lowVideo").isObject() || !obj.value("thumnail").isObject()) {
+                    qWarning() << "Could not parse the fusion formats file from resources, video, lowVideo and thumnail must be objects";
+                    return;
+                }
                 FFormat format;
                 format.name = obj.value("name").toString();
                 format.firmwareVersion = obj.value("firmwareVersion").toDouble();
-                format.height = obj.value("height").toInt();
-                format.width = obj.value("width").toInt();
-                format.fps = obj.value("fps").toDouble();
+                format.video.height = obj.value("video").toObject().value("height").toInt();
+                format.video.width = obj.value("video").toObject().value("width").toInt();
+                format.video.fps = obj.value("video").toObject().value("fps").toDouble();
+                format.lowVideo.height = obj.value("lowVideo").toObject().value("height").toInt();
+                format.lowVideo.width = obj.value("lowVideo").toObject().value("width").toInt();
+                format.lowVideo.fps = obj.value("lowVideo").toObject().value("fps").toDouble();
+                format.thumbnail.height = obj.value("thumnail").toObject().value("height").toInt();
+                format.thumbnail.width = obj.value("thumnail").toObject().value("width").toInt();
                 this->formats.append(format);
             }
         }
@@ -41,21 +50,68 @@ FFormats::FFormats(QObject *parent)
     }
 }
 
-FFormat* FFormats::get(QFile *video)
+FFormat* FFormats::get(QFile *media, int type)
 {
-    QMediaPlayer player;
-    player.setSource(QUrl(video->fileName()));
-    QMediaMetaData videoMetadata = player.metaData();
+    if (!media->exists()) {
+        qWarning() << "The media specified does not exist: " << media->fileName();
+        return nullptr;
+    }
 
-    QSize resolution = videoMetadata.value(QMediaMetaData::Resolution).toSize();
-    float fps = videoMetadata.value(QMediaMetaData::VideoFrameRate).toFloat();
+    if (type == FUSION_VIDEO || type == FUSION_LOW_VIDEO) {
+        if (!MediaInfo::isVideo(media)) {
+            qWarning() << "The media is not a video: " << media->fileName();
+            return nullptr;
+        }
 
-    qDebug() << "File:" <<  video->fileName() << "Resolution:" << QString::number(resolution.height()) + "x" + QString::number(resolution.width()) << "FPS:" << fps;
+        QSize resolution = MediaInfo::getResolution(media);
+        float fps = MediaInfo::getFPS(media);
 
-    for (FFormat &format: formats) {
-        if (format.height == resolution.height() && format.width == resolution.width() && format.fps == fps) {
-            return &format;
+        for (FFormat &format: formats) {
+            if (type == FUSION_VIDEO) {
+                if (format.video.height == resolution.height() &&
+                    format.video.width == resolution.width() &&
+                    format.video.fps == fps) {
+                    return &format;
+                }
+            }
+            if (type == FUSION_LOW_VIDEO) {
+                if (format.lowVideo.height == resolution.height() &&
+                    format.lowVideo.width == resolution.width() &&
+                    format.lowVideo.fps == fps) {
+                    return &format;
+                }
+            }
         }
     }
+
+    if (type == FUSION_AUDIO) {
+        if (!MediaInfo::isAudio(media)) {
+            qWarning() << "The media is not an audio file: " << media->fileName();
+            return nullptr;
+        }
+
+        return &formats.first();
+    }
+
+    if (type == FUSION_THUMNAIL) {
+        if (!MediaInfo::isImage(media)) {
+            qWarning() << "The media is not a fusion thumnail: " << media->fileName();
+            return nullptr;
+        }
+
+        QSize resolution = MediaInfo::getImageResolution(media);
+
+        for (FFormat &format: formats) {
+            if (format.thumbnail.height == resolution.height() &&
+                format.thumbnail.width == resolution.width()) {
+                return &format;
+            }
+        }
+    }
+
+    if (type > FUSION_THUMNAIL) {
+        qWarning() << "The media type specified" << type << "is not an audio, video or thumnail file: " << media->fileName();
+    }
+
     return nullptr;
 }

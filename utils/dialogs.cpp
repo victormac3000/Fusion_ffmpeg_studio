@@ -2,6 +2,7 @@
 
 void Dialogs::ok(QString message)
 {
+    qDebug() << "Ok dialog displayed:" << message;
     QMessageBox *box = new QMessageBox;
     box->setWindowTitle("Information");
     box->setIcon(QMessageBox::Information);
@@ -11,6 +12,7 @@ void Dialogs::ok(QString message)
 
 void Dialogs::warning(QString message)
 {
+    qDebug() << "Warning dialog displayed:" << message;
     QMessageBox *box = new QMessageBox;
     box->setWindowTitle("Concerning error");
     box->setIcon(QMessageBox::Warning);
@@ -20,6 +22,7 @@ void Dialogs::warning(QString message)
 
 void Dialogs::critical(QString message)
 {
+    qDebug() << "Critical dialog displayed:" << message;
     QMessageBox *box = new QMessageBox;
     box->setWindowTitle("Critical error");
     box->setIcon(QMessageBox::Critical);

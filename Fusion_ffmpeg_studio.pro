@@ -18,6 +18,7 @@ SOURCES += \
     models/fvideo.cpp \
     utils/dialogs.cpp \
     utils/logger.cpp \
+    utils/mediainfo.cpp \
     windows/about.cpp \
     windows/mainwindow.cpp \
     panes/editorpane.cpp \
@@ -33,6 +34,7 @@ HEADERS += \
     models/fvideo.h \
     utils/dialogs.h \
     utils/logger.h \
+    utils/mediainfo.h \
     windows/about.h \
     windows/mainwindow.h \
     panes/editorpane.h \

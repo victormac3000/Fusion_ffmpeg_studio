@@ -12,7 +12,7 @@ void Worker::loadDCIM(QString dcimPath)
     QDir dcim(dcimPath);
 
     emit loadDCIMUpdate(0, "Checking base folder");
-    QThread::sleep(1);
+    //QThread::sleep(1);
 
     if (!dcim.exists()) {
         emit loadDCIMError("Cannot open the selected DCIM folder");
@@ -36,7 +36,7 @@ void Worker::loadDCIM(QString dcimPath)
     }
 
     emit loadDCIMUpdate(0, "Checking front folder files");
-    QThread::sleep(1);
+    //QThread::sleep(1);
 
     front.setNameFilters({"GPFR????.MP4"});
     QFileInfoList mainFrontSegments = front.entryInfoList(QDir::Files);
@@ -55,6 +55,8 @@ void Worker::loadDCIM(QString dcimPath)
         }
 
         FVideo *video = new FVideo(nullptr, vid);
+        connect(video, SIGNAL(verifyError(QString)), this, SLOT(videoVerifyError(QString)));
+
         // Add main segment
         FSegment *mainSegment = new FSegment(
             video, 0,
@@ -66,7 +68,7 @@ void Worker::loadDCIM(QString dcimPath)
             new QFile(back.path() + "/GPBK" + video->getIdString() + ".THM"),
             new QFile(back.path() + "/GPBK" + video->getIdString() + ".WAV")
         );
-        video->addSegment(mainSegment);
+        if (!video->addSegment(mainSegment)) return;
         segmentComplete();
 
         front.setNameFilters({"GF??" + video->getIdString() + ".MP4"});
@@ -87,14 +89,14 @@ void Worker::loadDCIM(QString dcimPath)
                 video, 0,
                 new QFile(front.path() + "/GF" + segIdString + video->getIdString() + ".MP4"),
                 new QFile(front.path() + "/GF" + segIdString + video->getIdString() + ".LRV"),
-                new QFile(front.path() + "/GF" + segIdString + video->getIdString() + ".THM"),
+                new QFile(front.path() + "/GPFR" + video->getIdString() + ".THM"),
                 new QFile(back.path() + "/GB" + segIdString + video->getIdString() + ".MP4"),
                 new QFile(back.path() + "/GB" + segIdString + video->getIdString() + ".LRV"),
-                new QFile(back.path() + "/GB" + segIdString + video->getIdString() + ".THM"),
+                new QFile(back.path() + "/GPBK" + video->getIdString() + ".THM"),
                 new QFile(back.path() + "/GB" + segIdString + video->getIdString() + ".WAV")
             );
 
-            video->addSegment(secSegment);
+            if (!video->addSegment(secSegment)) return;
             segmentComplete();
         }
 
@@ -106,7 +108,12 @@ void Worker::loadDCIM(QString dcimPath)
 void Worker::segmentComplete()
 {
     doneSegments++;
-    int percent = (doneSegments/totalSegments)*100;
+    float percent = ((float) doneSegments / (float) totalSegments)*100;
     qDebug() << "New segment complete: " << doneSegments << " of " << totalSegments << " for a percentage of " << QString::number(percent);
     emit loadDCIMUpdate(percent);
+}
+
+void Worker::videoVerifyError(QString error)
+{
+    emit loadDCIMError(error);
 }

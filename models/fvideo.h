@@ -10,19 +10,24 @@ class FVideo : public QObject
     Q_OBJECT
 public:
     explicit FVideo(QObject *parent = nullptr, int id = -1);
-    void addSegment(FSegment *segment);
-    QString verify();
+    bool addSegment(FSegment *segment);
+    bool verify();
     int getId();
     QString getIdString();
 
     QString toString();
 
 signals:
+    void verifyError(QString error);
+
+private slots:
+    void segmentVerifyError(QString error);
 
 private:
     int id;
-
     QList<FSegment*> segments;
+
+
 
 };
 

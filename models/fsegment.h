@@ -5,8 +5,6 @@
 #include <QFile>
 #include <QFileInfo>
 
-#include "models/fformats.h"
-
 class FSegment : public QObject
 {
     Q_OBJECT
@@ -14,29 +12,24 @@ public:
     explicit FSegment(QObject *parent = nullptr, int id = -1, QFile *front_mp4 = nullptr, QFile *front_lrv = nullptr, QFile *front_thm = nullptr,
                       QFile *back_mp4 = nullptr, QFile *back_lrv = nullptr, QFile *back_thm = nullptr, QFile *back_wav = nullptr);
 
-    QString verify();
-
+    bool verify();
     QString getIdString();
-
     QString toString();
 
+signals:
+    void verifyError(QString error);
+
 private:
-    QObject *video;
     int id;
 
-    QFile *front_mp4 = nullptr;
-    QFile *front_lrv = nullptr;
-    QFile *front_thm = nullptr;
+    QFile *frontMP4 = nullptr;
+    QFile *frontLRV = nullptr;
+    QFile *frontTHM = nullptr;
 
-    QFile *back_mp4 = nullptr;
-    QFile *back_lrv = nullptr;
-    QFile *back_thm = nullptr;
-    QFile *back_wav = nullptr;
-
-
-
-
-signals:
+    QFile *backMP4 = nullptr;
+    QFile *backLRV = nullptr;
+    QFile *backTHM = nullptr;
+    QFile *backWAV = nullptr;
 
 };
 

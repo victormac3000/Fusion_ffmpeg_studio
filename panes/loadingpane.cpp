@@ -35,7 +35,9 @@ void LoadingPane::loadDCIMDone(QList<FVideo*>* videos)
 
 void LoadingPane::loadDCIMError(QString error)
 {
-    Dialogs::warning("Could not read the DCIM video structure: " + error);
+    workerThread->quit();
+    workerThread->wait();
+    Dialogs::warning("Could not read the DCIM video structure. " + error);
     emit changePane(new WelcomePane(this));
 }
 

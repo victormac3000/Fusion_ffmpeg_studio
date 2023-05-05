@@ -6,23 +6,21 @@ FVideo::FVideo(QObject *parent, int id)
     this->id = id;
 }
 
-void FVideo::addSegment(FSegment *segment)
+bool FVideo::addSegment(FSegment *segment)
 {
-    if (!segment->verify().isEmpty()) {
-        return;
-    }
+    connect(segment, SIGNAL(verifyError(QString)), this, SLOT(segmentVerifyError(QString)));
+    if (!segment->verify()) return false;
     this->segments.append(segment);
-    return;
+    return true;
 }
 
-QString FVideo::verify()
+bool FVideo::verify()
 {
     for (FSegment *segment: this->segments) {
-        if (!segment->verify().isEmpty()) {
-            return "Error";
-        }
+        qDebug() << "Verifying segment " << getIdString() + segment->getIdString();
+        if (!segment->verify()) return false;
     }
-    return "";
+    return true;
 }
 
 int FVideo::getId()
@@ -46,4 +44,9 @@ QString FVideo::toString()
         ret.append("FIN SEGMENTO");
     }
     return ret;
+}
+
+void FVideo::segmentVerifyError(QString error)
+{
+    emit verifyError("A segment is invalid. " + error);
 }

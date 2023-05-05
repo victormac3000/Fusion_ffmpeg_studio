@@ -3,10 +3,24 @@
 
 #include <QString>
 
+struct video {
+    int height, width, fps;
+};
+
+struct lowVideo {
+    int height, width, fps;
+};
+
+struct thumnail {
+    int height, width;
+};
+
 struct FFormat {
     QString name;
     float firmwareVersion;
-    int height, width, fps;
+    video video;
+    lowVideo lowVideo;
+    thumnail thumbnail;
 };
 
 #endif // FFORMAT_H
