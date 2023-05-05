@@ -79,6 +79,41 @@ bool FSegment::verify()
     return true;
 }
 
+QFile *FSegment::getFrontMP4() const
+{
+    return frontMP4;
+}
+
+QFile *FSegment::getFrontLRV() const
+{
+    return frontLRV;
+}
+
+QFile *FSegment::getFrontTHM() const
+{
+    return frontTHM;
+}
+
+QFile *FSegment::getBackMP4() const
+{
+    return backMP4;
+}
+
+QFile *FSegment::getBackLRV() const
+{
+    return backLRV;
+}
+
+QFile *FSegment::getBackTHM() const
+{
+    return backTHM;
+}
+
+QFile *FSegment::getBackWAV() const
+{
+    return backWAV;
+}
+
 QString FSegment::getIdString()
 {
     QString idString = QString::number(id);

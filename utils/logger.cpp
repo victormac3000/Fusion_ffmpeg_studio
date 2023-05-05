@@ -68,7 +68,7 @@ void Logger::debugHandler(QtMsgType type, const QMessageLogContext &context, con
         .append(QString::number(context.line)).append(function);
     logFile->write(logLine.toUtf8());
     #ifdef QT_DEBUG
-    if (type != QtDebugMsg) std::cerr << logLine.toStdString() << std::endl;
+    if (type != 1000) std::cerr << logLine.toStdString() << std::endl;
     #endif
     logFile->close();
 }

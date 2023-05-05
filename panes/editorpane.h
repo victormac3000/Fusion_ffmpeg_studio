@@ -6,6 +6,7 @@
 #include "models/fvideo.h"
 #include "models/fsegment.h"
 #include "utils/dialogs.h"
+#include "panes/items/fvideoitem.h"
 
 namespace Ui {
 class EditorPane;
@@ -16,7 +17,7 @@ class EditorPane : public QWidget
     Q_OBJECT
 
 public:
-    explicit EditorPane(QWidget *parent = nullptr, QList<FVideo*> *videos = nullptr);
+    explicit EditorPane(QWidget *parent = nullptr, QList<FVideo*> videos = QList<FVideo*>());
     ~EditorPane();
 
 signals:
@@ -24,7 +25,7 @@ signals:
 
 private:
     Ui::EditorPane *ui;
-    QList<FVideo*> *videos;
+    QList<FVideo*> videos;
 };
 
 #endif // EDITORPANE_H

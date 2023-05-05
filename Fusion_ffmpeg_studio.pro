@@ -16,6 +16,7 @@ SOURCES += \
     models/fformats.cpp \
     models/fsegment.cpp \
     models/fvideo.cpp \
+    panes/items/fvideoitem.cpp \
     utils/dialogs.cpp \
     utils/logger.cpp \
     utils/mediainfo.cpp \
@@ -32,6 +33,7 @@ HEADERS += \
     models/fformats.h \
     models/fsegment.h \
     models/fvideo.h \
+    panes/items/fvideoitem.h \
     utils/dialogs.h \
     utils/logger.h \
     utils/mediainfo.h \
@@ -44,6 +46,7 @@ HEADERS += \
     worker.h
 
 FORMS += \
+    panes/items/fvideoitem.ui \
     windows/about.ui \
     windows/mainwindow.ui \
     panes/editorpane.ui \

@@ -28,6 +28,16 @@ int FVideo::getId()
     return this->id;
 }
 
+FSegment* FVideo::getSegment(int i)
+{
+    if (i >= segments.length()) {
+        qWarning() << "Requested segment " + QString::number(i) + " of video " + getIdString() +
+                    " failed. Out of bounds for length " + QString::number(segments.length());
+        return nullptr;
+    }
+    return segments.at(i);
+}
+
 QString FVideo::getIdString()
 {
     QString vidIdString = QString::number(id);

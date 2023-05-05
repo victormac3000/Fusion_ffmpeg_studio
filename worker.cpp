@@ -3,7 +3,12 @@
 Worker::Worker(QObject *parent)
     : QObject{parent}
 {
+    qDebug() << "Worker thread started";
+}
 
+Worker::~Worker()
+{
+    qDebug() << "Worker thread destroyed";
 }
 
 void Worker::loadDCIM(QString dcimPath)
@@ -100,9 +105,10 @@ void Worker::loadDCIM(QString dcimPath)
             segmentComplete();
         }
 
+        videos.append(video);
     }
 
-    emit loadDCIMDone(&videos);
+    emit loadDCIMDone(videos);
 }
 
 void Worker::segmentComplete()

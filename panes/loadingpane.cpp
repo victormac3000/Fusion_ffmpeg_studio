@@ -10,12 +10,9 @@ LoadingPane::LoadingPane(QWidget *parent, QString dcimPath) :
     worker.moveToThread(workerThread);
     this->workerThread->start();
 
-    // Buttons
-    connect(ui->cancel_button, SIGNAL(clicked()), this, SLOT(cancelButtonPressed()));
-
     // Worker actions
     QMetaObject::invokeMethod(&worker, "loadDCIM", Qt::AutoConnection, Q_ARG(QString, dcimPath));
-    connect(&worker, SIGNAL(loadDCIMDone(QList<FVideo*>*)), this, SLOT(loadDCIMDone(QList<FVideo*>*)));
+    connect(&worker, SIGNAL(loadDCIMDone(QList<FVideo*>)), this, SLOT(loadDCIMDone(QList<FVideo*>)));
     connect(&worker, SIGNAL(loadDCIMError(QString)), this, SLOT(loadDCIMError(QString)));
     connect(&worker, SIGNAL(loadDCIMUpdate(int,QString)), this, SLOT(loadDCIMUpdate(int,QString)));
 }
@@ -27,7 +24,7 @@ LoadingPane::~LoadingPane()
     delete ui;
 }
 
-void LoadingPane::loadDCIMDone(QList<FVideo*>* videos)
+void LoadingPane::loadDCIMDone(QList<FVideo*> videos)
 {
     Dialogs::ok("Loaded DCIM Ok");
     emit changePane(new EditorPane(this, videos));
@@ -38,7 +35,7 @@ void LoadingPane::loadDCIMError(QString error)
     workerThread->quit();
     workerThread->wait();
     Dialogs::warning("Could not read the DCIM video structure. " + error);
-    emit changePane(new WelcomePane(this));
+    emit changePane(new WelcomePane((QWidget*) this->parent()));
 }
 
 void LoadingPane::loadDCIMUpdate(int percent, QString message)
@@ -48,11 +45,4 @@ void LoadingPane::loadDCIMUpdate(int percent, QString message)
     if (!message.isEmpty()) {
         ui->loading_text->setText(message);
     }
-}
-
-void LoadingPane::cancelButtonPressed()
-{
-    qDebug() << "Loading pane cancel button killing worker";
-    workerThread->quit();
-    workerThread->wait();
 }

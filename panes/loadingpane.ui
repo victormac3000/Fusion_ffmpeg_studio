@@ -87,26 +87,6 @@ background-color: #3EB489;
        <number>0</number>
       </property>
       <item>
-       <widget class="QPushButton" name="cancel_button">
-        <property name="text">
-         <string>Cancelar</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>501</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
        <widget class="QLabel" name="loading_text">
         <property name="text">
          <string>Cargando </string>

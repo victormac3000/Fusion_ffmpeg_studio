@@ -13,14 +13,15 @@ class Worker : public QObject
 {
     Q_OBJECT
 public:
-    Worker(QObject *parent = nullptr);
+    explicit Worker(QObject *parent = nullptr);
+    ~Worker();
 
 public slots:
     void loadDCIM(QString dcimPath);
 
 signals:
     void loadDCIMUpdate(int percent = 0, QString message = "");
-    void loadDCIMDone(QList<FVideo*> *videos = nullptr);
+    void loadDCIMDone(QList<FVideo*> videos = QList<FVideo*>());
     void loadDCIMError(QString error);
 
 private slots:

@@ -16,6 +16,11 @@ QSize MediaInfo::getResolution(QFile *video)
     return getMetadata(video).value(QMediaMetaData::Resolution).toSize();
 }
 
+QDateTime MediaInfo::getDate(QFile *media)
+{
+    return getMetadata(media).value(QMediaMetaData::Date).toDateTime();
+}
+
 bool MediaInfo::isSameLength(QFile *media1, QFile *media2)
 {
     long media1Len = getMetadata(media1).value(QMediaMetaData::Duration).toLongLong() / 1000;

@@ -13,6 +13,7 @@ public:
     bool addSegment(FSegment *segment);
     bool verify();
     int getId();
+    FSegment* getSegment(int i);
     QString getIdString();
 
     QString toString();
