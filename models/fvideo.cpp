@@ -45,6 +45,21 @@ QString FVideo::getIdString()
     return vidIdString;
 }
 
+FFormat FVideo::getFormat()
+{
+    return (segments.length() > 0) ?  segments.at(0)->getFormat() : FFormat();
+}
+
+QTime FVideo::getLength()
+{
+    QTime totalLength(0,0);
+    long totalMs = 0.0;
+    for (FSegment *segment: segments) {
+        totalMs += totalLength.msecsTo(segment->getLength());
+    }
+    return totalLength.addMSecs(totalMs);
+}
+
 QString FVideo::toString()
 {
     QString ret;

@@ -4,6 +4,10 @@
 #include <QObject>
 #include <QFile>
 #include <QFileInfo>
+#include <QTime>
+
+#include "models/fformat.h"
+#include "models/fformats.h"
 
 class FSegment : public QObject
 {
@@ -28,6 +32,9 @@ public:
     QFile *getBackTHM() const;
     QFile *getBackWAV() const;
 
+    FFormat getFormat();
+    QTime getLength();
+
 signals:
     void verifyError(QString error);
 
@@ -42,6 +49,8 @@ private:
     QFile *backLRV = nullptr;
     QFile *backTHM = nullptr;
     QFile *backWAV = nullptr;
+
+    FFormat format;
 
 };
 

@@ -21,10 +21,17 @@ QDateTime MediaInfo::getDate(QFile *media)
     return getMetadata(media).value(QMediaMetaData::Date).toDateTime();
 }
 
+QTime MediaInfo::getLength(QFile *media1)
+{
+    QTime length(0,0);
+    return length.addMSecs(getMetadata(media1).value(QMediaMetaData::Duration).toLongLong());
+}
+
 bool MediaInfo::isSameLength(QFile *media1, QFile *media2)
 {
-    long media1Len = getMetadata(media1).value(QMediaMetaData::Duration).toLongLong() / 1000;
-    long media2Len = getMetadata(media2).value(QMediaMetaData::Duration).toLongLong() / 1000;
+    QTime time;
+    long media1Len = time.msecsTo(getLength(media1)) / 1000;
+    long media2Len = time.msecsTo(getLength(media2)) / 1000;
 
     bool sameLength = media1Len == media2Len;
     if (!sameLength) {
@@ -33,6 +40,10 @@ bool MediaInfo::isSameLength(QFile *media1, QFile *media2)
 
     return sameLength;
 }
+
+
+
+
 
 QSize MediaInfo::getImageResolution(QFile *image)
 {

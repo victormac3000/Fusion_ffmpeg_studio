@@ -1,6 +1,5 @@
 #include "fsegment.h"
 #include "models/fvideo.h"
-#include "models/fformats.h"
 
 FSegment::FSegment(QObject *parent, int id, QFile *front_mp4, QFile *front_lrv, QFile *front_thm, QFile *back_mp4, QFile *back_lrv, QFile *back_thm, QFile *back_wav)
     : QObject {parent}
@@ -76,6 +75,8 @@ bool FSegment::verify()
         return false;
     }
 
+    this->format = *frontMP4Format;
+
     return true;
 }
 
@@ -112,6 +113,16 @@ QFile *FSegment::getBackTHM() const
 QFile *FSegment::getBackWAV() const
 {
     return backWAV;
+}
+
+FFormat FSegment::getFormat()
+{
+    return format;
+}
+
+QTime FSegment::getLength()
+{
+    return MediaInfo::getLength(frontMP4);
 }
 
 QString FSegment::getIdString()

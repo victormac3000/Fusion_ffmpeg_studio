@@ -16,6 +16,9 @@ public:
     FSegment* getSegment(int i);
     QString getIdString();
 
+    FFormat getFormat();
+    QTime getLength();
+
     QString toString();
 
 signals:
