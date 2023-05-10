@@ -3,7 +3,8 @@
 
 QFile* Logger::getLogFile()
 {
-    QString writableLocation = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QSettings settings;
+    QString writableLocation = settings.value("workingDir").toString();
 
     if (writableLocation.isEmpty()) {
         QCoreApplication::exit(100);

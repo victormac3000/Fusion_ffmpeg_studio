@@ -7,6 +7,19 @@ EditorPane::EditorPane(QWidget *parent, QList<FVideo*> videos) :
 {
     ui->setupUi(this);
 
+    // Connect buttons
+    connect(ui->generate_preview_button, SIGNAL(clicked()), this, SLOT(preRenderButtonClicked()));
+
+    this->ffmpeg = new FFmpeg;
+    this->ffmpegThread = new QThread;
+
+    connect(this, SIGNAL(preRender(FVideo*)), ffmpeg, SLOT(preRender(FVideo*)));
+
+    this->ffmpeg->moveToThread(ffmpegThread);
+    this->ffmpegThread->start();
+
+
+
     int i = 0;
     //int col = 0;
     for (FVideo* video: videos) {
@@ -20,7 +33,7 @@ EditorPane::EditorPane(QWidget *parent, QList<FVideo*> videos) :
     }
     if (videos.length() > 0) {
         videoItemClicked(this->videos.at(0));
-
+/*
         QVideoWidget *videoWidget = new QVideoWidget;
         ui->media_player_layout->addWidget(videoWidget);
 
@@ -33,6 +46,7 @@ EditorPane::EditorPane(QWidget *parent, QList<FVideo*> videos) :
         //player->setSource(QUrl(":/Images/Snow.jpg"));
         player->setVideoOutput(videoWidget);
         player->play();
+*/
     }
 }
 
@@ -65,4 +79,9 @@ void EditorPane::videoItemClicked(FVideoItem *videoItem)
 
 
 
+}
+
+void EditorPane::preRenderButtonClicked()
+{
+    emit preRender(videos.at(selected)->getVideo());
 }

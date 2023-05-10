@@ -16,8 +16,10 @@ SOURCES += \
     models/fformats.cpp \
     models/fsegment.cpp \
     models/fvideo.cpp \
+    panes/items/fqueueitem.cpp \
     panes/items/fvideoitem.cpp \
     utils/dialogs.cpp \
+    utils/ffmpeg.cpp \
     utils/logger.cpp \
     utils/mediainfo.cpp \
     windows/about.cpp \
@@ -33,8 +35,10 @@ HEADERS += \
     models/fformats.h \
     models/fsegment.h \
     models/fvideo.h \
+    panes/items/fqueueitem.h \
     panes/items/fvideoitem.h \
     utils/dialogs.h \
+    utils/ffmpeg.h \
     utils/logger.h \
     utils/mediainfo.h \
     windows/about.h \
@@ -46,6 +50,7 @@ HEADERS += \
     worker.h
 
 FORMS += \
+    panes/items/fqueueitem.ui \
     panes/items/fvideoitem.ui \
     windows/about.ui \
     windows/mainwindow.ui \

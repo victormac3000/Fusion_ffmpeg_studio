@@ -41,10 +41,6 @@ bool MediaInfo::isSameLength(QFile *media1, QFile *media2)
     return sameLength;
 }
 
-
-
-
-
 QSize MediaInfo::getImageResolution(QFile *image)
 {
     QImage img(image->fileName());

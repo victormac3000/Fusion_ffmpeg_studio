@@ -9,6 +9,7 @@
 #include <QMessageBox>
 #include <QStandardPaths>
 #include <QFileInfo>
+#include <QSettings>
 
 class Logger
 {
