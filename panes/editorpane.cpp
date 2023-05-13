@@ -14,6 +14,7 @@ EditorPane::EditorPane(QWidget *parent, QList<FVideo*> videos) :
     this->ffmpegThread = new QThread;
 
     connect(this, SIGNAL(preRender(FVideo*)), ffmpeg, SLOT(preRender(FVideo*)));
+    connect(ffmpeg, SIGNAL(preRenderError(FVideo*,QString)), this, SLOT(preRenderError(FVideo*,QString)));
 
     this->ffmpeg->moveToThread(ffmpegThread);
     this->ffmpegThread->start();
@@ -52,6 +53,9 @@ EditorPane::EditorPane(QWidget *parent, QList<FVideo*> videos) :
 
 EditorPane::~EditorPane()
 {
+    ffmpegThread->quit();
+    ffmpegThread->wait();
+    delete ffmpeg;
     delete ui;
 }
 
@@ -84,4 +88,10 @@ void EditorPane::videoItemClicked(FVideoItem *videoItem)
 void EditorPane::preRenderButtonClicked()
 {
     emit preRender(videos.at(selected)->getVideo());
+}
+
+void EditorPane::preRenderError(FVideo *video, QString error)
+{
+    qWarning() << "There was a prerender error on video" << video->getIdString();
+    Dialogs::warning("There was an error prerendering the video" + video->getIdString());
 }

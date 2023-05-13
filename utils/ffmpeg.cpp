@@ -3,8 +3,6 @@
 FFmpeg::FFmpeg(QObject *parent)
     : QObject{parent}
 {
-    QString ffmpegPath = getPath();
-    qDebug() << "FFMpeg binary path found:" << ffmpegPath;
     this->process = new QProcess(this);
 
     connect(process, SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(processErrorOccurred(QProcess::ProcessError)));
@@ -14,38 +12,68 @@ FFmpeg::FFmpeg(QObject *parent)
     connect(process, SIGNAL(started()), this, SLOT(processStarted()));
     connect(process, SIGNAL(stateChanged(QProcess::ProcessState)), this, SLOT(processStateChanged(QProcess::ProcessState)));
 
+    QString ffmpegPath = getPath();
+
+    if (ffmpegPath.isEmpty()) {
+        qWarning() << "FFMpeg binary path not found:" << ffmpegPath;
+    }
+
     this->process->setProgram(ffmpegPath);
-    this->params.append("-hide_banner");
-    this->params.append("-loglevel");
-    this->params.append("error");
-    this->params.append("-stats");
 
     qDebug() << "FFMpeg created";
 }
 
 FFmpeg::~FFmpeg()
 {
+    process->terminate();
+    qDebug() << "FFmpeg running, waiting for finished";
+    process->waitForFinished();
+    delete process;
     qDebug() << "FFMpeg destroyed";
 }
 
 void FFmpeg::preRender(FVideo *video)
 {
+    /*
+    command.replace("ffmpeg", fixPath(getPath()));
+    command.replace("<front>", video->getSegment(0)->getFrontMP4()->fileName());
+    command.replace("<back>", video->getSegment(0)->getBackMP4()->fileName());
+    command.replace("<codec>", "libx265");
+    command.replace("<merge>", settings.value("renderedDir").toString() + "/" + video->getIdString() + ".MP4");
+    */
+
+    QString outPath = settings.value("workingDir").toString() + "/" + video->getIdString() + ".MP4";
+    QFile outFile(outPath);
+
+    if (outFile.exists() && !outFile.remove()) {
+        emit preRenderError(video, "There was an internal error, inspect the logs for more information");
+        qWarning() << "Could not override the output file" << outPath;
+        return;
+    }
+
+    params.append("-hide_banner");
+    params.append("-loglevel");
+    params.append("error");
+    params.append("-stats");
     params.append("-i");
-    params.append("'" + video->getSegment(0)->getFrontMP4()->fileName() + "'");
+    params.append(QDir::toNativeSeparators(video->getSegment(0)->getFrontMP4()->fileName()));
     params.append("-i");
-    params.append("'" + video->getSegment(0)->getBackMP4()->fileName() + "'");
+    params.append(QDir::toNativeSeparators(video->getSegment(0)->getBackMP4()->fileName()));
     params.append("-filter_complex");
     params.append("hstack");
     params.append("-c:v");
     params.append("libx265");
-    params.append("'" + settings.value("renderedDir").toString() + "/VIDEO_" + video->getIdString() + ".MP4'");
-    QString cli;
-    for (const QString &a: params) {
-        cli.append(a+" ");
+    params.append(QDir::toNativeSeparators(outPath));
+
+
+    if (process->state() == QProcess::Running) {
+        process->terminate();
+        qDebug() << "FFmpeg running, waiting for finished";
+        process->waitForFinished();
     }
-    qDebug() << "Ffmpeg command:" << cli;
+
     process->setArguments(params);
-    process->startDetached();
+    process->start();
 }
 
 void FFmpeg::processStarted()
@@ -65,7 +93,16 @@ void FFmpeg::processReadyReadOut()
 
 void FFmpeg::processReadyReadError()
 {
-    qWarning() << "FFmpeg has given an stdout error:" << process->readAllStandardError();
+    QString stderr = process->readAllStandardError();
+
+    static QRegularExpression re("frame=\\s*(?<nframe>[0-9]+)\\s+fps=\\s*(?<nfps>[0-9\\.]+)\\s+q=(?<nq>[0-9\\.-]+)\\s+(L?)\\s*size=\\s*(?<nsize>[0-9]+)(?<ssize>kB|mB|b)?\\s*time=\\s*(?<sduration>[0-9\\:\\.]+)\\s*bitrate=\\s*(?<nbitrate>[0-9\\.]+)(?<sbitrate>bits\\/s|mbits\\/s|kbits\\/s)?.*(dup=(?<ndup>\\d+)\\s*)?(drop=(?<ndrop>\\d+)\\s*)?speed=\\s*(?<nspeed>[0-9\\.]+)x");
+
+    if (re.match(stderr).hasMatch()) {
+        qInfo() << "FFmpeg status:" << stderr;
+    } else {
+        qWarning() << "FFmpeg has given an stdout error:" << stderr;
+    }
+
 }
 
 void FFmpeg::processErrorOccurred(QProcess::ProcessError error)

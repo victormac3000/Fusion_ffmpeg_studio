@@ -6,8 +6,11 @@
 #include <QDebug>
 #include <QProcess>
 #include <QSettings>
+#include <QRegularExpression>
 
 #include "models/fvideo.h"
+
+const int TO_DUAL_FISHEYE = 0;
 
 class FFmpeg : public QObject
 {

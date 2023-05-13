@@ -30,6 +30,7 @@ signals:
 private slots:
     void videoItemClicked(FVideoItem *videoItem);
     void preRenderButtonClicked();
+    void preRenderError(FVideo *video, QString error);
 
 private:
     Ui::EditorPane *ui;
