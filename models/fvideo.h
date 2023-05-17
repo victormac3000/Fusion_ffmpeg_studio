@@ -14,6 +14,7 @@ public:
     bool verify();
     int getId();
     FSegment* getSegment(int i);
+    int getNumSegments();
     QString getIdString();
 
     FFormat getFormat();

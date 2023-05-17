@@ -38,6 +38,8 @@ private:
     QProcess *process;
     QList<QString> params;
     QSettings settings;
+    bool running = false;
+    int exitCode = 1000;
 
     QString getPath();
 

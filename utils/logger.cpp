@@ -1,6 +1,14 @@
 #include "logger.h"
 #include <iostream>
 
+QHash<QtMsgType, QString> Logger::contextNames = {
+    {QtMsgType::QtDebugMsg,		" Debug  "},
+    {QtMsgType::QtInfoMsg,		"  Info  "},
+    {QtMsgType::QtWarningMsg,	"Warning "},
+    {QtMsgType::QtCriticalMsg,	"Critical"},
+    {QtMsgType::QtFatalMsg,		" Fatal  "}
+};
+
 QFile* Logger::getLogFile()
 {
     QSettings settings;
@@ -47,26 +55,19 @@ void Logger::debugHandler(QtMsgType type, const QMessageLogContext &context, con
         std::cerr << "Debug handler could not open logFile. Error number " << logFile->error() << " and error string " << logFile->errorString().toStdString() <<  std::endl;        return;
         return;
     }
-    QString logLine;
-    switch (type) {
-    case QtDebugMsg:
-        logLine.append("[DEBUG] ");
-        break;
-    case QtInfoMsg:
-        logLine.append("[INFO] ");
-        break;
-    case QtWarningMsg:
-        logLine.append("[WARNING] ");
-        break;
-    case QtCriticalMsg:
-        logLine.append("[CRITICAL] ");
-        break;
-    case QtFatalMsg:
-        logLine.append("[FATAL] ");
-        break;
-    }
-    logLine.append(localMsg.constData()).append(file)
-        .append(QString::number(context.line)).append(function);
+
+    QString logLine = QObject::tr("%1 | %2 | %3 | %4 | %5 | %6\n").
+                    arg(QDateTime::currentDateTime().toString("dd-MM-yyyy hh:mm:ss")).
+                    arg(Logger::contextNames.value(type)).
+                    arg(context.line).
+                    arg(QString(context.file).
+                        section('\\', -1)).
+                    arg(QString(context.function).
+                        section('(', -2, -2).
+                        section(' ', -1).
+                        section(':', -1)).
+                    arg(msg);
+
     logFile->write(logLine.toUtf8());
     #ifdef QT_DEBUG
     if (type != 1000) std::cerr << logLine.toStdString() << std::endl;

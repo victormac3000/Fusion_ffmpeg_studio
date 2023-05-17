@@ -17,7 +17,7 @@ public:
     static QFile* getLogFile();
     static void debugHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg);
 private:
-
+    static QHash<QtMsgType, QString> contextNames;
 };
 
 #endif // LOGGER_H

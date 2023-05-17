@@ -34,51 +34,84 @@ FFmpeg::~FFmpeg()
 
 void FFmpeg::preRender(FVideo *video)
 {
-    /*
-    command.replace("ffmpeg", fixPath(getPath()));
-    command.replace("<front>", video->getSegment(0)->getFrontMP4()->fileName());
-    command.replace("<back>", video->getSegment(0)->getBackMP4()->fileName());
-    command.replace("<codec>", "libx265");
-    command.replace("<merge>", settings.value("renderedDir").toString() + "/" + video->getIdString() + ".MP4");
-    */
+    qDebug() << "Prerender requested for video" << video->getId();
 
-    QString outPath = settings.value("workingDir").toString() + "/" + video->getIdString() + ".MP4";
-    QFile outFile(outPath);
+    QDir workingDir(settings.value("workingDir").toString());
 
-    if (outFile.exists() && !outFile.remove()) {
-        emit preRenderError(video, "There was an internal error, inspect the logs for more information");
-        qWarning() << "Could not override the output file" << outPath;
+    if (!workingDir.exists()) {
+        emit preRenderError(video, "The working directory does not exist: " + workingDir.absolutePath());
         return;
     }
 
-    params.append("-hide_banner");
-    params.append("-loglevel");
-    params.append("error");
-    params.append("-stats");
-    params.append("-i");
-    params.append(QDir::toNativeSeparators(video->getSegment(0)->getFrontMP4()->fileName()));
-    params.append("-i");
-    params.append(QDir::toNativeSeparators(video->getSegment(0)->getBackMP4()->fileName()));
-    params.append("-filter_complex");
-    params.append("hstack");
-    params.append("-c:v");
-    params.append("libx265");
-    params.append(QDir::toNativeSeparators(outPath));
+    int numSegments = video->getNumSegments();
+
+    for (int i=0; i<numSegments; i++) {
+        FSegment *segment = video->getSegment(i);
+
+        qDebug() << "Merging front and back of segment" << segment->getId();
+
+        if (segment->getMerged() != nullptr) {
+            qDebug() << "The segment had already a merged video. The new one will override it";
+        }
+
+        QString outPath = workingDir.absolutePath()
+                          + "/"
+                          + video->getIdString()
+                          + "_"
+                          + segment->getIdString()
+                          + "_MERGE"
+                          + ".MP4";
+
+        QFile outFile(outPath);
+
+        if (outFile.exists() && !outFile.remove()) {
+            emit preRenderError(video, "There was an internal error, inspect the logs for more information");
+            qWarning() << "Could not override the existing merged video of segment" << segment->getId() << "on path" << outPath;
+            return;
+        }
+
+        params.append("-hide_banner");
+        params.append("-loglevel");
+        params.append("error");
+        params.append("-stats");
+        params.append("-i");
+        params.append(QDir::toNativeSeparators(segment->getFrontMP4()->fileName()));
+        params.append("-i");
+        params.append(QDir::toNativeSeparators(segment->getBackMP4()->fileName()));
+        params.append("-filter_complex");
+        params.append("hstack");
+        params.append("-c:v");
+        params.append("libx265");
+        params.append(QDir::toNativeSeparators(outPath));
 
 
-    if (process->state() == QProcess::Running) {
-        process->terminate();
-        qDebug() << "FFmpeg running, waiting for finished";
-        process->waitForFinished();
+        if (process->state() == QProcess::Running) {
+            process->terminate();
+            qDebug() << "FFmpeg running, waiting for finished";
+            process->waitForFinished();
+        }
+
+        process->setArguments(params);
+        process->start();
+
+        while (running) {}
+
+        if (exitCode > 0) {
+            emit preRenderError(video, "There was an internal error, inspect the logs for more information");
+            qWarning() << "FFMpeg exited with error code > 0 " << exitCode
+                       << "Could not override the existing merged video of segment"
+                       << segment->getId() << "on path" << outPath;
+            return;
+        }
+
+
     }
 
-    process->setArguments(params);
-    process->start();
 }
 
 void FFmpeg::processStarted()
 {
-    qDebug() << "FFmpeg has started";
+    running = true;
 }
 
 void FFmpeg::processStateChanged(QProcess::ProcessState newState)
@@ -95,10 +128,40 @@ void FFmpeg::processReadyReadError()
 {
     QString stderr = process->readAllStandardError();
 
-    static QRegularExpression re("frame=\\s*(?<nframe>[0-9]+)\\s+fps=\\s*(?<nfps>[0-9\\.]+)\\s+q=(?<nq>[0-9\\.-]+)\\s+(L?)\\s*size=\\s*(?<nsize>[0-9]+)(?<ssize>kB|mB|b)?\\s*time=\\s*(?<sduration>[0-9\\:\\.]+)\\s*bitrate=\\s*(?<nbitrate>[0-9\\.]+)(?<sbitrate>bits\\/s|mbits\\/s|kbits\\/s)?.*(dup=(?<ndup>\\d+)\\s*)?(drop=(?<ndrop>\\d+)\\s*)?speed=\\s*(?<nspeed>[0-9\\.]+)x");
+    static QRegularExpression statusRe("frame=\\s*(?<nframe>[0-9]+)\\s+fps=\\s*(?<nfps>[0-9\\.]+)\\s+q=(?<nq>[0-9\\.-]+)\\s+(L?)\\s*size=\\s*(?<nsize>[0-9]+)(?<ssize>kB|mB|b)?\\s*time=\\s*(?<sduration>[0-9\\:\\.]+)\\s*bitrate=\\s*(?<nbitrate>[0-9\\.]+)(?<sbitrate>bits\\/s|mbits\\/s|kbits\\/s)?.*(dup=(?<ndup>\\d+)\\s*)?(drop=(?<ndrop>\\d+)\\s*)?speed=\\s*(?<nspeed>[0-9\\.]+)x");
 
-    if (re.match(stderr).hasMatch()) {
-        qInfo() << "FFmpeg status:" << stderr;
+    QRegularExpressionMatch statusReMatch = statusRe.match(stderr);
+    if (statusReMatch.hasMatch()) {
+        bool frameOk = false;
+        bool fpsOk = false;
+        bool qualityOk = false;
+        bool sizeOk = false;
+        bool bitrateOk = false;
+        bool speedOk = false;
+
+        long frame = statusReMatch.captured("nframe").toLong(&frameOk);
+        double fps = statusReMatch.captured("nfps").toDouble(&fpsOk);
+        double quality = statusReMatch.captured("nq").toDouble(&qualityOk);
+        long size = statusReMatch.captured("nsize").toLong(&sizeOk);
+        QString time = statusReMatch.captured("sduration");
+        double bitrate = statusReMatch.captured("nbitrate").toDouble(&bitrateOk);
+        double speed = statusReMatch.captured("nspeed").toDouble(&speedOk);
+
+        if (!frameOk) qWarning() << "Parameter frame of ffmpeg Output could not be read correctly. Full status: " << stderr;
+        if (!fpsOk) qWarning() << "Parameter fps of ffmpeg Output could not be read correctly. Full status: " << stderr;
+        if (!qualityOk) qWarning() << "Parameter q (quality) of ffmpeg Output could not be read correctly. Full status: " << stderr;
+        if (!bitrateOk) qWarning() << "Parameter bitrate of ffmpeg Output could not be read correctly. Full status: " << stderr;
+        if (!speedOk) qWarning() << "Parameter speed of ffmpeg Output could not be read correctly. Full status: " << stderr;
+
+        qInfo() << "FFmpeg status: "
+                << "FRAME (" << frame << ") "
+                << "FPS (" << fps << ") "
+                << "QUALITY (" << quality << ") "
+                << "SIZE (" << size << ") "
+                << "TIME (" << time << ") "
+                << "BITRATE (" << bitrate << ") "
+                << "SPEED (" << speed << ") ";
+
     } else {
         qWarning() << "FFmpeg has given an stdout error:" << stderr;
     }
@@ -112,7 +175,8 @@ void FFmpeg::processErrorOccurred(QProcess::ProcessError error)
 
 void FFmpeg::processFinished(int exitCode, QProcess::ExitStatus exitStatus)
 {
-    qDebug() << "FFmpeg has finished with exit code" << exitCode << "and exit status" << exitStatus;
+    running = false;
+    this->exitCode = (exitStatus == QProcess::CrashExit) ? 1001 : exitCode;
 }
 
 QString FFmpeg::getPath()

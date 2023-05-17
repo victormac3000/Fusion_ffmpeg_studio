@@ -115,6 +115,16 @@ QFile *FSegment::getBackWAV() const
     return backWAV;
 }
 
+void FSegment::setMerged(QFile *merged)
+{
+    this->merged = merged;
+}
+
+QFile *FSegment::getMerged()
+{
+    return this->merged;
+}
+
 FFormat FSegment::getFormat()
 {
     return format;
@@ -123,6 +133,11 @@ FFormat FSegment::getFormat()
 QTime FSegment::getLength()
 {
     return MediaInfo::getLength(frontMP4);
+}
+
+int FSegment::getId()
+{
+    return id;
 }
 
 QString FSegment::getIdString()

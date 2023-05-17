@@ -19,7 +19,7 @@ WelcomePane::~WelcomePane()
 void WelcomePane::openDCIMFolder()
 {
     QString proposedWd = QFileDialog::getExistingDirectory(
-        this, tr("Select the DCIM folder of the fusion"), "/Users/victor/Documents/NoTM/2023_02_11_Nieve/DCIM", QFileDialog::ShowDirsOnly
+        this, tr("Select the DCIM folder of the fusion"), "/Users/victor/Documents/NoTM/2023_02_11_Nieve/Test/DCIM", QFileDialog::ShowDirsOnly
     );
     if (proposedWd.isEmpty()) return;
     LoadingPane *loader = new LoadingPane(nullptr, proposedWd);

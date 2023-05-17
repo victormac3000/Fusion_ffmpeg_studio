@@ -38,6 +38,11 @@ FSegment* FVideo::getSegment(int i)
     return segments.at(i);
 }
 
+int FVideo::getNumSegments()
+{
+    return this->segments.length();
+}
+
 QString FVideo::getIdString()
 {
     QString vidIdString = QString::number(id);
