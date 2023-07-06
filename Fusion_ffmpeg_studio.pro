@@ -16,12 +16,14 @@ SOURCES += \
     models/fformats.cpp \
     models/fsegment.cpp \
     models/fvideo.cpp \
+    models/renderwork.cpp \
     panes/items/fqueueitem.cpp \
     panes/items/fvideoitem.cpp \
     utils/dialogs.cpp \
     utils/ffmpeg.cpp \
     utils/logger.cpp \
     utils/mediainfo.cpp \
+    utils/renderer.cpp \
     windows/about.cpp \
     windows/mainwindow.cpp \
     panes/editorpane.cpp \
@@ -35,12 +37,14 @@ HEADERS += \
     models/fformats.h \
     models/fsegment.h \
     models/fvideo.h \
+    models/renderwork.h \
     panes/items/fqueueitem.h \
     panes/items/fvideoitem.h \
     utils/dialogs.h \
     utils/ffmpeg.h \
     utils/logger.h \
     utils/mediainfo.h \
+    utils/renderer.h \
     windows/about.h \
     windows/mainwindow.h \
     panes/editorpane.h \

@@ -5,6 +5,17 @@
 
 #include "models/fsegment.h"
 
+struct FFmpegStatus {
+    int frame;
+    int fps;
+    int quality;
+    qint64 size;
+    QTime elapsedTime;
+    int bitrate;
+    float speed;
+    float percent;
+};
+
 class FVideo : public QObject
 {
     Q_OBJECT
@@ -31,9 +42,17 @@ private slots:
 private:
     int id;
     QList<FSegment*> segments;
+    bool loadingPreview;
 
 
 
+};
+
+struct RenderItem {
+    FVideo *video;
+    int type;
+    QTime start;
+    QTime end;
 };
 
 #endif // QVIDEO_H

@@ -130,9 +130,36 @@ FFormat FSegment::getFormat()
     return format;
 }
 
+float FSegment::getFPS()
+{
+    if (fps <= 0) {
+        fps = MediaInfo::getFPS(frontMP4);
+    }
+    return fps;
+}
+
+QSize FSegment::getResolution()
+{
+    if (!resolution.isValid()) {
+        resolution = MediaInfo::getResolution(frontMP4);
+    }
+    return resolution;
+}
+
+QDateTime FSegment::getDate()
+{
+    if (!date.isValid()) {
+        date = MediaInfo::getDate(frontMP4);
+    }
+    return date;
+}
+
 QTime FSegment::getLength()
 {
-    return MediaInfo::getLength(frontMP4);
+    if (!length.isValid()) {
+        length = MediaInfo::getLength(frontMP4);
+    }
+    return length;
 }
 
 int FSegment::getId()

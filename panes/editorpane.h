@@ -4,12 +4,17 @@
 #include <QWidget>
 #include <QMouseEvent>
 #include <QVideoWidget>
+#include <QQueue>
 
+#include "QtWidgets/qboxlayout.h"
 #include "models/fvideo.h"
 #include "models/fsegment.h"
+#include "models/renderwork.h"
+#include "panes/items/fqueueitem.h"
 #include "utils/dialogs.h"
 #include "utils/ffmpeg.h"
 #include "panes/items/fvideoitem.h"
+#include "utils/renderer.h"
 
 namespace Ui {
 class EditorPane;
@@ -25,20 +30,26 @@ public:
 
 signals:
     void changePane(QWidget *pane);
-    void preRender(FVideo *video);
+
+    void rendererAdd(RenderWork *renderWork);
+    void rendererRun();
 
 private slots:
     void videoItemClicked(FVideoItem *videoItem);
-    void preRenderButtonClicked();
-    void preRenderError(FVideo *video, QString error);
+
+    void renderPreviewClicked();
+    void renderQueueClicked();
+    void renderWorkFinished(RenderWork *renderWork, bool error);
 
 private:
     Ui::EditorPane *ui;
     QList<FVideoItem*> videos;
+    QList<FQueueItem*> queueItems;
+    QVBoxLayout *queueLayout;
     QMediaPlayer *player;
     int selected = 0;
-    FFmpeg *ffmpeg;
-    QThread *ffmpegThread;
+    Renderer *renderer;
+    QThread *rendererThread;
 };
 
 #endif // EDITORPANE_H

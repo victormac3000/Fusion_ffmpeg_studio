@@ -37,6 +37,9 @@ public:
     QFile *getMerged();
 
     FFormat getFormat();
+    float getFPS();
+    QSize getResolution();
+    QDateTime getDate();
     QTime getLength();
 
 signals:
@@ -57,6 +60,11 @@ private:
     QFile *merged = nullptr;
 
     FFormat format;
+    float fps;
+    QSize resolution;
+    QDateTime date;
+    QTime length;
+
 
 };
 

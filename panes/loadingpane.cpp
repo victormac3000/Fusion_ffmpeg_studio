@@ -6,6 +6,7 @@ LoadingPane::LoadingPane(QWidget *parent, QString dcimPath) :
     ui(new Ui::LoadingPane)
 {
     ui->setupUi(this);
+
     this->workerThread = new QThread;
     worker.moveToThread(workerThread);
     this->workerThread->start();

@@ -1,8 +1,10 @@
 #ifndef MEDIAINFO_H
 #define MEDIAINFO_H
 
+#include <QSettings>
 #include <QMediaPlayer>
 #include <QMediaMetaData>
+#include <QDir>
 #include <QFile>
 #include <QSize>
 #include <QMimeDatabase>
@@ -10,6 +12,10 @@
 #include <QImage>
 #include <QDateTime>
 #include <QTime>
+#include <QThread>
+#include <QTimer>
+#include <QEventLoop>
+#include <QProcess>
 
 class MediaInfo
 {
@@ -24,6 +30,7 @@ public:
     static bool isAudio(QFile *media);
     static bool isImage(QFile *media);
     static QMimeType getMimeType(QFile *media);
+    static QString getFFProbePath();
 
 private:
     static QMediaMetaData getMetadata(QFile *media);

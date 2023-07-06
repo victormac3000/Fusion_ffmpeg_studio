@@ -9,6 +9,7 @@
 #include <QRegularExpression>
 
 #include "models/fvideo.h"
+#include "models/renderwork.h"
 
 const int TO_DUAL_FISHEYE = 0;
 
@@ -19,12 +20,13 @@ public:
     explicit FFmpeg(QObject *parent = nullptr);
     ~FFmpeg();
 
+    bool isRunning();
+
 signals:
-    void preRenderDone(FVideo *video);
-    void preRenderError(FVideo *video, QString error);
+    void renderDone(RenderWork *work, bool error);
 
 public slots:
-    void preRender(FVideo *video);
+    void render(RenderWork *work);
 
 private slots:
     void processStarted();
@@ -34,12 +36,15 @@ private slots:
     void processErrorOccurred(QProcess::ProcessError error);
     void processFinished(int exitCode, QProcess::ExitStatus exitStatus);
 
+    void renderDone();
+
 private:
     QProcess *process;
     QList<QString> params;
     QSettings settings;
     bool running = false;
     int exitCode = 1000;
+    RenderWork *work;
 
     QString getPath();
 

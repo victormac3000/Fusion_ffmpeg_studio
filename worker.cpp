@@ -105,6 +105,7 @@ void Worker::loadDCIM(QString dcimPath)
             segmentComplete();
         }
 
+        video->verify();
         videos.append(video);
     }
 

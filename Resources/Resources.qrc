@@ -9,5 +9,6 @@
         <file>Images/MediaPlayer/Play.png</file>
         <file>Images/MediaPlayer/Right.png</file>
         <file>Binaries/macOS/ffmpeg</file>
+        <file>Binaries/macOS/ffprobe</file>
     </qresource>
 </RCC>

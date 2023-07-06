@@ -12,6 +12,8 @@ FFmpeg::FFmpeg(QObject *parent)
     connect(process, SIGNAL(started()), this, SLOT(processStarted()));
     connect(process, SIGNAL(stateChanged(QProcess::ProcessState)), this, SLOT(processStateChanged(QProcess::ProcessState)));
 
+    connect(this, SIGNAL(renderDone(RenderWork*,bool)), this, SLOT(renderDone()));
+
     QString ffmpegPath = getPath();
 
     if (ffmpegPath.isEmpty()) {
@@ -32,18 +34,38 @@ FFmpeg::~FFmpeg()
     qDebug() << "FFMpeg destroyed";
 }
 
-void FFmpeg::preRender(FVideo *video)
+bool FFmpeg::isRunning()
 {
-    qDebug() << "Prerender requested for video" << video->getId();
+    return running;
+}
 
+void FFmpeg::render(RenderWork *work)
+{
     QDir workingDir(settings.value("workingDir").toString());
 
     if (!workingDir.exists()) {
-        emit preRenderError(video, "The working directory does not exist: " + workingDir.absolutePath());
+        qWarning() << "The working directory does not exist: " + workingDir.absolutePath();
+        emit renderDone(work, true);
         return;
     }
 
+    this->work = work;
+    FVideo *video = work->getVideo();
     int numSegments = video->getNumSegments();
+
+    if (RENDER_PREVIEW) {
+        qDebug() << "Generating render preview for video " << video->getId();
+
+        // STEP 1: MERGE ALL SEGMENTS FRONT AND BACK LOW RES VIDEOS
+        emit work->updateRenderStatusString("Merging front and back segment");
+
+
+        // STEP 2: MERGE ALL SEGMENTS INTO ONE BIG LRV VIDEO
+        // STEP 3: LINK THE BIG LRV VIDEO TO THE FVIDEO OBJECT
+    }
+
+
+
 
     for (int i=0; i<numSegments; i++) {
         FSegment *segment = video->getSegment(i);
@@ -60,13 +82,13 @@ void FFmpeg::preRender(FVideo *video)
                           + "_"
                           + segment->getIdString()
                           + "_MERGE"
-                          + ".MP4";
+                          + ".LRV";
 
         QFile outFile(outPath);
 
         if (outFile.exists() && !outFile.remove()) {
-            emit preRenderError(video, "There was an internal error, inspect the logs for more information");
             qWarning() << "Could not override the existing merged video of segment" << segment->getId() << "on path" << outPath;
+            emit renderDone(work, true);
             return;
         }
 
@@ -75,13 +97,15 @@ void FFmpeg::preRender(FVideo *video)
         params.append("error");
         params.append("-stats");
         params.append("-i");
-        params.append(QDir::toNativeSeparators(segment->getFrontMP4()->fileName()));
+        params.append(QDir::toNativeSeparators(segment->getFrontLRV()->fileName()));
         params.append("-i");
-        params.append(QDir::toNativeSeparators(segment->getBackMP4()->fileName()));
+        params.append(QDir::toNativeSeparators(segment->getBackLRV()->fileName()));
         params.append("-filter_complex");
         params.append("hstack");
         params.append("-c:v");
         params.append("libx265");
+        params.append("-f");
+        params.append("mp4");
         params.append(QDir::toNativeSeparators(outPath));
 
 
@@ -97,16 +121,14 @@ void FFmpeg::preRender(FVideo *video)
         while (running) {}
 
         if (exitCode > 0) {
-            emit preRenderError(video, "There was an internal error, inspect the logs for more information");
             qWarning() << "FFMpeg exited with error code > 0 " << exitCode
                        << "Could not override the existing merged video of segment"
                        << segment->getId() << "on path" << outPath;
+            emit renderDone(work, true);
             return;
         }
-
-
     }
-
+    emit renderDone(work, false);
 }
 
 void FFmpeg::processStarted()
@@ -153,6 +175,19 @@ void FFmpeg::processReadyReadError()
         if (!bitrateOk) qWarning() << "Parameter bitrate of ffmpeg Output could not be read correctly. Full status: " << stderr;
         if (!speedOk) qWarning() << "Parameter speed of ffmpeg Output could not be read correctly. Full status: " << stderr;
 
+        struct FFmpegStatus status;
+
+        status.frame = frame;
+        status.fps = fps;
+        status.quality = quality;
+        status.size = size;
+        status.elapsedTime = QTime::fromString(time);
+        status.bitrate = bitrate;
+        status.speed = speed;
+        status.percent = 0.55;
+
+        emit work->updateRenderStatus(&status);
+
         qInfo() << "FFmpeg status: "
                 << "FRAME (" << frame << ") "
                 << "FPS (" << fps << ") "
@@ -177,6 +212,11 @@ void FFmpeg::processFinished(int exitCode, QProcess::ExitStatus exitStatus)
 {
     running = false;
     this->exitCode = (exitStatus == QProcess::CrashExit) ? 1001 : exitCode;
+}
+
+void FFmpeg::renderDone()
+{
+    running = false;
 }
 
 QString FFmpeg::getPath()
