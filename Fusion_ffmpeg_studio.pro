@@ -1,4 +1,4 @@
-QT       += core gui multimedia multimediawidgets
+QT       += core gui xml multimedia multimediawidgets
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -16,9 +16,11 @@ SOURCES += \
     models/fformats.cpp \
     models/fsegment.cpp \
     models/fvideo.cpp \
+    models/project.cpp \
     models/renderwork.cpp \
     panes/items/fqueueitem.cpp \
     panes/items/fvideoitem.cpp \
+    panes/projectcreator.cpp \
     utils/dialogs.cpp \
     utils/ffmpeg.cpp \
     utils/logger.cpp \
@@ -37,9 +39,11 @@ HEADERS += \
     models/fformats.h \
     models/fsegment.h \
     models/fvideo.h \
+    models/project.h \
     models/renderwork.h \
     panes/items/fqueueitem.h \
     panes/items/fvideoitem.h \
+    panes/projectcreator.h \
     utils/dialogs.h \
     utils/ffmpeg.h \
     utils/logger.h \
@@ -56,6 +60,7 @@ HEADERS += \
 FORMS += \
     panes/items/fqueueitem.ui \
     panes/items/fvideoitem.ui \
+    panes/projectcreator.ui \
     windows/about.ui \
     windows/mainwindow.ui \
     panes/editorpane.ui \

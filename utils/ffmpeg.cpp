@@ -1,4 +1,5 @@
 #include "ffmpeg.h"
+#include "models/project.h"
 
 FFmpeg::FFmpeg(QObject *parent)
     : QObject{parent}
@@ -6,13 +7,9 @@ FFmpeg::FFmpeg(QObject *parent)
     this->process = new QProcess(this);
 
     connect(process, SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(processErrorOccurred(QProcess::ProcessError)));
-    connect(process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(processFinished(int,QProcess::ExitStatus)));
     connect(process, SIGNAL(readyReadStandardError()), this, SLOT(processReadyReadError()));
     connect(process, SIGNAL(readyReadStandardOutput()), this, SLOT(processReadyReadOut()));
-    connect(process, SIGNAL(started()), this, SLOT(processStarted()));
     connect(process, SIGNAL(stateChanged(QProcess::ProcessState)), this, SLOT(processStateChanged(QProcess::ProcessState)));
-
-    connect(this, SIGNAL(renderDone(RenderWork*,bool)), this, SLOT(renderDone()));
 
     QString ffmpegPath = getPath();
 
@@ -34,17 +31,17 @@ FFmpeg::~FFmpeg()
     qDebug() << "FFMpeg destroyed";
 }
 
-bool FFmpeg::isRunning()
-{
-    return running;
-}
-
 void FFmpeg::render(RenderWork *work)
 {
-    QDir workingDir(settings.value("workingDir").toString());
+    QString projectPath = work->getProject()->getPath();
 
-    if (!workingDir.exists()) {
-        qWarning() << "The working directory does not exist: " + workingDir.absolutePath();
+    QDir dfLowSegmentsFolder(projectPath + "/DFLowSegments");
+    QDir dfLowVideosFolder(projectPath + "/DFLowVideos");
+    QDir dfSegmentsFolder(projectPath + "/DFSegments");
+    QDir dfVideosFolder(projectPath + "/DFVideos");
+
+    if (!dfLowSegmentsFolder.exists() || !dfLowVideosFolder.exists() || !dfSegmentsFolder.exists() || !dfVideosFolder.exists()) {
+        qWarning() << "The project directory does not have the required directories" << projectPath;
         emit renderDone(work, true);
         return;
     }
@@ -54,12 +51,77 @@ void FFmpeg::render(RenderWork *work)
     int numSegments = video->getNumSegments();
 
     if (RENDER_PREVIEW) {
-        qDebug() << "Generating render preview for video " << video->getId();
+        qDebug() << "Generating RENDER_PREVIEW for video " << video->getId();
 
         // STEP 1: MERGE ALL SEGMENTS FRONT AND BACK LOW RES VIDEOS
-        emit work->updateRenderStatusString("Merging front and back segment");
+        emit work->updateRenderStatusString("Step 1 of 2: Merging front and back of each segment");
+
+        for (int i=0; i<numSegments; i++) {
+            FSegment *segment = video->getSegment(i);
+
+            qDebug() << "Merging front and back of segment" << segment->getId();
+
+            if (segment->getDualFisheyeLow() != nullptr && segment->getDualFisheyeLow()->exists()) {
+                qDebug() << "The segment had already a merged dual fisheye video";
+                if (!work->getOverwrite()) {
+                    qDebug() << "The work specified not to overwrite the existing video, we can skip this segment";
+                    continue;
+                }
+            }
+
+            QString outPath = dfLowSegmentsFolder.absolutePath()
+                              + "/"
+                              + QString::number(video->getId())
+                              + "_"
+                              + QString::number(segment->getId())
+                              + ".MP4";
+
+            if (QFile::exists(outPath) && !QFile::remove(outPath)) {
+                qWarning() << "Could not override the existing dual fisheye video of segment" << segment->getId() << "on path" << outPath;
+                emit renderDone(work, true);
+                return;
+            }
+
+            QList<QString> params;
+
+            params.append("-hide_banner");
+            params.append("-loglevel");
+            params.append("error");
+            params.append("-stats");
+            params.append("-i");
+            params.append(QDir::toNativeSeparators(segment->getFrontLRV()->fileName()));
+            params.append("-i");
+            params.append(QDir::toNativeSeparators(segment->getBackLRV()->fileName()));
+            params.append("-filter_complex");
+            params.append("hstack");
+            params.append("-c:v");
+            params.append("libx265");
+            params.append(QDir::toNativeSeparators(outPath));
 
 
+            if (process->state() == QProcess::Running) {
+                qDebug() << "FFMpeg is busy, Cannot do work of type" << work->getTypeString() << "for video" << work->getVideo()->getIdString();
+                return;
+            }
+
+            process->setArguments(params);
+            process->start();
+
+            while (process->state() == QProcess::Running) {}
+
+            qDebug() << "FFMpeg process finished";
+
+            if (process->exitCode() > 0) {
+                qWarning() << "FFMpeg exited with error code >0" << process->exitCode()
+                           << "and exit status" << process->exitStatus()
+                           << "Could not generate the dual fisheye video of segment"
+                           << segment->getId() << "on path" << outPath;
+                emit renderDone(work, true);
+                return;
+            }
+
+            segment->setDualFisheye(new QFile(outPath));
+        }
         // STEP 2: MERGE ALL SEGMENTS INTO ONE BIG LRV VIDEO
         // STEP 3: LINK THE BIG LRV VIDEO TO THE FVIDEO OBJECT
     }
@@ -67,73 +129,8 @@ void FFmpeg::render(RenderWork *work)
 
 
 
-    for (int i=0; i<numSegments; i++) {
-        FSegment *segment = video->getSegment(i);
 
-        qDebug() << "Merging front and back of segment" << segment->getId();
-
-        if (segment->getMerged() != nullptr) {
-            qDebug() << "The segment had already a merged video. The new one will override it";
-        }
-
-        QString outPath = workingDir.absolutePath()
-                          + "/"
-                          + video->getIdString()
-                          + "_"
-                          + segment->getIdString()
-                          + "_MERGE"
-                          + ".LRV";
-
-        QFile outFile(outPath);
-
-        if (outFile.exists() && !outFile.remove()) {
-            qWarning() << "Could not override the existing merged video of segment" << segment->getId() << "on path" << outPath;
-            emit renderDone(work, true);
-            return;
-        }
-
-        params.append("-hide_banner");
-        params.append("-loglevel");
-        params.append("error");
-        params.append("-stats");
-        params.append("-i");
-        params.append(QDir::toNativeSeparators(segment->getFrontLRV()->fileName()));
-        params.append("-i");
-        params.append(QDir::toNativeSeparators(segment->getBackLRV()->fileName()));
-        params.append("-filter_complex");
-        params.append("hstack");
-        params.append("-c:v");
-        params.append("libx265");
-        params.append("-f");
-        params.append("mp4");
-        params.append(QDir::toNativeSeparators(outPath));
-
-
-        if (process->state() == QProcess::Running) {
-            process->terminate();
-            qDebug() << "FFmpeg running, waiting for finished";
-            process->waitForFinished();
-        }
-
-        process->setArguments(params);
-        process->start();
-
-        while (running) {}
-
-        if (exitCode > 0) {
-            qWarning() << "FFMpeg exited with error code > 0 " << exitCode
-                       << "Could not override the existing merged video of segment"
-                       << segment->getId() << "on path" << outPath;
-            emit renderDone(work, true);
-            return;
-        }
-    }
     emit renderDone(work, false);
-}
-
-void FFmpeg::processStarted()
-{
-    running = true;
 }
 
 void FFmpeg::processStateChanged(QProcess::ProcessState newState)
@@ -206,17 +203,6 @@ void FFmpeg::processReadyReadError()
 void FFmpeg::processErrorOccurred(QProcess::ProcessError error)
 {
     qWarning() << "FFmpeg has given an error:" << error;
-}
-
-void FFmpeg::processFinished(int exitCode, QProcess::ExitStatus exitStatus)
-{
-    running = false;
-    this->exitCode = (exitStatus == QProcess::CrashExit) ? 1001 : exitCode;
-}
-
-void FFmpeg::renderDone()
-{
-    running = false;
 }
 
 QString FFmpeg::getPath()

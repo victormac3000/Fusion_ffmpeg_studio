@@ -8,6 +8,7 @@
 
 #include "models/fvideo.h"
 #include "models/fsegment.h"
+#include "models/project.h"
 
 class Worker : public QObject
 {
@@ -17,12 +18,12 @@ public:
     ~Worker();
 
 public slots:
-    void loadDCIM(QString dcimPath);
+    void loadProject(QString projectFilePath);
 
 signals:
-    void loadDCIMUpdate(int percent = 0, QString message = "");
-    void loadDCIMDone(QList<FVideo*> videos = QList<FVideo*>());
-    void loadDCIMError(QString error);
+    void loadProjectUpdate(int percent = 0, QString message = "");
+    void loadProjectFinished(Project *project);
+    void loadProjectError(QString error);
 
 private slots:
     void videoVerifyError(QString error);

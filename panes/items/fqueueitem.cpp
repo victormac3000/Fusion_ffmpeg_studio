@@ -18,6 +18,12 @@ FQueueItem::FQueueItem(QWidget *parent, RenderWork *work) :
 FQueueItem::~FQueueItem()
 {
     delete ui;
+    delete work;
+}
+
+RenderWork* FQueueItem::getRenderWork()
+{
+    return work;
 }
 
 void FQueueItem::updateRenderStatus(FFmpegStatus *status)

@@ -5,6 +5,7 @@
 #include <QMessageBox>
 #include <QDir>
 #include <QFile>
+#include <QMetaObject>
 
 #include "panes/welcomepane.h"
 #include "preferences.h"
@@ -27,6 +28,9 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+
+signals:
+
 
 private slots:
     void displayAbout();

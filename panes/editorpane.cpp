@@ -1,11 +1,15 @@
 #include "editorpane.h"
 #include "ui_editorpane.h"
+#include "windows/mainwindow.h"
 
-EditorPane::EditorPane(QWidget *parent, QList<FVideo*> videos) :
+EditorPane::EditorPane(QWidget *parent, Project *project) :
     QWidget(parent),
     ui(new Ui::EditorPane)
 {
     ui->setupUi(this);
+
+    this->project = project;
+    project->save();
 
     this->queueLayout = new QVBoxLayout(ui->render_queue_scoll_area_widget);
 
@@ -17,11 +21,10 @@ EditorPane::EditorPane(QWidget *parent, QList<FVideo*> videos) :
 
     // Connect buttons
     connect(ui->generate_preview_button, SIGNAL(clicked()), this, SLOT(renderPreviewClicked()));
-    connect(ui->render_button, SIGNAL(clicked()), this, SLOT(renderQueueClicked()));
+    connect(ui->render_button, SIGNAL(clicked()), renderer, SLOT(run()));
 
     // Connect signals
     connect(this, SIGNAL(rendererAdd(RenderWork*)), renderer, SLOT(add(RenderWork*)));
-    connect(this, SIGNAL(rendererRun()), renderer, SLOT(run()));
     connect(renderer, SIGNAL(renderWorkFinished(RenderWork*,bool)), this, SLOT(renderWorkFinished(RenderWork*,bool)));
 
     this->renderer->moveToThread(rendererThread);
@@ -31,6 +34,7 @@ EditorPane::EditorPane(QWidget *parent, QList<FVideo*> videos) :
     // GUI LOAD VIDEOS
     int i = 0;
     //int col = 0;
+    QList<FVideo*> videos = project->getVideos();
     for (FVideo* video: videos) {
         FVideoItem *fvideoItem = new FVideoItem(this, video);
         connect(fvideoItem, SIGNAL(clicked(FVideoItem*)), this, SLOT(videoItemClicked(FVideoItem*)));
@@ -69,6 +73,11 @@ EditorPane::~EditorPane()
     delete ui;
 }
 
+void EditorPane::saveProject()
+{
+    project->save();
+}
+
 void EditorPane::videoItemClicked(FVideoItem *videoItem)
 {
     int found = -1;
@@ -95,20 +104,13 @@ void EditorPane::videoItemClicked(FVideoItem *videoItem)
 
 void EditorPane::renderPreviewClicked()
 {
-    RenderWork *renderWork = new RenderWork(nullptr, videos.at(selected)->getVideo(), RENDER_PREVIEW);
+    RenderWork *renderWork = new RenderWork(nullptr, project, videos.at(selected)->getVideo(), RENDER_PREVIEW);
 
-    renderer->add(renderWork);
+    emit rendererAdd(renderWork);
 
     FQueueItem *item = new FQueueItem(queueLayout->parentWidget(), renderWork);
     queueLayout->addWidget(item);
     queueItems.append(item);
-
-    emit rendererRun();
-}
-
-void EditorPane::renderQueueClicked()
-{
-    emit rendererRun();
 }
 
 void EditorPane::renderWorkFinished(RenderWork *renderWork, bool error)
@@ -117,7 +119,16 @@ void EditorPane::renderWorkFinished(RenderWork *renderWork, bool error)
         if (renderWork == nullptr) {
             qWarning() << "The render queue is empty";
             Dialogs::warning("The render list must have some work to do ;)");
+            return;
         }
+        Dialogs::warning("Could not " + renderWork->getTypeString() + " for video " + renderWork->getVideo()->getIdString());
         return;
+    }
+
+    for (int i=0; i<queueLayout->count(); i++) {
+        FQueueItem *item = (FQueueItem*) queueLayout->itemAt(i);
+        if (item->getRenderWork() == renderWork) {
+            delete item;
+        }
     }
 }

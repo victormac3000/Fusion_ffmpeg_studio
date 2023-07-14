@@ -1,13 +1,19 @@
 #include "renderwork.h"
 
-RenderWork::RenderWork(QObject *parent, FVideo *video, int type)
+RenderWork::RenderWork(QObject *parent, Project *project, FVideo *video, int type)
     : QObject{parent}
 {
+    this->project = project;
     this->video = video;
     this->type = type;
 }
 
-FVideo *RenderWork::getVideo()
+Project* RenderWork::getProject()
+{
+    return this->project;
+}
+
+FVideo* RenderWork::getVideo()
 {
     return video;
 }
@@ -21,9 +27,19 @@ QString RenderWork::getTypeString()
 {
     switch (type) {
     case RENDER_PREVIEW:
-        return "Rendering preview media";
+        return "Render preview media";
     }
     return "Unknown work (May be a bug)";
+}
+
+bool RenderWork::getOverwrite()
+{
+    return overwrite;
+}
+
+void RenderWork::setOverwrite(bool overwrite)
+{
+    this->overwrite = overwrite;
 }
 
 

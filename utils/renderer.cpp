@@ -31,13 +31,11 @@ void Renderer::run()
 {
     if (renderQueue.isEmpty()) {
         qWarning() << "The render queue is empty";
-        emit renderWorkFinished(nullptr, false);
+        emit renderWorkFinished(nullptr, true);
         return;
     }
     RenderWork *work = renderQueue.dequeue();
-    if (!ffmpeg->isRunning()) {
-        emit render(work);
-    }
+    emit render(work);
 }
 
 void Renderer::renderDone(RenderWork *work, bool error)

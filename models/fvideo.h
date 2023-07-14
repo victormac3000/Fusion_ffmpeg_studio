@@ -25,6 +25,7 @@ public:
     bool verify();
     int getId();
     FSegment* getSegment(int i);
+    QList<FSegment*> getSegments();
     int getNumSegments();
     QString getIdString();
 

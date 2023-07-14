@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>802</width>
-    <height>560</height>
+    <width>640</width>
+    <height>480</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,7 +19,7 @@ background-color: #246EE9;
 }</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,10">
+   <layout class="QVBoxLayout" name="verticalLayout_2" stretch="10">
     <property name="spacing">
      <number>0</number>
     </property>
@@ -36,61 +36,6 @@ background-color: #246EE9;
      <number>0</number>
     </property>
     <item>
-     <widget class="QFrame" name="title_frame">
-      <property name="maximumSize">
-       <size>
-        <width>16777215</width>
-        <height>100</height>
-       </size>
-      </property>
-      <property name="styleSheet">
-       <string notr="true"/>
-      </property>
-      <property name="frameShape">
-       <enum>QFrame::StyledPanel</enum>
-      </property>
-      <property name="frameShadow">
-       <enum>QFrame::Raised</enum>
-      </property>
-      <layout class="QHBoxLayout" name="horizontalLayout_6">
-       <property name="spacing">
-        <number>0</number>
-       </property>
-       <property name="leftMargin">
-        <number>0</number>
-       </property>
-       <property name="topMargin">
-        <number>0</number>
-       </property>
-       <property name="rightMargin">
-        <number>0</number>
-       </property>
-       <property name="bottomMargin">
-        <number>0</number>
-       </property>
-       <item>
-        <widget class="QLabel" name="label">
-         <property name="font">
-          <font>
-           <family>Montserrat</family>
-           <pointsize>40</pointsize>
-          </font>
-         </property>
-         <property name="styleSheet">
-          <string notr="true"/>
-         </property>
-         <property name="text">
-          <string>GOPRO FUSION FFMPEG STUDIO</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </item>
-    <item>
      <layout class="QVBoxLayout" name="paneHolder"/>
     </item>
    </layout>
@@ -100,7 +45,7 @@ background-color: #246EE9;
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>802</width>
+     <width>640</width>
      <height>24</height>
     </rect>
    </property>
@@ -111,7 +56,21 @@ background-color: #246EE9;
     <addaction name="actionPreferences"/>
     <addaction name="actionAbout"/>
    </widget>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="save_project"/>
+   </widget>
+   <widget class="QMenu" name="menuVideos">
+    <property name="title">
+     <string>Videos</string>
+    </property>
+    <addaction name="actionReload_DCIM"/>
+   </widget>
    <addaction name="menuFusion_ffmpeg_studio"/>
+   <addaction name="menuFile"/>
+   <addaction name="menuVideos"/>
   </widget>
   <action name="actionss">
    <property name="text">
@@ -126,6 +85,21 @@ background-color: #246EE9;
   <action name="actionAbout">
    <property name="text">
     <string>About Fusion ffmpeg studio</string>
+   </property>
+  </action>
+  <action name="save_project">
+   <property name="text">
+    <string>Save project</string>
+   </property>
+  </action>
+  <action name="actionSave_as">
+   <property name="text">
+    <string>Save as</string>
+   </property>
+  </action>
+  <action name="actionReload_DCIM">
+   <property name="text">
+    <string>Reload DCIM</string>
    </property>
   </action>
  </widget>

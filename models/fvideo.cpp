@@ -38,6 +38,11 @@ FSegment* FVideo::getSegment(int i)
     return segments.at(i);
 }
 
+QList<FSegment*> FVideo::getSegments()
+{
+    return segments;
+}
+
 int FVideo::getNumSegments()
 {
     return this->segments.length();

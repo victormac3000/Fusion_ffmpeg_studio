@@ -35,6 +35,10 @@ bool MainWindow::changePane(QWidget *pane)
     connect(pane, SIGNAL(changePane(QWidget*)), this, SLOT(changePane(QWidget*)));
     ui->paneHolder->addWidget(pane);
     this->pane = pane;
+    QString paneName = pane->metaObject()->className();
+    if (paneName == "EditorPane") {
+        connect(ui->save_project, SIGNAL(triggered()), pane, SLOT(saveProject()));
+    }
     return true;
 }
 

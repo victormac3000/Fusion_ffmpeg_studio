@@ -18,18 +18,16 @@ class LoadingPane : public QWidget
     Q_OBJECT
 
 public:
-    explicit LoadingPane(QWidget *parent = nullptr, QString dcimPath = "");
+    explicit LoadingPane(QWidget *parent = nullptr, QString projectFilePath = "");
     ~LoadingPane();
 
 signals:
     void changePane(QWidget *pane);
 
-public slots:
-    void loadDCIMDone(QList<FVideo*> videos);
-    void loadDCIMError(QString error);
-    void loadDCIMUpdate(int percent, QString message);
-
 private slots:
+    void loadProjectFinished(Project *project);
+    void loadProjectError(QString error);
+    void loadProjectUpdate(int percent, QString message);
 
 private:
     Ui::LoadingPane *ui;

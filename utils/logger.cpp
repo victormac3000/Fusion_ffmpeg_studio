@@ -12,7 +12,7 @@ QHash<QtMsgType, QString> Logger::contextNames = {
 QFile* Logger::getLogFile()
 {
     QSettings settings;
-    QString writableLocation = settings.value("workingDir").toString();
+    QString writableLocation = settings.value("appData").toString();
 
     if (writableLocation.isEmpty()) {
         QCoreApplication::exit(100);

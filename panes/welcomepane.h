@@ -3,14 +3,30 @@
 
 #include <QWidget>
 #include <QFileDialog>
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValueRef>
+#include <QSizePolicy>
+#include <QSpacerItem>
+#include <QMainWindow>
+#include <QFrame>
 
 #include "worker.h"
 #include "panes/loadingpane.h"
 #include "utils/dialogs.h"
+#include "panes/projectcreator.h"
 
 namespace Ui {
 class WelcomePane;
 }
+
+struct RecentProject {
+    QString name;
+    QString path;
+    QDateTime lastOpened;
+};
 
 class WelcomePane : public QWidget
 {
@@ -24,10 +40,16 @@ signals:
     void changePane(QWidget *pane);
 
 private slots:
-    void openDCIMFolder();
+    void searchRecentProjects(QString text);
+    void openProjectButtonClicked();
+    void newProjectButtonClicked();
 
 private:
     Ui::WelcomePane *ui;
+    QSettings settings;
+    QList<QPair<RecentProject,QFrame*>> recentProjectsList;
+
+    void loadRecentProjects();
 
 };
 

@@ -1,7 +1,8 @@
 #include "loadingpane.h"
 #include "ui_loadingpane.h"
+#include "windows/mainwindow.h"
 
-LoadingPane::LoadingPane(QWidget *parent, QString dcimPath) :
+LoadingPane::LoadingPane(QWidget *parent, QString projectFilePath) :
     QWidget(parent),
     ui(new Ui::LoadingPane)
 {
@@ -12,10 +13,10 @@ LoadingPane::LoadingPane(QWidget *parent, QString dcimPath) :
     this->workerThread->start();
 
     // Worker actions
-    QMetaObject::invokeMethod(&worker, "loadDCIM", Qt::AutoConnection, Q_ARG(QString, dcimPath));
-    connect(&worker, SIGNAL(loadDCIMDone(QList<FVideo*>)), this, SLOT(loadDCIMDone(QList<FVideo*>)));
-    connect(&worker, SIGNAL(loadDCIMError(QString)), this, SLOT(loadDCIMError(QString)));
-    connect(&worker, SIGNAL(loadDCIMUpdate(int,QString)), this, SLOT(loadDCIMUpdate(int,QString)));
+    QMetaObject::invokeMethod(&worker, "loadProject", Qt::AutoConnection, Q_ARG(QString, projectFilePath));
+    connect(&worker, SIGNAL(loadProjectFinished(Project*)), this, SLOT(loadProjectFinished(Project*)));
+    connect(&worker, SIGNAL(loadProjectError(QString)), this, SLOT(loadProjectError(QString)));
+    connect(&worker, SIGNAL(loadProjectUpdate(int,QString)), this, SLOT(loadProjectUpdate(int,QString)));
 }
 
 LoadingPane::~LoadingPane()
@@ -25,21 +26,21 @@ LoadingPane::~LoadingPane()
     delete ui;
 }
 
-void LoadingPane::loadDCIMDone(QList<FVideo*> videos)
+void LoadingPane::loadProjectFinished(Project* project)
 {
-    Dialogs::ok("Loaded DCIM Ok");
-    emit changePane(new EditorPane(this, videos));
+    Dialogs::ok("Loaded project Ok");
+    emit changePane(new EditorPane((MainWindow*) parent(), project));
 }
 
-void LoadingPane::loadDCIMError(QString error)
+void LoadingPane::loadProjectError(QString error)
 {
     workerThread->quit();
     workerThread->wait();
     Dialogs::warning("Could not read the DCIM video structure. " + error);
-    emit changePane(new WelcomePane((QWidget*) this->parent()));
+    emit changePane((QWidget*) new WelcomePane((QWidget*) this->parent()));
 }
 
-void LoadingPane::loadDCIMUpdate(int percent, QString message)
+void LoadingPane::loadProjectUpdate(int percent, QString message)
 {
     ui->loading_bar->setValue(percent);
     ui->loading_percent->setText(QString::number(percent) + "%");

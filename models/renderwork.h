@@ -2,6 +2,7 @@
 #define RENDERWORK_H
 
 #include "models/fvideo.h"
+#include "models/project.h"
 
 #include <QObject>
 
@@ -13,10 +14,13 @@ class RenderWork : public QObject
 {
     Q_OBJECT
 public:
-    explicit RenderWork(QObject *parent = nullptr, FVideo *video = nullptr, int type = GENERIC);
+    explicit RenderWork(QObject *parent = nullptr, Project *project = nullptr, FVideo *video = nullptr, int type = GENERIC);
+    Project* getProject();
     FVideo* getVideo();
     int getType();
     QString getTypeString();
+    void setOverwrite(bool overwrite);
+    bool getOverwrite();
 
 signals:
     void updateRenderStatus(FFmpegStatus *status);
@@ -27,8 +31,10 @@ public slots:
 
 
 private:
+    Project *project;
     FVideo *video;
     int type;
+    bool overwrite;
 
 
 

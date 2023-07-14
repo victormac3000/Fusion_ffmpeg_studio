@@ -115,14 +115,24 @@ QFile *FSegment::getBackWAV() const
     return backWAV;
 }
 
-void FSegment::setMerged(QFile *merged)
+void FSegment::setDualFisheye(QFile *dualFisheye)
 {
-    this->merged = merged;
+    this->dualFisheye = dualFisheye;
 }
 
-QFile *FSegment::getMerged()
+QFile *FSegment::getDualFisheye()
 {
-    return this->merged;
+    return this->dualFisheye;
+}
+
+void FSegment::setDualFisheyeLow(QFile *dualFisheyeLow)
+{
+    this->dualFisheyeLow = dualFisheyeLow;
+}
+
+QFile *FSegment::getDualFisheyeLow()
+{
+    return this->dualFisheyeLow;
 }
 
 FFormat FSegment::getFormat()
