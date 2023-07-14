@@ -135,6 +135,24 @@ QFile *FSegment::getDualFisheyeLow()
     return this->dualFisheyeLow;
 }
 
+bool FSegment::isDualFisheyeValid()
+{
+    if (dualFisheye == nullptr) return false;
+    QTime a = MediaInfo::getLength(dualFisheye);
+    QTime b = getLength();
+    return a.minute() == b.minute()
+           && abs(a.second()-b.second()) < 3;
+}
+
+bool FSegment::isDualFisheyeLowValid()
+{
+    if (dualFisheyeLow == nullptr) return false;
+    QTime a = MediaInfo::getLength(dualFisheyeLow);
+    QTime b = getLength();
+    return a.minute() == b.minute()
+           && abs(a.second()-b.second()) < 3;
+}
+
 FFormat FSegment::getFormat()
 {
     return format;

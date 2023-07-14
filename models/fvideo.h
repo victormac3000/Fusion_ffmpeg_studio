@@ -32,6 +32,13 @@ public:
     FFormat getFormat();
     QTime getLength();
 
+    void setDualFisheye(QFile *dualFisheye);
+    QFile *getDualFisheye();
+    void setDualFisheyeLow(QFile *dualFisheyeLow);
+    QFile *getDualFisheyeLow();
+    bool isDualFisheyeValid();
+    bool isDualFisheyeLowValid();
+
     QString toString();
 
 signals:
@@ -44,6 +51,8 @@ private:
     int id;
     QList<FSegment*> segments;
     bool loadingPreview;
+    QFile *dualFisheye = nullptr;
+    QFile *dualFisheyeLow = nullptr;
 
 
 

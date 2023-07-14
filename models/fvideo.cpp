@@ -70,6 +70,44 @@ QTime FVideo::getLength()
     return totalLength.addMSecs(totalMs);
 }
 
+void FVideo::setDualFisheye(QFile *dualFisheye)
+{
+    this->dualFisheye = dualFisheye;
+}
+
+QFile *FVideo::getDualFisheye()
+{
+    return dualFisheye;
+}
+
+void FVideo::setDualFisheyeLow(QFile *dualFisheyeLow)
+{
+    this->dualFisheyeLow = dualFisheyeLow;
+}
+
+QFile *FVideo::getDualFisheyeLow()
+{
+    return dualFisheyeLow;
+}
+
+bool FVideo::isDualFisheyeValid()
+{
+    if (dualFisheye == nullptr) return false;
+    QTime a = MediaInfo::getLength(dualFisheye);
+    QTime b = getLength();
+    return a.minute() == b.minute()
+        && a.second() == b.second();
+}
+
+bool FVideo::isDualFisheyeLowValid()
+{
+    if (dualFisheyeLow == nullptr) return false;
+    QTime a = MediaInfo::getLength(dualFisheyeLow);
+    QTime b = getLength();
+    return a.minute() == b.minute()
+           && a.second() == b.second();
+}
+
 QString FVideo::toString()
 {
     QString ret;

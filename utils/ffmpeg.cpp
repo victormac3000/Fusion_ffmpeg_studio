@@ -61,7 +61,7 @@ void FFmpeg::render(RenderWork *work)
 
             qDebug() << "Merging front and back of segment" << segment->getId();
 
-            if (segment->getDualFisheyeLow() != nullptr && segment->getDualFisheyeLow()->exists()) {
+            if (segment->isDualFisheyeLowValid()) {
                 qDebug() << "The segment had already a merged dual fisheye video";
                 if (!work->getOverwrite()) {
                     qDebug() << "The work specified not to overwrite the existing video, we can skip this segment";
@@ -95,7 +95,7 @@ void FFmpeg::render(RenderWork *work)
             params.append("-filter_complex");
             params.append("hstack");
             params.append("-c:v");
-            params.append("libx265");
+            params.append("h264_nvenc");
             params.append(QDir::toNativeSeparators(outPath));
 
 
@@ -106,10 +106,9 @@ void FFmpeg::render(RenderWork *work)
 
             process->setArguments(params);
             process->start();
+            process->waitForFinished(-1);
 
-            while (process->state() == QProcess::Running) {}
-
-            qDebug() << "FFMpeg process finished";
+            qDebug() << "FFMpeg process finished end wait finished";
 
             if (process->exitCode() > 0) {
                 qWarning() << "FFMpeg exited with error code >0" << process->exitCode()
@@ -120,10 +119,88 @@ void FFmpeg::render(RenderWork *work)
                 return;
             }
 
-            segment->setDualFisheye(new QFile(outPath));
+            segment->setDualFisheyeLow(new QFile(outPath));
         }
         // STEP 2: MERGE ALL SEGMENTS INTO ONE BIG LRV VIDEO
+        emit work->updateRenderStatusString("Step 2 of 2: Merging all preview segments into one preview video");
+
+        qDebug() << "Merging all segments into one video";
+
+        if (video->isDualFisheyeLowValid()) {
+            qDebug() << "The segment had already a merged dual fisheye video";
+            if (!work->getOverwrite()) {
+                qDebug() << "The work specified not to overwrite the existing merged dual fisheye video, we can skip this step";
+                emit renderDone(work, false);
+                return;
+            }
+        }
+
+        QString outPath = dfLowSegmentsFolder.absolutePath()
+                          + "/"
+                          + QString::number(video->getId())
+                          + "_"
+                          + "MERGE.MP4";
+
+        if (QFile::exists(outPath) && !QFile::remove(outPath)) {
+            qWarning() << "Could not override the existing dual fisheye video of segments located in" << outPath;
+            emit renderDone(work, true);
+            return;
+        }
+
+        QString concatStr;
+        for (int i=0; i<numSegments; i++) {
+            concatStr.append("file '" + QDir::toNativeSeparators(video->getSegment(i)->getDualFisheyeLow()->fileName()) + "'");
+            concatStr.append("\n");
+        }
+
+        QFile concatFile(settings.value("appData").toString() + "/concat.txt");
+        if (!concatFile.open(QFile::ReadWrite) || !concatFile.write(concatStr.toUtf8())) {
+            qWarning() << "Could not create the required file for concatenating segments on" << concatFile.fileName();
+            emit renderDone(work, true);
+            return;
+        }
+        concatFile.close();
+
+        QList<QString> params;
+
+        params.append("-hide_banner");
+        params.append("-loglevel");
+        params.append("error");
+        params.append("-stats");
+        params.append("-f");
+        params.append("concat");
+        params.append("-safe");
+        params.append("0");
+        params.append("-i");
+        params.append(QDir::toNativeSeparators(concatFile.fileName()));
+        params.append("-c");
+        params.append("copy");
+        params.append(QDir::toNativeSeparators(outPath));
+
+
+        if (process->state() == QProcess::Running) {
+            qDebug() << "FFMpeg is busy, Cannot do work of type" << work->getTypeString() << "for video" << work->getVideo()->getIdString();
+            return;
+        }
+
+        process->setArguments(params);
+        process->start();
+        process->waitForFinished(-1);
+
+        concatFile.remove();
+
+        qDebug() << "FFMpeg process finished end wait finished";
+
+        if (process->exitCode() > 0) {
+            qWarning() << "FFMpeg exited with error code >0" << process->exitCode()
+                       << "and exit status" << process->exitStatus()
+                       << "Could not generate the dual fisheye merged video of all segments"
+                       << "on path" << outPath;
+            emit renderDone(work, true);
+            return;
+        }
         // STEP 3: LINK THE BIG LRV VIDEO TO THE FVIDEO OBJECT
+        video->setDualFisheyeLow(new QFile(outPath));
     }
 
 
@@ -219,7 +296,7 @@ QString FFmpeg::getPath()
         resourcesPath = ":/Binaries/windows/ffmpeg.exe";
     #endif
 
-    #ifdef Q_OS_Q_OS_LINUX
+    #ifdef Q_OS_LINUX
         resourcesPath = ":/Binaries/linux/ffmpeg";
     #endif
 

@@ -123,15 +123,15 @@ QTime MediaInfo::getLength(QFile *media1)
     params.append("format=duration");
     params.append("-of");
     params.append("default=noprint_wrappers=1:nokey=1");
-    params.append("-sexagesimal");
     params.append(QDir::toNativeSeparators(media1->fileName()));
     process->setArguments(params);
     process->start();
     process->waitForFinished();
 
     QString rawLength = process->readAllStandardOutput().trimmed();
+    float ms = rawLength.toDouble()*1000;
 
-    QTime length = QTime::fromString(rawLength);
+    QTime length = QTime::fromMSecsSinceStartOfDay(ms);
     return length;
 }
 
@@ -206,7 +206,7 @@ QString MediaInfo::getFFProbePath()
     resourcesPath = ":/Binaries/windows/ffprobe.exe";
     #endif
 
-    #ifdef Q_OS_Q_OS_LINUX
+    #ifdef Q_OS_LINUX
     resourcesPath = ":/Binaries/linux/ffprobe";
     #endif
 

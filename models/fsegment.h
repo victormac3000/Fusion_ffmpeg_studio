@@ -38,6 +38,8 @@ public:
     QFile *getDualFisheye();
     void setDualFisheyeLow(QFile *dualFisheyeLow);
     QFile *getDualFisheyeLow();
+    bool isDualFisheyeValid();
+    bool isDualFisheyeLowValid();
 
     FFormat getFormat();
     float getFPS();

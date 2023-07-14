@@ -6,11 +6,7 @@ Preferences::Preferences(QWidget *parent) :
     ui(new Ui::Preferences)
 {
     ui->setupUi(this);
-    connect(ui->change_working_dir, SIGNAL(clicked()), this, SLOT(changeWorkingDir()));
     connect(ui->change_rendered_dir, SIGNAL(clicked()), this, SLOT(changeRenderedDir()));
-    if (settings.contains("workingDir") && !settings.value("workingDir").toString().isEmpty()) {
-        ui->working_dir->setText(settings.value("workingDir").toString());
-    }
     if (settings.contains("renderedDir") && !settings.value("renderedDir").toString().isEmpty()) {
         ui->rendered_dir->setText(settings.value("renderedDir").toString());
     }
@@ -19,23 +15,6 @@ Preferences::Preferences(QWidget *parent) :
 Preferences::~Preferences()
 {
     delete ui;
-}
-
-void Preferences::changeWorkingDir()
-{
-    QString proposedWd = QFileDialog::getExistingDirectory(
-        this, tr("Select working directory"), "", QFileDialog::ShowDirsOnly
-    );
-    if (proposedWd.isEmpty()) return;
-
-    if (!canWrite(proposedWd)) {
-        Dialogs::warning("Cannot change the working directory:\n" + errorMsg);
-        qWarning() << "Cannot write to the proposed working directory: " << proposedWd;
-        return;
-    }
-
-    ui->working_dir->setText(proposedWd);
-    settings.setValue("workingDir", proposedWd);
 }
 
 void Preferences::changeRenderedDir()

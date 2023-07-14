@@ -60,7 +60,6 @@ EditorPane::EditorPane(QWidget *parent, Project *project) :
         player->setSource(QUrl(":/Images/Snow.jpg"));
         player->setVideoOutput(videoWidget);
         player->play();
-
     }
 }
 
@@ -100,6 +99,11 @@ void EditorPane::videoItemClicked(FVideoItem *videoItem)
     ui->firmware_version_label->setText(QString::number(selectedVideoItem->getVideo()->getFormat().firmwareVersion, 'f', 1));
     ui->recorded_label->setText(MediaInfo::getDate(selectedVideoItem->getVideo()->getSegment(0)->getFrontMP4()).toString("dd/MM/yyyy hh:mm:ss"));
     ui->video_duration_label->setText(selectedVideoItem->getVideo()->getLength().toString("hh:mm:ss"));
+
+    if (selectedVideoItem->getVideo()->isDualFisheyeLowValid()) {
+        ui->no_preview_widget->setVisible(false);
+        player->setSource(QUrl(selectedVideoItem->getVideo()->getDualFisheyeLow()->fileName()));
+    }
 }
 
 void EditorPane::renderPreviewClicked()

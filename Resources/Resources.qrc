@@ -10,5 +10,7 @@
         <file>Images/MediaPlayer/Right.png</file>
         <file>Binaries/macOS/ffmpeg</file>
         <file>Binaries/macOS/ffprobe</file>
+        <file>Binaries/linux/ffmpeg</file>
+        <file>Binaries/linux/ffprobe</file>
     </qresource>
 </RCC>

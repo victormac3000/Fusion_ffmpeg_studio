@@ -57,10 +57,28 @@ Project::Project(QObject *parent, QString projectFilePath)
         QJsonObject videoObject = videoArray.toObject();
         int vid = videoObject.value("id").toInt(-1);
         if (vid<0) continue;
+        bool dualFisheye = videoObject.value("dualFisheye").toBool();
+        bool dualFisheyeLow = videoObject.value("dualFisheyeLow").toBool();
         if (!videoObject.value("segments").isArray()) continue;
         QJsonArray segmentsArray = videoObject.value("segments").toArray();
         if (segmentsArray.isEmpty()) continue;
         FVideo *video = new FVideo(nullptr, vid);
+        if (dualFisheye) {
+            QString dualFisheyePath = path + "/DFSegments/" + QString::number(vid) + "_MERGE" + ".MP4";
+            if (QFile::exists(dualFisheyePath)) {
+                video->setDualFisheye(new QFile(dualFisheyePath));
+            } else {
+                qDebug() << "Dual fisheye exists for video" << vid << "but not found in fs" << dualFisheyePath;
+            }
+        }
+        if (dualFisheyeLow) {
+            QString dualFisheyeLowPath = path + "/DFLowSegments/" + QString::number(vid) + "_MERGE"+ ".MP4";
+            if (QFile::exists(dualFisheyeLowPath)) {
+                video->setDualFisheyeLow(new QFile(dualFisheyeLowPath));
+            } else {
+                qDebug() << "Dual fisheye low exists for video" << vid << "but not found in fs" << dualFisheyeLowPath;
+            }
+        }
         for (const QJsonValue &segmentArray: segmentsArray) {
             if (!segmentArray.isObject()) continue;
             QJsonObject segmentObject = segmentArray.toObject();
@@ -214,13 +232,15 @@ void Project::save()
     for (FVideo *video: videos) {
         QJsonObject videoObject;
         videoObject.insert("id", video->getId());
+        videoObject.insert("dualFisheye", video->isDualFisheyeValid());
+        videoObject.insert("dualFisheyeLow", video->isDualFisheyeLowValid());
         QJsonArray segmentsArray;
         QList<FSegment*> segments = video->getSegments();
         for (FSegment* segment: segments) {
             QJsonObject segmentObject;
             segmentObject.insert("id", segment->getId());
-            segmentObject.insert("dualFisheye", segment->getDualFisheye() != nullptr);
-            segmentObject.insert("dualFisheyeLow", segment->getDualFisheyeLow() != nullptr);
+            segmentObject.insert("dualFisheye", segment->isDualFisheyeValid());
+            segmentObject.insert("dualFisheyeLow", segment->isDualFisheyeLowValid());
             segmentsArray.append(segmentObject);
         }
         videoObject.insert("segments", segmentsArray);

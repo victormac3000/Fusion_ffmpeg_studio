@@ -22,7 +22,6 @@ public:
     ~Preferences();
 
 private slots:
-    void changeWorkingDir();
     void changeRenderedDir();
 
 private:
