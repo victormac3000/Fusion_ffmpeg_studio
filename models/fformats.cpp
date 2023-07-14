@@ -32,12 +32,12 @@ FFormats::FFormats(QObject *parent)
                 FFormat format;
                 format.name = obj.value("name").toString();
                 format.firmwareVersion = obj.value("firmwareVersion").toDouble();
-                format.video.height = obj.value("video").toObject().value("height").toInt();
-                format.video.width = obj.value("video").toObject().value("width").toInt();
-                format.video.fps = obj.value("video").toObject().value("fps").toDouble();
-                format.lowVideo.height = obj.value("lowVideo").toObject().value("height").toInt();
-                format.lowVideo.width = obj.value("lowVideo").toObject().value("width").toInt();
-                format.lowVideo.fps = obj.value("lowVideo").toObject().value("fps").toDouble();
+                format.nVideo.height = obj.value("video").toObject().value("height").toInt();
+                format.nVideo.width = obj.value("video").toObject().value("width").toInt();
+                format.nVideo.fps = obj.value("video").toObject().value("fps").toDouble();
+                format.lVideo.height = obj.value("lowVideo").toObject().value("height").toInt();
+                format.lVideo.width = obj.value("lowVideo").toObject().value("width").toInt();
+                format.lVideo.fps = obj.value("lowVideo").toObject().value("fps").toDouble();
                 format.thumbnail.height = obj.value("thumnail").toObject().value("height").toInt();
                 format.thumbnail.width = obj.value("thumnail").toObject().value("width").toInt();
                 this->formats.append(format);
@@ -68,16 +68,16 @@ FFormat* FFormats::get(QFile *media, int type)
 
         for (FFormat &format: formats) {
             if (type == FUSION_VIDEO) {
-                if (format.video.height == resolution.height() &&
-                    format.video.width == resolution.width() &&
-                    format.video.fps == fps) {
+                if (format.nVideo.height == resolution.height() &&
+                    format.nVideo.width == resolution.width() &&
+                    format.nVideo.fps == fps) {
                     return &format;
                 }
             }
             if (type == FUSION_LOW_VIDEO) {
-                if (format.lowVideo.height == resolution.height() &&
-                    format.lowVideo.width == resolution.width() &&
-                    format.lowVideo.fps == fps) {
+                if (format.lVideo.height == resolution.height() &&
+                    format.lVideo.width == resolution.width() &&
+                    format.lVideo.fps == fps) {
                     return &format;
                 }
             }

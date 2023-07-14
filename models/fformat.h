@@ -18,8 +18,8 @@ struct thumnail {
 struct FFormat {
     QString name;
     float firmwareVersion;
-    video video;
-    lowVideo lowVideo;
+    video nVideo;
+    lowVideo lVideo;
     thumnail thumbnail;
 };
 
