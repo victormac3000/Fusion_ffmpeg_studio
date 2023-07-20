@@ -110,7 +110,9 @@ void ProjectCreator::createButtonClicked()
     if ((!projectFolder.exists("DFSegments") && !QDir(proposedProjectFolder).mkdir("DFSegments")) ||
         (!projectFolder.exists("DFVideos") && !QDir(proposedProjectFolder).mkdir("DFVideos")) ||
         (!projectFolder.exists("DFLowSegments") && !QDir(proposedProjectFolder).mkdir("DFLowSegments")) ||
-        (!projectFolder.exists("DFLowVideos") && !QDir(proposedProjectFolder).mkdir("DFLowVideos"))) {
+        (!projectFolder.exists("DFLowVideos") && !QDir(proposedProjectFolder).mkdir("DFLowVideos")) ||
+        (!projectFolder.exists("EVideos") && !QDir(proposedProjectFolder).mkdir("EVideos")) ||
+        (!projectFolder.exists("ELowVideos") && !QDir(proposedProjectFolder).mkdir("ELowVideos"))) {
         Dialogs::warning("Could not create the project structure");
         qWarning() << "Project folder invalid, could not create project folders" << proposedProjectFolder;
         return;

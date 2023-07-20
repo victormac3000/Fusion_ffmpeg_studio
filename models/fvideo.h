@@ -38,6 +38,12 @@ public:
     QFile *getDualFisheyeLow();
     bool isDualFisheyeValid();
     bool isDualFisheyeLowValid();
+    QFile *getEquirectangular();
+    void setEquirectangular(QFile *equirectangular);
+    bool isEquirectangularValid();
+    QFile *getEquirectangularLow();
+    void setEquirectangularLow(QFile *equirectangularLow);
+    bool isEquirectangularLowValid();
 
     QString toString();
 
@@ -53,6 +59,8 @@ private:
     bool loadingPreview;
     QFile *dualFisheye = nullptr;
     QFile *dualFisheyeLow = nullptr;
+    QFile *equirectangular = nullptr;
+    QFile *equirectangularLow = nullptr;
 
 
 

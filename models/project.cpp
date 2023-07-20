@@ -49,6 +49,14 @@ Project::Project(QObject *parent, QString projectFilePath)
     this->dcim = mainObj.value("info").toObject().value("dcim").toString();
     this->version = mainObj.value("info").toObject().value("version").toString();
 
+    if (!QDir(path).exists("DFSegments") || !QDir(path).exists("DFLowSegments") ||
+        !QDir(path).exists("DFVideos") || !QDir(path).exists("DFLowVideos") ||
+        !QDir(path).exists("EVideos") || !QDir(path).exists("ELowVideos")) {
+        file->close();
+        qWarning() << "Project folder invalid, required folders not found" << path;
+        return;
+    }
+
     QJsonArray videosArray = mainObj.value("videos").toArray();
 
     for (const QJsonValue &videoArray: videosArray) {
@@ -59,12 +67,14 @@ Project::Project(QObject *parent, QString projectFilePath)
         if (vid<0) continue;
         bool dualFisheye = videoObject.value("dualFisheye").toBool();
         bool dualFisheyeLow = videoObject.value("dualFisheyeLow").toBool();
+        bool equirectangular = videoObject.value("equirectangular").toBool();
+        bool equirectangularLow = videoObject.value("equirectangularLow").toBool();
         if (!videoObject.value("segments").isArray()) continue;
         QJsonArray segmentsArray = videoObject.value("segments").toArray();
         if (segmentsArray.isEmpty()) continue;
         FVideo *video = new FVideo(nullptr, vid);
         if (dualFisheye) {
-            QString dualFisheyePath = path + "/DFSegments/" + QString::number(vid) + "_MERGE" + ".MP4";
+            QString dualFisheyePath = path + "/DFVideos/" + QString::number(vid) + ".MP4";
             if (QFile::exists(dualFisheyePath)) {
                 video->setDualFisheye(new QFile(dualFisheyePath));
             } else {
@@ -72,11 +82,27 @@ Project::Project(QObject *parent, QString projectFilePath)
             }
         }
         if (dualFisheyeLow) {
-            QString dualFisheyeLowPath = path + "/DFLowSegments/" + QString::number(vid) + "_MERGE"+ ".MP4";
+            QString dualFisheyeLowPath = path + "/DFLowVideos/" + QString::number(vid) + ".MP4";
             if (QFile::exists(dualFisheyeLowPath)) {
                 video->setDualFisheyeLow(new QFile(dualFisheyeLowPath));
             } else {
                 qDebug() << "Dual fisheye low exists for video" << vid << "but not found in fs" << dualFisheyeLowPath;
+            }
+        }
+        if (equirectangular) {
+            QString equirectangularPath = path + "/EVideos/" + QString::number(vid) + ".MP4";
+            if (QFile::exists(equirectangularPath)) {
+                video->setEquirectangular(new QFile(equirectangularPath));
+            } else {
+                qDebug() << "Equirectangular exists for video" << vid << "but not found in fs" << equirectangularPath;
+            }
+        }
+        if (equirectangularLow) {
+            QString equirectangularLowPath = path + "/ELowVideos/" + QString::number(vid) + ".MP4";
+            if (QFile::exists(equirectangularLowPath)) {
+                video->setEquirectangularLow(new QFile(equirectangularLowPath));
+            } else {
+                qDebug() << "Equirectangular preview exists for video" << vid << "but not found in fs" << equirectangularLowPath;
             }
         }
         for (const QJsonValue &segmentArray: segmentsArray) {
@@ -136,19 +162,13 @@ Project::Project(QObject *parent, QString projectFilePath)
         if (valid) this->videos.append(video);
     }
 
-    if (!QDir(path).exists("DFSegments") || !QDir(path).exists("DFVideos") ||
-        !QDir(path).exists("DFLowSegments") || !QDir(path).exists("DFLowVideos")) {
-        file->close();
-        qWarning() << "Project folder invalid, required folders not found" << path;
-        return;
-    }
-
     file->close();
     this->valid = true;
 }
 
 Project::~Project()
 {
+    this->save();
     delete file;
 }
 
@@ -234,6 +254,8 @@ void Project::save()
         videoObject.insert("id", video->getId());
         videoObject.insert("dualFisheye", video->isDualFisheyeValid());
         videoObject.insert("dualFisheyeLow", video->isDualFisheyeLowValid());
+        videoObject.insert("equirectangular", video->isEquirectangularValid());
+        videoObject.insert("equirectangularLow", video->isEquirectangularLowValid());
         QJsonArray segmentsArray;
         QList<FSegment*> segments = video->getSegments();
         for (FSegment* segment: segments) {

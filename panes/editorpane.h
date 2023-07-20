@@ -5,6 +5,7 @@
 #include <QMouseEvent>
 #include <QVideoWidget>
 #include <QQueue>
+#include <QWebEngineView>
 
 #include "QtWidgets/qboxlayout.h"
 #include "models/fvideo.h"
@@ -49,7 +50,8 @@ private:
     QList<FVideoItem*> videos;
     QList<FQueueItem*> queueItems;
     QVBoxLayout *queueLayout;
-    QMediaPlayer *player;
+    QWebEngineView *webEngine;
+    QMediaPlayer *mediaPlayer;
     int selected = 0;
     Renderer *renderer;
     QThread *rendererThread;

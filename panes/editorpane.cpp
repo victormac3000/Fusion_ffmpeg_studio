@@ -11,6 +11,10 @@ EditorPane::EditorPane(QWidget *parent, Project *project) :
     this->project = project;
     project->save();
 
+    this->webEngine = new QWebEngineView(ui->media_player_frame);
+    webEngine->load(QUrl("https://www.google.es"));
+    ui->media_player_layout->addWidget(webEngine);
+
     this->queueLayout = new QVBoxLayout(ui->render_queue_scoll_area_widget);
 
     // On load
@@ -48,18 +52,7 @@ EditorPane::EditorPane(QWidget *parent, Project *project) :
     if (videos.length() > 0) {
         videoItemClicked(this->videos.at(0));
 
-        QVideoWidget *videoWidget = new QVideoWidget;
-        ui->media_player_layout->addWidget(videoWidget);
 
-        this->player = new QMediaPlayer();
-
-        connect(ui->play_button, SIGNAL(clicked()), player, SLOT(play()));
-        connect(ui->pause_button, SIGNAL(clicked()), player, SLOT(pause()));
-
-        //player->setSource(QUrl(videos.at(0)->getSegment(0)->getBackMP4()->fileName()));
-        player->setSource(QUrl(":/Images/Snow.jpg"));
-        player->setVideoOutput(videoWidget);
-        player->play();
     }
 }
 
@@ -68,7 +61,8 @@ EditorPane::~EditorPane()
     rendererThread->quit();
     rendererThread->wait();
     delete renderer;
-    delete player;
+    delete webEngine;
+    delete project;
     delete ui;
 }
 
@@ -101,8 +95,9 @@ void EditorPane::videoItemClicked(FVideoItem *videoItem)
     ui->video_duration_label->setText(selectedVideoItem->getVideo()->getLength().toString("hh:mm:ss"));
 
     if (selectedVideoItem->getVideo()->isDualFisheyeLowValid()) {
-        ui->no_preview_widget->setVisible(false);
-        player->setSource(QUrl(selectedVideoItem->getVideo()->getDualFisheyeLow()->fileName()));
+        //ui->no_preview_widget->setVisible(false);
+        //qDebug() << QUrl(selectedVideoItem->getVideo()->getDualFisheyeLow()->fileName());
+        //player->setSource(QUrl(selectedVideoItem->getVideo()->getDualFisheyeLow()->fileName()));
     }
 }
 
@@ -128,6 +123,8 @@ void EditorPane::renderWorkFinished(RenderWork *renderWork, bool error)
         Dialogs::warning("Could not " + renderWork->getTypeString() + " for video " + renderWork->getVideo()->getIdString());
         return;
     }
+
+    project->save();
 
     for (int i=0; i<queueLayout->count(); i++) {
         FQueueItem *item = (FQueueItem*) queueLayout->itemAt(i);

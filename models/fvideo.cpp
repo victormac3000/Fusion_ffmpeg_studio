@@ -108,6 +108,44 @@ bool FVideo::isDualFisheyeLowValid()
            && a.second() == b.second();
 }
 
+QFile *FVideo::getEquirectangular()
+{
+    return equirectangular;
+}
+
+void FVideo::setEquirectangular(QFile *equirectangular)
+{
+    this->equirectangular = equirectangular;
+}
+
+bool FVideo::isEquirectangularValid()
+{
+    if (equirectangular == nullptr) return false;
+    QTime a = MediaInfo::getLength(equirectangular);
+    QTime b = getLength();
+    return a.minute() == b.minute()
+           && a.second() == b.second();
+}
+
+QFile *FVideo::getEquirectangularLow()
+{
+    return equirectangularLow;
+}
+
+void FVideo::setEquirectangularLow(QFile *equirectangularLow)
+{
+    this->equirectangularLow = equirectangularLow;
+}
+
+bool FVideo::isEquirectangularLowValid()
+{
+    if (equirectangularLow == nullptr) return false;
+    QTime a = MediaInfo::getLength(equirectangularLow);
+    QTime b = getLength();
+    return a.minute() == b.minute()
+           && a.second() == b.second();
+}
+
 QString FVideo::toString()
 {
     QString ret;

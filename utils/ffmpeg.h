@@ -37,6 +37,18 @@ private:
     QSettings settings;
     RenderWork *work;
 
+    QDir dfLowSegmentsFolder;
+    QDir dfLowVideosFolder;
+    QDir dfSegmentsFolder;
+    QDir dfVideosFolder;
+    QDir equirectangularVideosFolder;
+    QDir equirectangularLowVideosFolder;
+
+    void renderPreview();
+    bool renderPreviewStep1();
+    bool renderPreviewStep2();
+    bool renderPreviewStep3();
+
     QString getPath();
 
 

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>869</width>
-    <height>569</height>
+    <width>1028</width>
+    <height>639</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -83,7 +83,7 @@
             <x>0</x>
             <y>0</y>
             <width>146</width>
-            <height>565</height>
+            <height>635</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -118,7 +118,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QFrame" name="player_frame">
+     <widget class="QFrame" name="video_preview_frame">
       <property name="minimumSize">
        <size>
         <width>150</width>
@@ -133,7 +133,7 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
-        <widget class="QFrame" name="frame">
+        <widget class="QFrame" name="video_player_frame">
          <property name="frameShape">
           <enum>QFrame::StyledPanel</enum>
          </property>
@@ -179,67 +179,20 @@
                <property name="spacing">
                 <number>0</number>
                </property>
-               <item>
-                <widget class="QWidget" name="no_preview_widget" native="true">
-                 <layout class="QVBoxLayout" name="verticalLayout_10" stretch="10,0">
-                  <property name="spacing">
-                   <number>0</number>
-                  </property>
-                  <property name="leftMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="topMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="rightMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="bottomMargin">
-                   <number>0</number>
-                  </property>
-                  <item>
-                   <widget class="QLabel" name="no_preview_label">
-                    <property name="font">
-                     <font>
-                      <pointsize>30</pointsize>
-                      <strikeout>false</strikeout>
-                     </font>
-                    </property>
-                    <property name="text">
-                     <string>YOU MUST PRERENDER THE VIDEO TO SHOW THE PREVIEW</string>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignCenter</set>
-                    </property>
-                    <property name="wordWrap">
-                     <bool>true</bool>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QPushButton" name="generate_preview_button">
-                    <property name="text">
-                     <string>Regenerate preview</string>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </widget>
-               </item>
               </layout>
              </item>
             </layout>
            </widget>
           </item>
           <item>
-           <widget class="QFrame" name="frame_3">
+           <widget class="QFrame" name="video_player_buttons_frame">
             <property name="frameShape">
              <enum>QFrame::StyledPanel</enum>
             </property>
             <property name="frameShadow">
              <enum>QFrame::Raised</enum>
             </property>
-            <layout class="QHBoxLayout" name="horizontalLayout">
+            <layout class="QVBoxLayout" name="verticalLayout_10">
              <property name="spacing">
               <number>1</number>
              </property>
@@ -256,87 +209,108 @@
               <number>0</number>
              </property>
              <item>
-              <widget class="QPushButton" name="left_button">
-               <property name="text">
-                <string/>
+              <layout class="QHBoxLayout" name="video_player_controls_frame">
+               <property name="leftMargin">
+                <number>0</number>
                </property>
-               <property name="icon">
-                <iconset resource="../Resources/Resources.qrc">
-                 <normaloff>:/Images/MediaPlayer/Left.png</normaloff>:/Images/MediaPlayer/Left.png</iconset>
+               <property name="bottomMargin">
+                <number>0</number>
                </property>
-               <property name="iconSize">
-                <size>
-                 <width>30</width>
-                 <height>30</height>
-                </size>
-               </property>
-              </widget>
+               <item>
+                <widget class="QPushButton" name="play_button">
+                 <property name="styleSheet">
+                  <string notr="true"/>
+                 </property>
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="icon">
+                  <iconset resource="../Resources/Resources.qrc">
+                   <normaloff>:/Images/MediaPlayer/Play.png</normaloff>:/Images/MediaPlayer/Play.png</iconset>
+                 </property>
+                 <property name="iconSize">
+                  <size>
+                   <width>30</width>
+                   <height>30</height>
+                  </size>
+                 </property>
+                 <property name="checkable">
+                  <bool>false</bool>
+                 </property>
+                 <property name="autoDefault">
+                  <bool>false</bool>
+                 </property>
+                 <property name="default">
+                  <bool>false</bool>
+                 </property>
+                 <property name="flat">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="left_button">
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="icon">
+                  <iconset resource="../Resources/Resources.qrc">
+                   <normaloff>:/Images/MediaPlayer/Left.png</normaloff>:/Images/MediaPlayer/Left.png</iconset>
+                 </property>
+                 <property name="iconSize">
+                  <size>
+                   <width>30</width>
+                   <height>30</height>
+                  </size>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="pause_button">
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="icon">
+                  <iconset resource="../Resources/Resources.qrc">
+                   <normaloff>:/Images/MediaPlayer/Pause.png</normaloff>:/Images/MediaPlayer/Pause.png</iconset>
+                 </property>
+                 <property name="iconSize">
+                  <size>
+                   <width>30</width>
+                   <height>30</height>
+                  </size>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="right_button">
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="icon">
+                  <iconset resource="../Resources/Resources.qrc">
+                   <normaloff>:/Images/MediaPlayer/Right.png</normaloff>:/Images/MediaPlayer/Right.png</iconset>
+                 </property>
+                 <property name="iconSize">
+                  <size>
+                   <width>30</width>
+                   <height>30</height>
+                  </size>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </item>
              <item>
-              <widget class="QPushButton" name="play_button">
-               <property name="styleSheet">
-                <string notr="true"/>
-               </property>
-               <property name="text">
-                <string/>
-               </property>
-               <property name="icon">
-                <iconset resource="../Resources/Resources.qrc">
-                 <normaloff>:/Images/MediaPlayer/Play.png</normaloff>:/Images/MediaPlayer/Play.png</iconset>
-               </property>
-               <property name="iconSize">
-                <size>
-                 <width>30</width>
-                 <height>30</height>
-                </size>
-               </property>
-               <property name="checkable">
-                <bool>false</bool>
-               </property>
-               <property name="autoDefault">
-                <bool>false</bool>
-               </property>
-               <property name="default">
-                <bool>false</bool>
-               </property>
-               <property name="flat">
-                <bool>false</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="pause_button">
-               <property name="text">
-                <string/>
-               </property>
-               <property name="icon">
-                <iconset resource="../Resources/Resources.qrc">
-                 <normaloff>:/Images/MediaPlayer/Pause.png</normaloff>:/Images/MediaPlayer/Pause.png</iconset>
-               </property>
-               <property name="iconSize">
-                <size>
-                 <width>30</width>
-                 <height>30</height>
-                </size>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="right_button">
-               <property name="text">
-                <string/>
-               </property>
-               <property name="icon">
-                <iconset resource="../Resources/Resources.qrc">
-                 <normaloff>:/Images/MediaPlayer/Right.png</normaloff>:/Images/MediaPlayer/Right.png</iconset>
-               </property>
-               <property name="iconSize">
-                <size>
-                 <width>30</width>
-                 <height>30</height>
-                </size>
-               </property>
-              </widget>
+              <layout class="QHBoxLayout" name="video_player_actions_frame">
+               <item>
+                <widget class="QPushButton" name="generate_preview_button">
+                 <property name="text">
+                  <string>Regenerate preview</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </item>
             </layout>
            </widget>
@@ -508,8 +482,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>146</width>
-            <height>533</height>
+            <width>159</width>
+            <height>608</height>
            </rect>
           </property>
          </widget>
