@@ -26,6 +26,7 @@ SOURCES += \
     utils/logger.cpp \
     utils/mediainfo.cpp \
     utils/renderer.cpp \
+    utils/settings.cpp \
     windows/about.cpp \
     windows/mainwindow.cpp \
     panes/editorpane.cpp \
@@ -49,6 +50,7 @@ HEADERS += \
     utils/logger.h \
     utils/mediainfo.h \
     utils/renderer.h \
+    utils/settings.h \
     windows/about.h \
     windows/mainwindow.h \
     panes/editorpane.h \
@@ -74,6 +76,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 RESOURCES += \
-    Resources/Resources.qrc
+   Resources/Resources.qrc
 
 DISTFILES +=

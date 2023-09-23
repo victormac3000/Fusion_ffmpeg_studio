@@ -24,7 +24,7 @@ QFile* Logger::getLogFile()
 
     QDir appData(writableLocation);
 
-    QDate now = QDateTime::currentDateTimeUtc().date();
+    QDate now = QDateTime::currentDateTime().date();
     QString fileName = QString::number(now.year()) + "_" + QString::number(now.month()) +
                        "_" + QString::number(now.day()) + "_fusion_ffmpeg_studio.log";
 
@@ -39,9 +39,6 @@ QFile* Logger::getLogFile()
 
 void Logger::debugHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
-    QByteArray localMsg = msg.toLocal8Bit();
-    const char *file = context.file ? context.file : "";
-    const char *function = context.function ? context.function : "";
     bool isLogOpen = true;
     QFile *logFile = Logger::getLogFile();
     for (int i=0; i<5; i++) {
@@ -69,8 +66,10 @@ void Logger::debugHandler(QtMsgType type, const QMessageLogContext &context, con
                     arg(msg);
 
     logFile->write(logLine.toUtf8());
+
     #ifdef QT_DEBUG
-    if (type != 1000) std::cerr << logLine.toStdString() << std::endl;
+    std::cerr << logLine.toStdString() << std::endl;
     #endif
+
     logFile->close();
 }

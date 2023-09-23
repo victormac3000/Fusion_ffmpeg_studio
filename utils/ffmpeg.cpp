@@ -70,6 +70,8 @@ void FFmpeg::processReadyReadOut()
 
 void FFmpeg::processReadyReadError()
 {
+    /*
+    process->readAllStandardError();
     QString stderr = process->readAllStandardError();
 
     static QRegularExpression statusRe("frame=\\s*(?<nframe>[0-9]+)\\s+fps=\\s*(?<nfps>[0-9\\.]+)\\s+q=(?<nq>[0-9\\.-]+)\\s+(L?)\\s*size=\\s*(?<nsize>[0-9]+)(?<ssize>kB|mB|b)?\\s*time=\\s*(?<sduration>[0-9\\:\\.]+)\\s*bitrate=\\s*(?<nbitrate>[0-9\\.]+)(?<sbitrate>bits\\/s|mbits\\/s|kbits\\/s)?.*(dup=(?<ndup>\\d+)\\s*)?(drop=(?<ndrop>\\d+)\\s*)?speed=\\s*(?<nspeed>[0-9\\.]+)x");
@@ -122,6 +124,7 @@ void FFmpeg::processReadyReadError()
     } else {
         qWarning() << "FFmpeg has given an stdout error:" << stderr;
     }
+*/
 
 }
 
