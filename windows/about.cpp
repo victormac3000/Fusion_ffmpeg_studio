@@ -6,6 +6,7 @@ About::About(QWidget *parent) :
     ui(new Ui::About)
 {
     ui->setupUi(this);
+    ui->name->setText(QCoreApplication::applicationName());
     ui->version->setText("version " + QCoreApplication::applicationVersion() + " (alpha)");
 }
 

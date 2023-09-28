@@ -23,6 +23,7 @@ signals:
     void changePane(QWidget *pane);
 
 private slots:
+    void projectNameChanged(QString newName);
     void browseDCIMFolderClicked();
     void browseProjectLocationClicked();
     void cancelButtonClicked();

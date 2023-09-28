@@ -5,6 +5,8 @@
 #include <QString>
 #include <QMessageBox>
 
+#include "utils/exitcodes.h"
+
 class Dialogs
 {
 public:

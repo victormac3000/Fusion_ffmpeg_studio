@@ -46,6 +46,7 @@ HEADERS += \
     panes/items/fvideoitem.h \
     panes/projectcreator.h \
     utils/dialogs.h \
+    utils/exitcodes.h \
     utils/ffmpeg.h \
     utils/logger.h \
     utils/mediainfo.h \

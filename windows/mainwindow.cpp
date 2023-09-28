@@ -25,6 +25,20 @@ MainWindow::~MainWindow()
     delete aboutWindow;
 }
 
+QMenuBar *MainWindow::getMenuBar()
+{
+    return ui->menubar;
+}
+
+void MainWindow::clearMenuBar()
+{
+    ui->menubar->clear();
+    if (ui->menubar->isNativeMenuBar()) {
+        ui->menubar->addMenu(QCoreApplication::applicationName());
+    }
+    ui->menubar->addMenu("File");
+}
+
 bool MainWindow::changePane(QWidget *pane)
 {
     if (pane == nullptr) {

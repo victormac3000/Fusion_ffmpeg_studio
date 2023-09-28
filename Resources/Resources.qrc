@@ -11,5 +11,7 @@
         <file>Binaries/macOS/ffprobe</file>
         <file>Binaries/linux/ffmpeg</file>
         <file>Binaries/linux/ffprobe</file>
+        <file>Documents/Txt/Attributions.txt</file>
+        <file>Icons/General/settings-icon.png</file>
     </qresource>
 </RCC>

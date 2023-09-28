@@ -87,7 +87,7 @@
            </font>
           </property>
           <property name="text">
-           <string>Rendered videos directory</string>
+           <string>Application data directory</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
@@ -95,14 +95,14 @@
          </widget>
         </item>
         <item row="0" column="1">
-         <widget class="QLineEdit" name="rendered_dir">
+         <widget class="QLineEdit" name="appdata">
           <property name="readOnly">
            <bool>true</bool>
           </property>
          </widget>
         </item>
         <item row="0" column="2">
-         <widget class="QPushButton" name="change_rendered_dir">
+         <widget class="QPushButton" name="change_appdata">
           <property name="text">
            <string>Browse</string>
           </property>

@@ -7,15 +7,17 @@
 #include <QDir>
 #include <QFile>
 #include <QMessageBox>
-#include <QStandardPaths>
 #include <QFileInfo>
-#include <QSettings>
+#include <QThread>
+
+#include "utils/settings.h"
+#include "utils/exitcodes.h"
 
 class Logger
 {
 public:
     static QFile* getLogFile();
-    static void debugHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg);
+    static void messageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg);
 private:
     static QHash<QtMsgType, QString> contextNames;
 };

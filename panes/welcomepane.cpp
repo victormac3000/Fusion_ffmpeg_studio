@@ -7,7 +7,7 @@ WelcomePane::WelcomePane(QWidget *parent) :
     ui(new Ui::WelcomePane)
 { 
     ui->setupUi(this);
-    //parent->setWindowTitle("Welcome to Fusion FFmpeg Studio");
+    parent->setWindowTitle("Welcome to Fusion FFmpeg Studio");
     loadRecentProjects();
 
     ui->app_name->setText(QCoreApplication::applicationName());
@@ -17,6 +17,9 @@ WelcomePane::WelcomePane(QWidget *parent) :
     connect(ui->search_box_projects, SIGNAL(textChanged(QString)), this, SLOT(searchRecentProjects(QString)));
     connect(ui->open_folder_button, SIGNAL(clicked()), this, SLOT(openProjectButtonClicked()));
     connect(ui->new_project_button, SIGNAL(clicked(bool)), this, SLOT(newProjectButtonClicked()));
+
+    MainWindow *mainWindow = (MainWindow*) parent;
+    mainWindow->getMenuBar()->clear();
 }
 
 WelcomePane::~WelcomePane()

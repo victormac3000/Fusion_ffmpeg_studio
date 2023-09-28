@@ -7,21 +7,10 @@ ProjectCreator::ProjectCreator(QWidget *parent) :
     ui(new Ui::ProjectCreator)
 {
     ui->setupUi(this);
-
-    QString documentsPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
-    QString newDocumentsPath;
-
-    for (int i=1; i<=1000; i++) {
-        newDocumentsPath = documentsPath + "/ffs_project_" + QString::number(i);
-        if (!QDir().exists(newDocumentsPath)) {
-            settings.setValue("defaultProjectPath", newDocumentsPath);
-            break;
-        }
-    }
-
     ui->project_location->setText(settings.value("defaultProjectPath").toString());
 
     // Connect buttons
+    connect(ui->project_name, SIGNAL(textChanged(QString)), this, SLOT(projectNameChanged(QString)));
     connect(ui->browse_dcim_location, SIGNAL(clicked()), this, SLOT(browseDCIMFolderClicked()));
     connect(ui->browse_project_location, SIGNAL(clicked()), this, SLOT(browseProjectLocationClicked()));
     connect(ui->cancel_button, SIGNAL(clicked()), this, SLOT(cancelButtonClicked()));
@@ -33,19 +22,16 @@ ProjectCreator::~ProjectCreator()
     delete ui;
 }
 
+void ProjectCreator::projectNameChanged(QString newName)
+{
+    ui->project_location->setText(settings.value("defaultProjectPath").toString() + "/" + newName);
+}
+
 void ProjectCreator::browseDCIMFolderClicked()
 {
     QString proposedDCIMFolder = QFileDialog::getExistingDirectory(
         this, tr("Select the DCIM directory"), "/Users/victor/Documents/NoTM/2023_02_11_Nieve/Test/DCIM", QFileDialog::ShowDirsOnly
     );
-
-    if (proposedDCIMFolder.isEmpty()) return;
-    if (!QFileInfo(proposedDCIMFolder).isReadable()) {
-        Dialogs::warning("The DCIM folder needs to be readable");
-        qWarning() << "DCIM folder invalid, not readable" << proposedDCIMFolder;
-        return;
-    }
-
     ui->dcim_location->setText(proposedDCIMFolder);
 }
 
@@ -54,24 +40,24 @@ void ProjectCreator::browseProjectLocationClicked()
     QString proposedProjectFolder = QFileDialog::getExistingDirectory(
         this, tr("Select the project directory"), "/Users/victor/Documents/NoTM/2023_02_11_Nieve/Test/Project", QFileDialog::ShowDirsOnly
     );
-
-    if (proposedProjectFolder.isEmpty()) return;
-    if (!QFileInfo(proposedProjectFolder).isWritable()) {
-        Dialogs::warning("The project folder needs to be writable");
-        qWarning() << "Project folder invalid, not writable" << proposedProjectFolder;
-        return;
-    }
-
-    ui->project_location->setText(proposedProjectFolder);
+    ui->project_location->setText(proposedProjectFolder + "/" + ui->project_name->text());
 }
 
 void ProjectCreator::cancelButtonClicked()
 {
-    emit changePane(new WelcomePane);
+    emit changePane(new WelcomePane((MainWindow*) parent()->parent()));
 }
 
 void ProjectCreator::createButtonClicked()
 {
+    if (ui->project_name->text().isEmpty()) {
+        Dialogs::warning("The project name cannot be empty");
+        return;
+    }
+
+    Dialogs::ok("Henlo friend");
+    return;
+
     QString proposedDCIMFolder = ui->dcim_location->text();
     QString proposedProjectFolder = ui->project_location->text();
 

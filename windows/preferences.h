@@ -22,14 +22,14 @@ public:
     ~Preferences();
 
 private slots:
-    void changeRenderedDir();
+    void changeAppDataDir();
 
 private:
     Ui::Preferences *ui;
     QSettings settings;
     QString errorMsg;
 
-    bool canWrite(QString path);
+    bool copyAppData(QString path);
 };
 
 #endif // PREFERENCES_H

@@ -28,6 +28,8 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+    QMenuBar* getMenuBar();
+    void clearMenuBar();
 
 signals:
 

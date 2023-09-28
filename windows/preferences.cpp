@@ -6,10 +6,8 @@ Preferences::Preferences(QWidget *parent) :
     ui(new Ui::Preferences)
 {
     ui->setupUi(this);
-    connect(ui->change_rendered_dir, SIGNAL(clicked()), this, SLOT(changeRenderedDir()));
-    if (settings.contains("renderedDir") && !settings.value("renderedDir").toString().isEmpty()) {
-        ui->rendered_dir->setText(settings.value("renderedDir").toString());
-    }
+    connect(ui->change_appdata, SIGNAL(clicked()), this, SLOT(changeAppDataDir()));
+    ui->appdata->setText(settings.value("appData").toString());
 }
 
 Preferences::~Preferences()
@@ -17,45 +15,43 @@ Preferences::~Preferences()
     delete ui;
 }
 
-void Preferences::changeRenderedDir()
+void Preferences::changeAppDataDir()
 {
-    QString proposedRd = QFileDialog::getExistingDirectory(
-        this, tr("Select rendered directory"), "", QFileDialog::ShowDirsOnly
+    QString proposedAppDataDir = QFileDialog::getExistingDirectory(
+        this, tr("Select new appdata directory"), "", QFileDialog::ShowDirsOnly
     );
-    if (proposedRd.isEmpty()) return;
+    if (proposedAppDataDir.isEmpty()) return;
 
-    if (!canWrite(proposedRd)) {
-        Dialogs::warning("Cannot change the rendered directory:\n" + errorMsg);
-        qWarning() << "Cannot write to the proposed rendered directory: " << proposedRd;
+    if (!copyAppData(proposedAppDataDir)) {
+        Dialogs::warning("Cannot change the rendered directory, failed to copy appdata contents to the new path");
         return;
     }
 
-    ui->rendered_dir->setText(proposedRd);
-    settings.setValue("renderedDir", proposedRd);
+    ui->appdata->setText(proposedAppDataDir);
+    settings.setValue("appData", proposedAppDataDir);
 }
 
-bool Preferences::canWrite(QString path)
+bool Preferences::copyAppData(QString path)
 {
-    QDir dir(path);
+    // TODO fix
+    QDir dir(settings.value("appData").toString());
+    QDir newDir(path);
 
-    if (!dir.exists()) {
-        errorMsg = "The directory (" + path + ") does not exist on the system";
-        return false;
-    }
+    QFileInfoList dirFiles = dir.entryInfoList(QDir::NoDotAndDotDot | QDir::AllDirs | QDir::Files);
 
-    QFile file(path + "testWrite");
-
-    if (file.exists()) {
-        if (!file.remove()) {
-            errorMsg = "Cannot write data in the directory (" + path + "), cannot delete old test write file";
+    for (const QFileInfo &dirFileInfo: dirFiles) {
+        QString src = dirFileInfo.absoluteFilePath();
+        QString dst = newDir.absolutePath() + "/" + dirFileInfo.fileName();
+        if (QFile::exists(dst) && !QFile::remove(dst)) {
+            qWarning() << "Could not delete existing file in destination: "<< dst;
+            return false;
+        }
+        if (!QFile(src).copy(dst)) {
+            qWarning() << "Could not copy file "<< src << " to " << dst;
             return false;
         }
     }
 
-    if (!file.open(QFile::ReadWrite | QFile::NewOnly)) {
-        errorMsg = "Cannot write data in the directory (" + path + ")";
-        return false;
-    }
-
+    settings.setValue("appData", path);
     return true;
 }

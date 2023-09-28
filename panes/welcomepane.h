@@ -12,6 +12,7 @@
 #include <QSpacerItem>
 #include <QMainWindow>
 #include <QFrame>
+#include <QMenuBar>
 
 #include "worker.h"
 #include "panes/loadingpane.h"

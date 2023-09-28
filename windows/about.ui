@@ -43,7 +43,7 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QLabel" name="label">
+      <widget class="QLabel" name="name">
        <property name="font">
         <font>
          <family>Montserrat</family>
@@ -51,7 +51,7 @@
         </font>
        </property>
        <property name="text">
-        <string>Gopro Fusion Ffmpeg Studio</string>
+        <string>Fusion Ffmpeg Studio</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
