@@ -2,7 +2,7 @@
 #include "ui_loadingpane.h"
 #include "windows/mainwindow.h"
 
-LoadingPane::LoadingPane(QWidget *parent, QString projectFilePath) :
+LoadingPane::LoadingPane(QWidget *parent, QString dcimPath, QString projectName, QString projectPath) :
     QWidget(parent),
     ui(new Ui::LoadingPane)
 {
@@ -13,7 +13,11 @@ LoadingPane::LoadingPane(QWidget *parent, QString projectFilePath) :
     this->workerThread->start();
 
     // Worker actions
-    QMetaObject::invokeMethod(&worker, "loadProject", Qt::AutoConnection, Q_ARG(QString, projectFilePath));
+    if (dcimPath.isEmpty() || projectName.isEmpty()) {
+        QMetaObject::invokeMethod(&worker, "loadProject", Qt::AutoConnection, Q_ARG(QString, projectPath));
+    } else {
+        QMetaObject::invokeMethod(&worker, "createProject", Qt::AutoConnection, Q_ARG(QString, dcimPath), Q_ARG(QString, projectName), Q_ARG(QString, projectPath));
+    }
     connect(&worker, SIGNAL(loadProjectFinished(Project*)), this, SLOT(loadProjectFinished(Project*)));
     connect(&worker, SIGNAL(loadProjectError(QString)), this, SLOT(loadProjectError(QString)));
     connect(&worker, SIGNAL(loadProjectUpdate(int,QString)), this, SLOT(loadProjectUpdate(int,QString)));
@@ -23,6 +27,8 @@ LoadingPane::~LoadingPane()
 {
     workerThread->quit();
     workerThread->wait();
+    for (FVideo* vid: videos) delete vid;
+    delete workerThread;
     delete ui;
 }
 
@@ -36,7 +42,7 @@ void LoadingPane::loadProjectError(QString error)
 {
     workerThread->quit();
     workerThread->wait();
-    Dialogs::warning("Could not read the DCIM video structure. " + error);
+    Dialogs::warning("Could not load the project, see the logs for more information", "loadProjectError: " + error);
     emit changePane((QWidget*) new WelcomePane((QWidget*) this->parent()));
 }
 

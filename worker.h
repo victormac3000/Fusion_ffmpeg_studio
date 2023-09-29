@@ -18,7 +18,8 @@ public:
     ~Worker();
 
 public slots:
-    void loadProject(QString projectFilePath);
+    void createProject(QString dcimPath, QString projectName, QString projectPath);
+    void loadProject(QString projectPath);
 
 signals:
     void loadProjectUpdate(int percent = 0, QString message = "");

@@ -47,7 +47,7 @@ void Settings::setup()
     QDir appDataDir = QDir(settings.value("appData").toString());
 
     #ifdef Q_OS_MAC
-    resourcesPath = ":/Binaries/macOS/ffprobe";
+    resourcesPath = ":/Binaries/macOS";
     #endif
 
     #ifdef Q_OS_WIN
@@ -56,7 +56,7 @@ void Settings::setup()
     #endif
 
     #ifdef Q_OS_LINUX
-    resourcesPath = ":/Binaries/linux/ffprobe";
+    resourcesPath = ":/Binaries/linux";
     #endif
 
     if (resourcesPath.isEmpty() || !QDir().exists(resourcesPath)) {

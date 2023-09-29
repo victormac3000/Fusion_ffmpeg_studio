@@ -11,9 +11,91 @@ Worker::~Worker()
     qDebug() << "Worker thread destroyed";
 }
 
-void Worker::loadProject(QString projectFilePath)
+void Worker::createProject(QString dcimPath, QString projectName, QString projectPath)
 {
-    Project *project = new Project(nullptr, projectFilePath);
+    // Check that the DCIM folder is readable
+
+    if (!QFileInfo(dcimPath).isReadable()) {
+        emit loadProjectError("Could not read the DCIM folder");
+        qWarning() << "DCIM folder invalid, not readable" << dcimPath
+                   << "The permissions on the folder are " << QFileInfo(dcimPath).permissions();
+        return;
+    }
+
+    // Check that the project folder does not exists and try to create one
+
+    if (QFile::exists(projectPath)) {
+        if (!QDir(projectPath).isEmpty()) {
+            emit loadProjectError("The project folder must be empty");
+            qWarning() << "Project folder invalid, not empty" << projectPath;
+            return;
+        }
+    } else {
+        if (!QDir().mkpath(projectPath)) {
+            emit loadProjectError("Could not create the project folder");
+            qWarning() << "Could not create the project folder, mkdir failed on" << projectPath;
+            return;
+        }
+    }
+
+    QDir projectFolder(projectPath);
+    QDir dcimFolder(dcimPath);
+
+    if ((!projectFolder.mkdir("DFSegments")) ||
+        (!projectFolder.mkdir("DFVideos")) ||
+        (!projectFolder.mkdir("DFLowSegments")) ||
+        (!projectFolder.mkdir("DFLowVideos")) ||
+        (!projectFolder.mkdir("EVideos")) ||
+        (!projectFolder.mkdir("ELowVideos"))) {
+        emit loadProjectError("Could not create the project subfolders");
+        qWarning() << "Could not mkdir the project required folders in" << projectFolder.absolutePath();
+        return;
+    }
+
+    QFile projectFile(projectPath + "/project.ffs");
+
+    if (!projectFile.open(QFile::ReadWrite)) {
+        emit loadProjectError("Could not create the project file");
+        qWarning() << "Could not open (create) the project file in" << projectFile.fileName();
+        return;
+    }
+
+    projectFile.close();
+
+    /*
+
+    QJsonDocument doc;
+    QJsonObject mainObj;
+
+    QJsonObject info;
+
+    info.insert("version", QJsonValue::fromVariant(QCoreApplication::applicationVersion()));
+    info.insert("dcim", QJsonValue::fromVariant(proposedDCIMFolder));
+
+    mainObj.insert("info", info);
+    mainObj.insert("videos", QJsonArray());
+
+    doc.setObject(mainObj);
+
+    int written = projectFile.write(doc.toJson(QJsonDocument::Indented));
+    if (written < 0) {
+        Dialogs::warning("Could not create the project file");
+        qWarning() << "Could not write project file, bytes written" << written << "into file" << projectFile.fileName();
+        return;
+    }
+
+
+*/
+}
+
+void Worker::loadProject(QString projectPath)
+{
+/*
+    emit loadProjectError("Test error");
+    return;
+
+
+    Project *project = new Project(nullptr, dcimPath);
 
     if (!project->isValid()) {
         emit loadProjectError("Error opening the project file, the project file may be corrupt");
@@ -124,6 +206,7 @@ void Worker::loadProject(QString projectFilePath)
 
     project->setVideos(videos);
     emit loadProjectFinished(project);
+*/
 }
 
 void Worker::segmentComplete()

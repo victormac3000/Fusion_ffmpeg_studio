@@ -18,7 +18,7 @@ class LoadingPane : public QWidget
     Q_OBJECT
 
 public:
-    explicit LoadingPane(QWidget *parent = nullptr, QString projectFilePath = "");
+    explicit LoadingPane(QWidget *parent = nullptr, QString dcimPath = "", QString projectName = "", QString projectPath = "");
     ~LoadingPane();
 
 signals:

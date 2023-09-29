@@ -50,90 +50,27 @@ void ProjectCreator::cancelButtonClicked()
 
 void ProjectCreator::createButtonClicked()
 {
-    if (ui->project_name->text().isEmpty()) {
+    QString projectName = ui->project_name->text();
+    QString DCIMFolder = ui->dcim_location->text();
+    QString projectFolder = ui->project_location->text();
+
+    // Check that the strings are not empty
+
+    if (projectName.isEmpty()) {
         Dialogs::warning("The project name cannot be empty");
         return;
     }
 
-    Dialogs::ok("Henlo friend");
-    return;
-
-    QString proposedDCIMFolder = ui->dcim_location->text();
-    QString proposedProjectFolder = ui->project_location->text();
-
-    if (proposedDCIMFolder.isEmpty()) {
-        Dialogs::warning("The DCIM folder cannot be empty");
-        qWarning() << "DCIM folder invalid, empty" << proposedDCIMFolder;
+    if (DCIMFolder.isEmpty()) {
+        Dialogs::warning("The project DCIM folder cannot be empty");
         return;
     }
 
-    if (!QFileInfo(proposedDCIMFolder).isReadable()) {
-        Dialogs::warning("The DCIM folder could not be read");
-        qWarning() << "DCIM folder invalid, not readable" << proposedDCIMFolder;
-        return;
-    }
-
-    if (proposedProjectFolder.isEmpty()) {
+    if (projectFolder.isEmpty()) {
         Dialogs::warning("The project folder cannot be empty");
-        qWarning() << "Project folder invalid, empty" << proposedProjectFolder;
         return;
     }
 
-    if (!QFile::exists(proposedProjectFolder) && !QDir().mkdir(proposedProjectFolder)) {
-        Dialogs::warning("The project folder could not be created");
-        qWarning() << "Project folder invalid, not exists and mkdir failed" << proposedProjectFolder;
-        return;
-    }
-
-    QDir projectFolder(proposedProjectFolder);
-
-    if (!QFileInfo(proposedProjectFolder).isWritable()) {
-        Dialogs::warning("The project folder must be writable");
-        qWarning() << "Project folder invalid, not writable" << proposedProjectFolder;
-        return;
-    }
-
-    if ((!projectFolder.exists("DFSegments") && !QDir(proposedProjectFolder).mkdir("DFSegments")) ||
-        (!projectFolder.exists("DFVideos") && !QDir(proposedProjectFolder).mkdir("DFVideos")) ||
-        (!projectFolder.exists("DFLowSegments") && !QDir(proposedProjectFolder).mkdir("DFLowSegments")) ||
-        (!projectFolder.exists("DFLowVideos") && !QDir(proposedProjectFolder).mkdir("DFLowVideos")) ||
-        (!projectFolder.exists("EVideos") && !QDir(proposedProjectFolder).mkdir("EVideos")) ||
-        (!projectFolder.exists("ELowVideos") && !QDir(proposedProjectFolder).mkdir("ELowVideos"))) {
-        Dialogs::warning("Could not create the project structure");
-        qWarning() << "Project folder invalid, could not create project folders" << proposedProjectFolder;
-        return;
-    }
-
-    QFile projectFile(proposedProjectFolder + "/project.ffs");
-
-    if (!projectFile.open(QFile::ReadWrite)) {
-        Dialogs::warning("Could not create the project file");
-        qWarning() << "Project folder invalid, open project file failed" << proposedProjectFolder;
-        return;
-    }
-
-    QJsonDocument doc;
-    QJsonObject mainObj;
-
-    QJsonObject info;
-
-    info.insert("version", QJsonValue::fromVariant(QCoreApplication::applicationVersion()));
-    info.insert("dcim", QJsonValue::fromVariant(proposedDCIMFolder));
-
-    mainObj.insert("info", info);
-    mainObj.insert("videos", QJsonArray());
-
-    doc.setObject(mainObj);
-
-    int written = projectFile.write(doc.toJson(QJsonDocument::Indented));
-    if (written < 0) {
-        Dialogs::warning("Could not create the project file");
-        qWarning() << "Could not write project file, bytes written" << written << "into file" << projectFile.fileName();
-        return;
-    }
-
-    projectFile.close();
-
-    LoadingPane *loader = new LoadingPane(this, projectFile.fileName());
+    LoadingPane *loader = new LoadingPane((QWidget*) parent(), DCIMFolder, projectName, projectFolder);
     emit changePane(loader);
 }
