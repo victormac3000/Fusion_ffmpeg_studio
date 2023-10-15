@@ -8,6 +8,7 @@ ProjectCreator::ProjectCreator(QWidget *parent) :
 {
     ui->setupUi(this);
     ui->project_location->setText(settings.value("defaultProjectPath").toString());
+    this->mainWindowWidget = parent;
 
     // Connect buttons
     connect(ui->project_name, SIGNAL(textChanged(QString)), this, SLOT(projectNameChanged(QString)));
@@ -45,7 +46,7 @@ void ProjectCreator::browseProjectLocationClicked()
 
 void ProjectCreator::cancelButtonClicked()
 {
-    emit changePane(new WelcomePane((MainWindow*) parent()->parent()));
+    emit changePane(new WelcomePane((MainWindow*) parent()));
 }
 
 void ProjectCreator::createButtonClicked()
@@ -71,6 +72,6 @@ void ProjectCreator::createButtonClicked()
         return;
     }
 
-    LoadingPane *loader = new LoadingPane((QWidget*) parent(), DCIMFolder, projectName, projectFolder);
+    LoadingPane *loader = new LoadingPane(mainWindowWidget, DCIMFolder, projectName, projectFolder);
     emit changePane(loader);
 }

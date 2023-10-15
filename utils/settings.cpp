@@ -2,25 +2,7 @@
 
 void Settings::setup()
 {
-    // Check that operating system is compatible
-    bool supported = false;
-
-    #ifdef Q_OS_MAC
-        supported = true;
-    #endif
-
-    #ifdef Q_OS_WIN
-        supported = true;
-    #endif
-
-    #ifdef Q_OS_LINUX
-        supported = true;
-    #endif
-
-    if (!supported) {
-        Dialogs::critical("Fusion Ffmpeg Studio only supports Windows, macOS and linux",
-                          "OS Not supported");
-    }
+    checkCompatible();
 
     QSettings settings;
 
@@ -40,74 +22,70 @@ void Settings::setup()
         settings.setValue("defaultProjectPath", osDocumentsPath);
     }
 
-    // Copy the binaries to appdata
-
-    QString resourcesPath;
-    QString extension;
-    QDir appDataDir = QDir(settings.value("appData").toString());
-
-    #ifdef Q_OS_MAC
-    resourcesPath = ":/Binaries/macOS";
-    #endif
+    // Set the binaries path
 
     #ifdef Q_OS_WIN
-    resourcesPath = QDir::currentPath() + "/Binaries";
-    extension = ".exe";
-    #endif
+    QDir binariesFolder = QDir(QCoreApplication::applicationDirPath());
 
-    #ifdef Q_OS_LINUX
-    resourcesPath = ":/Binaries/linux";
-    #endif
-
-    if (resourcesPath.isEmpty() || !QDir().exists(resourcesPath)) {
+    if (!binariesFolder.cd("Binaries")) {
         Dialogs::critical("There was an internal error starting the application\nCheck the logs for more information",
                           "The binary resources dir does not exist. The path is: " + resourcesPath);
     }
 
+    QFileInfo ffmpegInfo(binariesFolder.absolutePath() + "/ffmpeg.exe");
+    QFileInfo ffprobeInfo(binariesFolder.absolutePath() + "/ffmpeg.exe");
 
-    if (appDataDir.exists("Binaries") && !QDir(appDataDir.absolutePath() + "/Binaries").removeRecursively()) {
+    if (!ffmpegInfo.exists() || !ffmpegInfo.isExecutable()) {
         Dialogs::critical("There was an internal error starting the application\nCheck the logs for more information",
-                          "Could not remove the appdata binaries. The appdata path is: " + appDataDir.absolutePath());
+                          "The ffmpeg binary does not exist or is not executable. The path is: " + ffmpegInfo.absolutePath());
     }
 
-    if (!appDataDir.mkdir("Binaries")) {
+    if (!ffprobeInfo.exists() || !ffprobeInfo.isExecutable()) {
         Dialogs::critical("There was an internal error starting the application\nCheck the logs for more information",
-                          "Could not create the binaries directory inside the appData directory: " + appDataDir.absolutePath());
+                          "The ffprobe binary does not exist or is not executable. The path is: " + ffmpegInfo.absolutePath());
     }
 
-    if (!appDataDir.cd("Binaries")) {
-        Dialogs::critical("There was an internal error starting the application\nCheck the logs for more information",
-            "Could not find the Binaries directory inside the appData directory: " + appDataDir.absolutePath());
+    settings.setValue("ffmpeg", ffmpegInfo.absolutePath());
+    settings.setValue("ffprobe", ffmpegInfo.absolutePath());
+    settings.sync();
+    return;
+
+    #endif
+
+    QProcess *ffmpegProcess = new QProcess;
+    QProcess *ffprobeProcess = new QProcess;
+
+    ffmpegProcess->startDetached("which", {"ffmpeg"});
+    ffprobeProcess->startDetached("which", {"ffprobe"});
+
+    ffmpegProcess->waitForStarted();
+    ffmpegProcess->waitForFinished();
+    ffmpegProcess->waitForReadyRead();
+    ffprobeProcess->waitForStarted();
+    ffprobeProcess->waitForFinished();
+    ffprobeProcess->waitForReadyRead();
+
+    if (ffmpegProcess->exitCode() != 0) {
+        Dialogs::critical(
+            "You must install ffmpeg on your machine to use this application",
+            "FFmpeg not installed"
+        );
     }
 
-    QString ffmpegSourcePath = resourcesPath + "/ffmpeg" + extension;
-    QString ffprobeSourcePath = resourcesPath + "/ffprobe" + extension;
-    QString ffmpegDestPath = appDataDir.absolutePath() + "/ffmpeg" + extension;
-    QString ffprobeDestPath = appDataDir.absolutePath() + "/ffprobe" + extension;
-
-    if (ffmpegSourcePath.isEmpty() || ffprobeSourcePath.isEmpty() ||
-        !QFile::exists(ffmpegSourcePath) || !QFile::exists(ffprobeSourcePath)) {
-        Dialogs::critical("There was an internal error starting the application\nCheck the logs for more information",
-                          "Could not find the required binaries in folder: " + resourcesPath);
+    if (ffprobeProcess->exitCode() != 0) {
+        Dialogs::critical(
+            "You must install ffprobe on your machine to use this application",
+            "FFProbe not installed"
+        );
     }
 
-    if (!QFile::copy(ffmpegSourcePath, ffmpegDestPath) || !QFile::copy(ffprobeSourcePath, ffprobeDestPath)) {
-        Dialogs::critical("There was an internal error starting the application\nCheck the logs for more information",
-                          "Could not copy the required binaries from the resources path: " + resourcesPath
-                          + " to the appData path: " + appDataDir.absolutePath());
-    }
+    QString ffmpegPath = ffmpegProcess->readAllStandardOutput();
+    QString ffprobePath = ffprobeProcess->readAllStandardOutput();
 
-    if (!QFile(ffmpegDestPath).setPermissions(
-            QFileDevice::ReadOwner |  QFileDevice::ReadUser |  QFileDevice::ReadGroup | QFileDevice::ReadOther |
-            QFileDevice::WriteOwner |
-            QFileDevice::ExeOwner |  QFileDevice::ExeUser |  QFileDevice::ExeGroup | QFileDevice::ExeOther) ||
-        !QFile(ffprobeDestPath).setPermissions(
-            QFileDevice::ReadOwner |  QFileDevice::ReadUser |  QFileDevice::ReadGroup | QFileDevice::ReadOther |
-            QFileDevice::WriteOwner |
-            QFileDevice::ExeOwner |  QFileDevice::ExeUser |  QFileDevice::ExeGroup | QFileDevice::ExeOther)) {
-        Dialogs::critical("There was an internal error starting the application\nCheck the logs for more information",
-                          "Could not set the permissions to the required binaries");
-    }
+    settings.setValue("ffmpeg", ffmpegPath);
+    settings.setValue("ffprobe", ffprobePath);
+
+    settings.sync();
 }
 
 QString Settings::getAppDataPath()
@@ -129,4 +107,26 @@ QString Settings::getAppDataPath()
     }
 
     return settings.value("appData").toString();
+}
+
+void Settings::checkCompatible()
+{
+    bool supported = false;
+
+    #ifdef Q_OS_MAC
+        supported = true;
+    #endif
+
+    #ifdef Q_OS_WIN
+        supported = true;
+    #endif
+
+    #ifdef Q_OS_LINUX
+        supported = true;
+    #endif
+
+    if (!supported) {
+        Dialogs::critical("Fusion Ffmpeg Studio only supports Windows, macOS and linux",
+                          "OS Not supported");
+    }
 }

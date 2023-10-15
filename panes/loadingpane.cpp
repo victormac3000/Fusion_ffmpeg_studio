@@ -8,6 +8,8 @@ LoadingPane::LoadingPane(QWidget *parent, QString dcimPath, QString projectName,
 {
     ui->setupUi(this);
 
+    this->mainWindowWidget = parent;
+
     this->workerThread = new QThread;
     worker.moveToThread(workerThread);
     this->workerThread->start();
@@ -27,15 +29,16 @@ LoadingPane::~LoadingPane()
 {
     workerThread->quit();
     workerThread->wait();
-    for (FVideo* vid: videos) delete vid;
     delete workerThread;
     delete ui;
 }
 
 void LoadingPane::loadProjectFinished(Project* project)
 {
+    workerThread->quit();
+    workerThread->wait();
     Dialogs::ok("Loaded project Ok");
-    emit changePane(new EditorPane((MainWindow*) parent(), project));
+    emit changePane(new EditorPane(mainWindowWidget, project));
 }
 
 void LoadingPane::loadProjectError(QString error)
@@ -43,7 +46,7 @@ void LoadingPane::loadProjectError(QString error)
     workerThread->quit();
     workerThread->wait();
     Dialogs::warning("Could not load the project, see the logs for more information", "loadProjectError: " + error);
-    emit changePane((QWidget*) new WelcomePane((QWidget*) this->parent()));
+    emit changePane((QWidget*) new WelcomePane(mainWindowWidget));
 }
 
 void LoadingPane::loadProjectUpdate(int percent, QString message)

@@ -2,27 +2,43 @@
 #include <iostream>
 
 QHash<QtMsgType, QString> Logger::contextNames = {
-    {QtMsgType::QtDebugMsg,		"   DEBUG  "},
-    {QtMsgType::QtInfoMsg,		"   INFO   "},
-    {QtMsgType::QtWarningMsg,	"  WARNING "},
-    {QtMsgType::QtCriticalMsg,	" CRITICAL "},
-    {QtMsgType::QtFatalMsg,		" FATAL  "}
+    {QtMsgType::QtDebugMsg,		"DEBUG     "},
+    {QtMsgType::QtInfoMsg,		"INFO      "},
+    {QtMsgType::QtWarningMsg,	"WARNING   "},
+    {QtMsgType::QtCriticalMsg,	"CRITICAL  "},
+    {QtMsgType::QtFatalMsg,		"FATAL     "}
 };
 
 QFile* Logger::getLogFile()
 {
     QString appDataPath = Settings::getAppDataPath();
+    QDir appData(appDataPath);
 
+    if (!appData.exists()) {
+        std::cerr << "Could not open appdata for the logfile. The appData path is: " << appData.absolutePath().toStdString() << std::endl;
+        exit(ERROR_COULD_NOT_OPEN_APPDATA);
+    }
+
+    if (!appData.exists("Logs") && !appData.mkdir("Logs")) {
+        std::cerr << "Could not create the log folder inside appdata. The appData path is: " << appData.absolutePath().toStdString() << std::endl;
+        exit(ERROR_COULD_NOT_CREATE_LOG_FOLDER);
+    }
+
+    if (!appData.cd("Logs")) {
+        std::cerr << "Could not read the log folder inside appdata. The appData path is: " << appData.absolutePath().toStdString() << std::endl;
+        exit(ERROR_COULD_NOT_READ_LOG_FOLDER);
+    }
 
     QDate now = QDateTime::currentDateTime().date();
     QString fileName = QString::number(now.year()) + "_" + QString::number(now.month()) +
                        "_" + QString::number(now.day()) + "_fusion_ffmpeg_studio.log";
 
-    QFile *logFile = new QFile(appDataPath + "/" + fileName);
+    QFile *logFile = new QFile(appData.absolutePath() + "/" + fileName);
     if (!logFile->open(QFile::ReadWrite | QFile::Append)) {
         std::cerr << "Could not open log in getLogFile. The logfile path is: " << logFile->fileName().toStdString() << std::endl;
         exit(ERROR_COULD_NOT_OPEN_LOG);
     }
+
     logFile->write("FUSION FFMPEG STUDIO STARTING...\n");
     logFile->close();
     return logFile;

@@ -12,21 +12,21 @@ class Project : public QObject
 {
     Q_OBJECT
 public:
-    explicit Project(QObject *parent, QString projectFilePath);
+    explicit Project(bool create = false, QString projectPath = "", QString dcimPath = "", QString projectName = "");
     ~Project();
 
     bool isValid();
-    QString getDcim();
+    QDir getDcim();
     void setDcim(QString newDcim);
     QString getVersion();
     void setVersion(QString newVersion);
     QString getPath();
-    void setPath(QString newPath);
-    QFile *getFile();
-    void setFile(QFile *newFile);
     void setVideos(QList<FVideo*> videos);
     QList<FVideo*> getVideos();
 
+signals:
+    void loadProjectUpdate(int percent = 0, QString message = "");
+    void loadProjectError(QString error);
 
 public slots:
     void save();
@@ -34,12 +34,17 @@ public slots:
 private:
     bool valid;
     QJsonDocument json;
-    QString dcim;
+    QDir dcim;
     QString version;
     QString path;
     QFile *file;
     QList<FVideo*> videos;
     QDateTime lastSaved;
+
+    void loadProject(QString projectPath);
+    void createProject(QString projectPath, QString dcimPath, QString projectName);
+    bool indexVideos();
+    void indexSegmentComplete(int doneSegments, int totalSegments);
 
 
 };

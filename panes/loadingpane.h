@@ -31,7 +31,7 @@ private slots:
 
 private:
     Ui::LoadingPane *ui;
-    QList<FVideo*> videos;
+    QWidget *mainWindowWidget;
     Worker worker;
     QThread *workerThread;
 

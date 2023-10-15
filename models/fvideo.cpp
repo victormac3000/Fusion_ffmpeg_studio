@@ -1,9 +1,19 @@
 #include "fvideo.h"
 
-FVideo::FVideo(QObject *parent, int id)
-    : QObject{parent}
+FVideo::FVideo(int id)
+    : QObject{nullptr}
 {
     this->id = id;
+}
+
+FVideo::~FVideo()
+{
+    qDeleteAll(segments);
+    segments.clear();
+    delete dualFisheye;
+    delete dualFisheyeLow;
+    delete equirectangular;
+    delete equirectangularLow;
 }
 
 bool FVideo::addSegment(FSegment *segment)

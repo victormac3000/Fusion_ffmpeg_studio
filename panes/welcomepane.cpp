@@ -1,13 +1,17 @@
 #include "welcomepane.h"
 #include "ui_welcomepane.h"
-#include "windows/mainwindow.h"
 
 WelcomePane::WelcomePane(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::WelcomePane)
 { 
     ui->setupUi(this);
-    parent->setWindowTitle("Welcome to Fusion FFmpeg Studio");
+
+    MainWindow *mainWindow = (MainWindow*) parent;
+    mainWindow->getMenuBar()->clear();
+    mainWindow->setWindowTitle("Welcome to Fusion FFmpeg Studio");
+    this->mainWindowWidget = parent;
+
     loadRecentProjects();
 
     ui->app_name->setText(QCoreApplication::applicationName());
@@ -17,9 +21,6 @@ WelcomePane::WelcomePane(QWidget *parent) :
     connect(ui->search_box_projects, SIGNAL(textChanged(QString)), this, SLOT(searchRecentProjects(QString)));
     connect(ui->open_folder_button, SIGNAL(clicked()), this, SLOT(openProjectButtonClicked()));
     connect(ui->new_project_button, SIGNAL(clicked(bool)), this, SLOT(newProjectButtonClicked()));
-
-    MainWindow *mainWindow = (MainWindow*) parent;
-    mainWindow->getMenuBar()->clear();
 }
 
 WelcomePane::~WelcomePane()
@@ -33,13 +34,13 @@ void WelcomePane::openProjectButtonClicked()
         this, tr("Select the project file"), "/home/victor/Documentos/ffs_project_1", tr("Fusion FFmpeg studio project (*.ffs)")
     );
     if (proposedProjectFile.isEmpty()) return;
-    LoadingPane *loader = new LoadingPane((MainWindow*) parent(), proposedProjectFile);
+    LoadingPane *loader = new LoadingPane((MainWindow*) mainWindowWidget, proposedProjectFile);
     emit changePane(loader);
 }
 
 void WelcomePane::newProjectButtonClicked()
 {
-    ProjectCreator *creator = new ProjectCreator((MainWindow*) parent());
+    ProjectCreator *creator = new ProjectCreator((MainWindow*) mainWindowWidget);
     emit changePane(creator);
 }
 

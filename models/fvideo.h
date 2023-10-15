@@ -20,7 +20,9 @@ class FVideo : public QObject
 {
     Q_OBJECT
 public:
-    explicit FVideo(QObject *parent = nullptr, int id = -1);
+    explicit FVideo(int id = -1);
+    ~FVideo();
+
     bool addSegment(FSegment *segment);
     bool verify();
     int getId();

@@ -31,6 +31,7 @@ private slots:
 
 private:
     Ui::ProjectCreator *ui;
+    QWidget *mainWindowWidget;
     QSettings settings;
 
 };

@@ -15,9 +15,10 @@
 #include <QMenuBar>
 
 #include "worker.h"
-#include "panes/loadingpane.h"
 #include "utils/dialogs.h"
 #include "panes/projectcreator.h"
+#include "panes/loadingpane.h"
+#include "windows/mainwindow.h"
 
 namespace Ui {
 class WelcomePane;
@@ -47,6 +48,7 @@ private slots:
 
 private:
     Ui::WelcomePane *ui;
+    QWidget *mainWindowWidget;
     QSettings settings;
     QList<QPair<RecentProject,QFrame*>> recentProjectsList;
 

@@ -9,7 +9,8 @@ bool MediaInfo::isVideo(QFile *media)
 float MediaInfo::getFPS(QFile *video)
 {
     QProcess *process = new QProcess;
-    QString ffprobePath = getFFProbePath();
+
+    QString ffprobePath = QSettings().value("ffprobe").toString();
 
     if (ffprobePath.isEmpty()) {
         qWarning() << "FFProbe binary path not found:" << ffprobePath;
@@ -44,7 +45,7 @@ float MediaInfo::getFPS(QFile *video)
 QSize MediaInfo::getResolution(QFile *video)
 {
     QProcess *process = new QProcess;
-    QString ffprobePath = getFFProbePath();
+    QString ffprobePath = QSettings().value("ffprobe").toString();
 
     if (ffprobePath.isEmpty()) {
         qWarning() << "FFProbe binary path not found:" << ffprobePath;
@@ -65,8 +66,8 @@ QSize MediaInfo::getResolution(QFile *video)
     process->start();
     process->waitForFinished();
 
-    QString rawFps = process->readAllStandardOutput();
-    QStringList operands = rawFps.split("x");
+    QString rawResolution = process->readAllStandardOutput();
+    QStringList operands = rawResolution.split("x");
     if (operands.size() != 2) {
         return QSize(-1,-1);
     }
@@ -79,7 +80,7 @@ QSize MediaInfo::getResolution(QFile *video)
 QDateTime MediaInfo::getDate(QFile *media)
 {
     QProcess *process = new QProcess;
-    QString ffprobePath = getFFProbePath();
+    QString ffprobePath = QSettings().value("ffprobe").toString();
 
     if (ffprobePath.isEmpty()) {
         qWarning() << "FFProbe binary path not found:" << ffprobePath;
@@ -109,7 +110,7 @@ QDateTime MediaInfo::getDate(QFile *media)
 QTime MediaInfo::getLength(QFile *media1)
 {
     QProcess *process = new QProcess;
-    QString ffprobePath = getFFProbePath();
+    QString ffprobePath = QSettings().value("ffprobe").toString();
 
     if (ffprobePath.isEmpty()) {
         qWarning() << "FFProbe binary path not found:" << ffprobePath;
@@ -189,69 +190,4 @@ QMediaMetaData MediaInfo::getMetadata(QFile *media)
     }
 
     return  timeout ? QMediaMetaData() : player.metaData();
-}
-
-QString MediaInfo::getFFProbePath()
-{
-    QSettings settings;
-    QString resourcesPath;
-    QString extension;
-
-    #ifdef Q_OS_MAC
-    resourcesPath = ":/Binaries/macOS/ffprobe";
-    #endif
-
-    #ifdef Q_OS_WIN
-    extension = ".exe";
-    resourcesPath = ":/Binaries/windows/ffprobe.exe";
-    #endif
-
-    #ifdef Q_OS_LINUX
-    resourcesPath = ":/Binaries/linux/ffprobe";
-    #endif
-
-    if (resourcesPath.isEmpty()) {
-        qWarning() << "No resources found for unknown OS";
-        return resourcesPath;
-    }
-
-    QDir workingDir(settings.value("workingDir").toString());
-
-    if (!workingDir.exists()) {
-        qWarning() << "The working directory does not exist:" <<  workingDir.absolutePath();
-        return "";
-    }
-
-    if (!workingDir.exists("Binaries")) {
-        if (!workingDir.mkdir("Binaries")) {
-            qWarning() << "Could not create the binaries directory inside the working directory:" << workingDir.absolutePath();
-            return "";
-        }
-    }
-
-    if (!workingDir.cd("Binaries")) {
-        qWarning() << "Could not move to the binaries directory inside the working directory:" << workingDir.absolutePath();
-        return "";
-    }
-
-    QFile resourcesFile(resourcesPath);
-    QString localFilePath(workingDir.absolutePath() + "/ffprobe" + extension);
-
-    if (!QFile::exists(localFilePath)) {
-        if (!resourcesFile.copy(localFilePath)) {
-            qWarning() << "Could not copy the binary from the resources path:" << resourcesFile.fileName() <<
-                "to the binaries path of the working directory:" << workingDir.absolutePath();
-            return "";
-        }
-    }
-
-    if (!QFile(localFilePath).setPermissions(
-            QFileDevice::ReadOwner |  QFileDevice::ReadUser |  QFileDevice::ReadGroup | QFileDevice::ReadOther |
-            QFileDevice::WriteOwner |
-            QFileDevice::ExeOwner |  QFileDevice::ExeUser |  QFileDevice::ExeGroup | QFileDevice::ExeOther)) {
-        qWarning() << "Could not set the binary permissions:" << localFilePath;
-        return "";
-    }
-
-    return localFilePath;
 }

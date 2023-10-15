@@ -15,7 +15,7 @@ class FSegment : public QObject
 public:
     explicit FSegment(QObject *parent = nullptr, int id = -1, QFile *front_mp4 = nullptr, QFile *front_lrv = nullptr, QFile *front_thm = nullptr,
                       QFile *back_mp4 = nullptr, QFile *back_lrv = nullptr, QFile *back_thm = nullptr, QFile *back_wav = nullptr);
-
+    ~FSegment();
 
 
     int getId();

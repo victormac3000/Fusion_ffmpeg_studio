@@ -30,7 +30,6 @@ public:
     static bool isAudio(QFile *media);
     static bool isImage(QFile *media);
     static QMimeType getMimeType(QFile *media);
-    static QString getFFProbePath();
 
 private:
     static QMediaMetaData getMetadata(QFile *media);

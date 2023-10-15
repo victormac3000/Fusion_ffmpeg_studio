@@ -14,6 +14,11 @@ FSegment::FSegment(QObject *parent, int id, QFile *front_mp4, QFile *front_lrv, 
     this->backWAV = back_wav;
 }
 
+FSegment::~FSegment()
+{
+
+}
+
 bool FSegment::verify()
 {
     FVideo *video = (FVideo*) this->parent();
