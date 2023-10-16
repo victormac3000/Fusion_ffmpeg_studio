@@ -63,21 +63,20 @@ FFormat* FFormats::get(QFile *media, int type)
             return nullptr;
         }
 
-        QSize resolution = MediaInfo::getResolution(media);
-        float fps = MediaInfo::getFPS(media);
+        VideoInfo videoInfo = MediaInfo::getVideoInfo(media);
 
         for (FFormat &format: formats) {
             if (type == FUSION_VIDEO) {
-                if (format.nVideo.height == resolution.height() &&
-                    format.nVideo.width == resolution.width() &&
-                    format.nVideo.fps == fps) {
+                if (format.nVideo.height == videoInfo.resolution.height() &&
+                    format.nVideo.width == videoInfo.resolution.width() &&
+                    format.nVideo.fps == videoInfo.frameRate) {
                     return &format;
                 }
             }
             if (type == FUSION_LOW_VIDEO) {
-                if (format.lVideo.height == resolution.height() &&
-                    format.lVideo.width == resolution.width() &&
-                    format.lVideo.fps == fps) {
+                if (format.lVideo.height == videoInfo.resolution.height() &&
+                    format.lVideo.width == videoInfo.resolution.width() &&
+                    format.lVideo.fps == videoInfo.frameRate) {
                     return &format;
                 }
             }
@@ -109,9 +108,6 @@ FFormat* FFormats::get(QFile *media, int type)
         }
     }
 
-    if (type > FUSION_THUMNAIL) {
-        qWarning() << "The media type specified" << type << "is not an audio, video or thumnail file: " << media->fileName();
-    }
-
+    qWarning() << "The media type specified" << type << "is not an audio, video or thumnail file: " << media->fileName();
     return nullptr;
 }

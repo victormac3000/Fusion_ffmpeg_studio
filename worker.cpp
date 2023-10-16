@@ -13,10 +13,7 @@ Worker::~Worker()
 
 void Worker::createProject(QString dcimPath, QString projectName, QString projectPath)
 {
-    Project *project = new Project(true, projectPath, dcimPath, projectName);
-
-    connect(project, SIGNAL(loadProjectUpdate(int, QString)), this, SIGNAL(loadProjectUpdate(int,QString)));
-    connect(project, SIGNAL(loadProjectError(QString)), this, SIGNAL(loadProjectError(QString)));
+    Project *project = new Project(this, true, projectPath, dcimPath, projectName);
 
     if (project->isValid()) {
         emit loadProjectFinished(project);
@@ -27,10 +24,7 @@ void Worker::createProject(QString dcimPath, QString projectName, QString projec
 
 void Worker::loadProject(QString projectPath)
 {
-    Project *project = new Project(false, projectPath);
-
-    connect(project, SIGNAL(loadProjectUpdate(int, QString)), this, SIGNAL(loadProjectUpdate(int,QString)));
-    connect(project, SIGNAL(loadProjectError(QString)), this, SIGNAL(loadProjectError(QString)));
+    Project *project = new Project(this, false, projectPath);
 
     if (project->isValid()) {
         emit loadProjectFinished(project);

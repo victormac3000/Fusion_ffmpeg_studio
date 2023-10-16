@@ -26,6 +26,8 @@ signals:
     void loadProjectFinished(Project *project);
     void loadProjectError(QString error);
 
+private slots:
+
 private:
     int doneSegments = 0;
     int totalSegments = 0;

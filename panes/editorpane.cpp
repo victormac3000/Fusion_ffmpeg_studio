@@ -1,6 +1,5 @@
 #include "editorpane.h"
 #include "ui_editorpane.h"
-#include "windows/mainwindow.h"
 
 EditorPane::EditorPane(QWidget *parent, Project *project) :
     QWidget(parent),
@@ -9,11 +8,12 @@ EditorPane::EditorPane(QWidget *parent, Project *project) :
     ui->setupUi(this);
 
     this->project = project;
-    project->save();
 
+    /*
     this->webEngine = new QWebEngineView(ui->media_player_frame);
     webEngine->load(QUrl("https://www.google.es"));
     ui->media_player_layout->addWidget(webEngine);
+*/
 
     this->queueLayout = new QVBoxLayout(ui->render_queue_scoll_area_widget);
 

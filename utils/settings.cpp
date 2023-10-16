@@ -77,62 +77,57 @@ void Settings::setupBinaries()
     QSettings settings;
 
     #ifdef Q_OS_WIN
-        QDir binariesFolder = QDir(QCoreApplication::applicationDirPath());
+    QDir binariesFolder = QDir(QCoreApplication::applicationDirPath());
 
-        if (!binariesFolder.cd("Binaries")) {
-            Dialogs::critical("There was an internal error starting the application\nCheck the logs for more information",
-                              "The binary resources dir does not exist. The path is: " + binariesFolder.absolutePath());
-        }
+    if (!binariesFolder.cd("Binaries")) {
+        Dialogs::critical("There was an internal error starting the application\nCheck the logs for more information",
+                          "The binary resources dir does not exist. The path is: " + binariesFolder.absolutePath());
+    }
 
-        QFileInfo ffmpegInfo(binariesFolder.absolutePath() + "/ffmpeg.exe");
-        QFileInfo ffprobeInfo(binariesFolder.absolutePath() + "/ffprobe.exe");
+    QFileInfo ffmpegInfo(binariesFolder.absolutePath() + "/ffmpeg.exe");
+    QFileInfo ffprobeInfo(binariesFolder.absolutePath() + "/ffprobe.exe");
 
-        if (!ffmpegInfo.exists() || !ffmpegInfo.isExecutable()) {
-            Dialogs::critical("There was an internal error starting the application\nCheck the logs for more information",
-                              "The ffmpeg binary does not exist or is not executable. The path is: " + ffmpegInfo.absolutePath());
-        }
+    if (!ffmpegInfo.exists() || !ffmpegInfo.isExecutable()) {
+        Dialogs::critical("There was an internal error starting the application\nCheck the logs for more information",
+                          "The ffmpeg binary does not exist or is not executable. The path is: " + ffmpegInfo.absolutePath());
+    }
 
-        if (!ffprobeInfo.exists() || !ffprobeInfo.isExecutable()) {
-            Dialogs::critical("There was an internal error starting the application\nCheck the logs for more information",
-                              "The ffprobe binary does not exist or is not executable. The path is: " + ffmpegInfo.absolutePath());
-        }
+    if (!ffprobeInfo.exists() || !ffprobeInfo.isExecutable()) {
+        Dialogs::critical("There was an internal error starting the application\nCheck the logs for more information",
+                          "The ffprobe binary does not exist or is not executable. The path is: " + ffmpegInfo.absolutePath());
+    }
 
-        settings.setValue("ffmpeg", ffmpegInfo.absoluteFilePath());
-        settings.setValue("ffprobe", ffprobeInfo.absoluteFilePath());
-        settings.sync();
-        return;
-
+    settings.setValue("ffmpeg", ffmpegInfo.absoluteFilePath());
+    settings.setValue("ffprobe", ffprobeInfo.absoluteFilePath());
+    settings.sync();
+    return;
     #endif
 
-    QProcess *ffmpegProcess = new QProcess;
-    QProcess *ffprobeProcess = new QProcess;
+    QString ffmpegPath, ffprobePath;
 
-    ffmpegProcess->startDetached("which", {"ffmpeg"});
-    ffprobeProcess->startDetached("which", {"ffprobe"});
+    #ifdef Q_OS_MAC
+    ffmpegPath = "/usr/local/bin/ffmpeg";
+    ffprobePath = "/usr/local/bin/ffprobe";
+    #endif
 
-    ffmpegProcess->waitForStarted();
-    ffmpegProcess->waitForFinished();
-    ffmpegProcess->waitForReadyRead();
-    ffprobeProcess->waitForStarted();
-    ffprobeProcess->waitForFinished();
-    ffprobeProcess->waitForReadyRead();
+    #ifdef Q_OS_LINUX
+    ffmpegPath = "/usr/bin/ffmpeg";
+    ffprobePath = "/usr/bin/ffprobe";
+    #endif
 
-    if (ffmpegProcess->exitCode() != 0) {
+    if (ffmpegPath.isEmpty() || !QFile(ffmpegPath).exists() || !QFileInfo(ffmpegPath).isExecutable()) {
         Dialogs::critical(
             "You must install ffmpeg on your machine to use this application",
             "FFmpeg not installed"
-            );
+        );
     }
 
-    if (ffprobeProcess->exitCode() != 0) {
+    if (ffprobePath.isEmpty() || !QFile(ffprobePath).exists() || !QFileInfo(ffprobePath).isExecutable()) {
         Dialogs::critical(
             "You must install ffprobe on your machine to use this application",
             "FFProbe not installed"
-            );
+        );
     }
-
-    QString ffmpegPath = ffmpegProcess->readAllStandardOutput();
-    QString ffprobePath = ffprobeProcess->readAllStandardOutput();
 
     settings.setValue("ffmpeg", ffmpegPath);
     settings.setValue("ffprobe", ffprobePath);

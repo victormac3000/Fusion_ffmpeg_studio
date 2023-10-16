@@ -1,8 +1,10 @@
 #include "project.h"
 
-Project::Project(bool create, QString projectPath, QString dcimPath, QString projectName)
+Project::Project(QObject *parent, bool create, QString projectPath, QString dcimPath, QString projectName)
     : QObject{nullptr}
 {
+    connect(this, SIGNAL(loadProjectUpdate(int, QString)), parent, SIGNAL(loadProjectUpdate(int,QString)));
+    connect(this, SIGNAL(loadProjectError(QString)), parent, SIGNAL(loadProjectError(QString)));
     if (create) {
         createProject(projectPath, dcimPath, projectName);
     } else {
@@ -60,17 +62,17 @@ void Project::save()
 {
     qDebug() << "Trying to save to project file" << file->fileName();
 
-    if (!file->open(QFile::ReadWrite | QFile::ExistingOnly)) {
-        file->close();
-        qWarning() << "Could not open project file" << path;
+    if (!file->open(QFile::ReadWrite)) {
+        qWarning() << "Could not open project file" << file->fileName();
         return;
     }
 
-    QJsonDocument newJson;
+    QJsonDocument jsonDoc;
     QJsonObject mainObj;
 
-    QJsonObject info = json.object().value("info").toObject();
+    QJsonObject info;
 
+    info.insert("name", name);
     info.insert("dcim", dcim.absolutePath());
     info.insert("version", QCoreApplication::applicationVersion());
 
@@ -99,9 +101,9 @@ void Project::save()
     }
 
     mainObj.insert("videos", videosArray);
-    newJson.setObject(mainObj);
+    jsonDoc.setObject(mainObj);
 
-    int written = file->write(newJson.toJson(QJsonDocument::Indented));
+    int written = file->write(jsonDoc.toJson(QJsonDocument::Indented));
     if (written < 0) {
         file->close();
         qWarning() << "Could not save the project" << path;
@@ -115,21 +117,22 @@ void Project::save()
 
 void Project::loadProject(QString projectPath)
 {
-    /*
-    this->file = new QFile(projectFilePath);
+    this->path = projectPath;
+
+    this->file = new QFile(projectPath + "/project.ffs");
 
     if (!file->exists()) {
-        qWarning() << "ProjectFile QFile is empty" << projectFilePath;
+        qWarning() << "ProjectFile QFile does not exist" << file->fileName();
         return;
     }
 
     if (!file->open(QFile::ReadWrite | QFile::ExistingOnly)) {
-        qWarning() << "Could not open project file" << projectFilePath;
+        qWarning() << "Could not open project file" << file->fileName();
         return;
     }
 
     QJsonParseError error;
-    this->json = QJsonDocument::fromJson(file->readAll(), &error);
+    QJsonDocument jsonDoc = QJsonDocument::fromJson(file->readAll(), &error);
 
     if (error.error != QJsonParseError::NoError) {
         file->close();
@@ -137,18 +140,19 @@ void Project::loadProject(QString projectPath)
         return;
     }
 
-    if (!json.isObject()) {
+    if (!jsonDoc.isObject()) {
         file->close();
         qWarning() << "The project file is not a json object";
         return;
     }
 
-    QJsonObject mainObj = json.object();
+    QJsonObject mainObj = jsonDoc.object();
 
-    if (mainObj.value("info").toObject().value("dcim").toString().isEmpty()
+    if (mainObj.value("info").toObject().value("name").toString().isEmpty()
+        || mainObj.value("info").toObject().value("dcim").toString().isEmpty()
         || mainObj.value("info").toObject().value("version").toString().isEmpty()) {
         file->close();
-        qWarning() << "Info object: one of its children (info or version) not found or empty";
+        qWarning() << "Info object: one of its children (name, info or version) not found or empty";
         return;
     }
 
@@ -158,8 +162,10 @@ void Project::loadProject(QString projectPath)
         return;
     }
 
-    this->path = QFileInfo(file->fileName()).absolutePath();
+    this->name = mainObj.value("info").toObject().value("name").toString();
     this->dcim = mainObj.value("info").toObject().value("dcim").toString();
+
+    // TODO check if version is compatible
     this->version = mainObj.value("info").toObject().value("version").toString();
 
     if (!QDir(path).exists("DFSegments") || !QDir(path).exists("DFLowSegments") ||
@@ -171,6 +177,11 @@ void Project::loadProject(QString projectPath)
     }
 
     QJsonArray videosArray = mainObj.value("videos").toArray();
+
+    emit loadProjectUpdate(0, "Indexing videos");
+
+    int totalVideos = videosArray.size();
+    int doneVideos = 0;
 
     for (const QJsonValue &videoArray: videosArray) {
         bool valid = true;
@@ -185,7 +196,7 @@ void Project::loadProject(QString projectPath)
         if (!videoObject.value("segments").isArray()) continue;
         QJsonArray segmentsArray = videoObject.value("segments").toArray();
         if (segmentsArray.isEmpty()) continue;
-        FVideo *video = new FVideo(nullptr, vid);
+        FVideo *video = new FVideo(vid);
         if (dualFisheye) {
             QString dualFisheyePath = path + "/DFVideos/" + QString::number(vid) + ".MP4";
             if (QFile::exists(dualFisheyePath)) {
@@ -230,24 +241,24 @@ void Project::loadProject(QString projectPath)
             if (sid == 0) {
                 segment = new FSegment(
                     video, sid,
-                    new QFile(dcim + "/100GFRNT/GPFR" + video->getIdString() + ".MP4"),
-                    new QFile(dcim + "/100GFRNT/GPFR" + video->getIdString() + ".LRV"),
-                    new QFile(dcim + "/100GFRNT/GPFR" + video->getIdString() + ".THM"),
-                    new QFile(dcim + "/100GBACK/GPBK" + video->getIdString() + ".MP4"),
-                    new QFile(dcim + "/100GBACK/GPBK" + video->getIdString() + ".LRV"),
-                    new QFile(dcim + "/100GBACK/GPBK" + video->getIdString() + ".THM"),
-                    new QFile(dcim + "/100GBACK/GPBK" + video->getIdString() + ".WAV")
+                    new QFile(dcim.absolutePath() + "/100GFRNT/GPFR" + video->getIdString() + ".MP4"),
+                    new QFile(dcim.absolutePath() + "/100GFRNT/GPFR" + video->getIdString() + ".LRV"),
+                    new QFile(dcim.absolutePath() + "/100GFRNT/GPFR" + video->getIdString() + ".THM"),
+                    new QFile(dcim.absolutePath() + "/100GBACK/GPBK" + video->getIdString() + ".MP4"),
+                    new QFile(dcim.absolutePath() + "/100GBACK/GPBK" + video->getIdString() + ".LRV"),
+                    new QFile(dcim.absolutePath() + "/100GBACK/GPBK" + video->getIdString() + ".THM"),
+                    new QFile(dcim.absolutePath() + "/100GBACK/GPBK" + video->getIdString() + ".WAV")
                 );
             } else {
                 segment = new FSegment(
                     video, sid,
-                    new QFile(dcim + "/100GFRNT/GF" + sidString + video->getIdString() + ".MP4"),
-                    new QFile(dcim + "/100GFRNT/GF" + sidString + video->getIdString() + ".LRV"),
-                    new QFile(dcim + "/100GFRNT/GPFR" + video->getIdString() + ".THM"),
-                    new QFile(dcim + "/100GBACK/GB" + sidString + video->getIdString() + ".MP4"),
-                    new QFile(dcim + "/100GBACK/GB" + sidString + video->getIdString() + ".LRV"),
-                    new QFile(dcim + "/100GBACK/GPBK" + video->getIdString() + ".THM"),
-                    new QFile(dcim + "/100GBACK/GB" + sidString + video->getIdString() + ".WAV")
+                    new QFile(dcim.absolutePath() + "/100GFRNT/GF" + sidString + video->getIdString() + ".MP4"),
+                    new QFile(dcim.absolutePath() + "/100GFRNT/GF" + sidString + video->getIdString() + ".LRV"),
+                    new QFile(dcim.absolutePath() + "/100GFRNT/GPFR" + video->getIdString() + ".THM"),
+                    new QFile(dcim.absolutePath() + "/100GBACK/GB" + sidString + video->getIdString() + ".MP4"),
+                    new QFile(dcim.absolutePath() + "/100GBACK/GB" + sidString + video->getIdString() + ".LRV"),
+                    new QFile(dcim.absolutePath() + "/100GBACK/GPBK" + video->getIdString() + ".THM"),
+                    new QFile(dcim.absolutePath() + "/100GBACK/GB" + sidString + video->getIdString() + ".WAV")
                 );
             }
             if (dualFisheye) {
@@ -273,11 +284,12 @@ void Project::loadProject(QString projectPath)
             }
         }
         if (valid) this->videos.append(video);
+        doneVideos++;
+        emit indexVideoComplete(doneVideos, totalVideos);
     }
 
     file->close();
     this->valid = true;
-*/
 }
 
 void Project::createProject(QString projectPath, QString dcimPath, QString projectName)
@@ -326,6 +338,9 @@ void Project::createProject(QString projectPath, QString dcimPath, QString proje
     }
 
     this->dcim = dcimFolder;
+    this->path = projectPath;
+    this->name = projectName;
+    this->file = new QFile(path + "/project.ffs");
 
     // Phase 1: Serialize the videos in the DCIM folder
     emit loadProjectUpdate(0, "Indexing videos");
@@ -333,8 +348,7 @@ void Project::createProject(QString projectPath, QString dcimPath, QString proje
 
     this->save();
 
-    emit loadProjectError("Test 1 checked");
-return;
+    this->valid = true;
 }
 
 bool Project::indexVideos()
@@ -439,8 +453,14 @@ bool Project::indexVideos()
 
 void Project::indexSegmentComplete(int doneSegments, int totalSegments)
 {
-    doneSegments++;
     float percent = ((float) doneSegments / (float) totalSegments)*100;
-    qDebug() << "New segment complete: " << doneSegments << " of " << totalSegments << " for a percentage of " << QString::number(percent);
+    qDebug() << "New segment indexed: " << doneSegments << " of " << totalSegments << " for a percentage of " << QString::number(percent);
+    emit loadProjectUpdate(percent);
+}
+
+void Project::indexVideoComplete(int doneVideos, int totalVideos)
+{
+    float percent = ((float) doneVideos / (float) totalVideos)*100;
+    qDebug() << "New video indexed: " << doneVideos << " of " << totalVideos << " for a percentage of " << QString::number(percent);
     emit loadProjectUpdate(percent);
 }

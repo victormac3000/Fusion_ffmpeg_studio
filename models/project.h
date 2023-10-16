@@ -12,7 +12,7 @@ class Project : public QObject
 {
     Q_OBJECT
 public:
-    explicit Project(bool create = false, QString projectPath = "", QString dcimPath = "", QString projectName = "");
+    explicit Project(QObject *parent = nullptr, bool create = false, QString projectPath = "", QString dcimPath = "", QString projectName = "");
     ~Project();
 
     bool isValid();
@@ -33,10 +33,10 @@ public slots:
 
 private:
     bool valid;
-    QJsonDocument json;
     QDir dcim;
-    QString version;
     QString path;
+    QString name;
+    QString version;
     QFile *file;
     QList<FVideo*> videos;
     QDateTime lastSaved;
@@ -45,6 +45,7 @@ private:
     void createProject(QString projectPath, QString dcimPath, QString projectName);
     bool indexVideos();
     void indexSegmentComplete(int doneSegments, int totalSegments);
+    void indexVideoComplete(int doneVideos, int totalVideos);
 
 
 };

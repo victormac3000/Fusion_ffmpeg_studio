@@ -11,7 +11,7 @@ FFmpeg::FFmpeg(QObject *parent)
     connect(process, SIGNAL(readyReadStandardOutput()), this, SLOT(processReadyReadOut()));
     connect(process, SIGNAL(stateChanged(QProcess::ProcessState)), this, SLOT(processStateChanged(QProcess::ProcessState)));
 
-    QString ffmpegPath = getPath();
+    QString ffmpegPath = QSettings().value("ffmpeg").toString();
 
     if (ffmpegPath.isEmpty()) {
         qWarning() << "FFMpeg binary path not found:" << ffmpegPath;
@@ -364,68 +364,4 @@ bool FFmpeg::renderPreviewStep3()
     }
     video->setEquirectangularLow(new QFile(outPath));
     return false;
-}
-
-QString FFmpeg::getPath()
-{
-    QString resourcesPath;
-    QString extension;
-
-    #ifdef Q_OS_MAC
-        resourcesPath = ":/Binaries/macOS/ffmpeg";
-    #endif
-
-    #ifdef Q_OS_WIN
-        extension = ".exe";
-        resourcesPath = ":/Binaries/windows/ffmpeg.exe";
-    #endif
-
-    #ifdef Q_OS_LINUX
-        resourcesPath = ":/Binaries/linux/ffmpeg";
-    #endif
-
-    if (resourcesPath.isEmpty()) {
-        qWarning() << "No resources found for unknown OS";
-        return resourcesPath;
-    }
-
-    QDir workingDir(settings.value("workingDir").toString());
-
-    if (!workingDir.exists()) {
-        qWarning() << "The working directory does not exist:" <<  workingDir.absolutePath();
-        return "";
-    }
-
-    if (!workingDir.exists("Binaries")) {
-        if (!workingDir.mkdir("Binaries")) {
-            qWarning() << "Could not create the binaries directory inside the working directory:" << workingDir.absolutePath();
-            return "";
-        }
-    }
-
-    if (!workingDir.cd("Binaries")) {
-        qWarning() << "Could not move to the binaries directory inside the working directory:" << workingDir.absolutePath();
-        return "";
-    }
-
-    QFile resourcesFile(resourcesPath);
-    QString localFilePath(workingDir.absolutePath() + "/ffmpeg" + extension);
-
-    if (!QFile::exists(localFilePath)) {
-        if (!resourcesFile.copy(localFilePath)) {
-            qWarning() << "Could not copy the binary from the resources path:" << resourcesFile.fileName() <<
-                "to the binaries path of the working directory:" << workingDir.absolutePath();
-            return "";
-        }
-    }
-
-    if (!QFile(localFilePath).setPermissions(
-        QFileDevice::ReadOwner |  QFileDevice::ReadUser |  QFileDevice::ReadGroup | QFileDevice::ReadOther |
-        QFileDevice::WriteOwner |
-        QFileDevice::ExeOwner |  QFileDevice::ExeUser |  QFileDevice::ExeGroup | QFileDevice::ExeOther)) {
-        qWarning() << "Could not set the binary permissions:" << localFilePath;
-        return "";
-    }
-
-    return localFilePath;
 }

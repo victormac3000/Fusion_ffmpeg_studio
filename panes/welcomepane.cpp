@@ -31,10 +31,10 @@ WelcomePane::~WelcomePane()
 void WelcomePane::openProjectButtonClicked()
 {
     QString proposedProjectFile = QFileDialog::getOpenFileName(
-        this, tr("Select the project file"), "/home/victor/Documentos/ffs_project_1", tr("Fusion FFmpeg studio project (*.ffs)")
+        this, tr("Select the project file"), QSettings().value("defaultProjectPath").toString(), tr("Fusion FFmpeg studio project (*.ffs)")
     );
     if (proposedProjectFile.isEmpty()) return;
-    LoadingPane *loader = new LoadingPane((MainWindow*) mainWindowWidget, proposedProjectFile);
+    LoadingPane *loader = new LoadingPane((MainWindow*) mainWindowWidget, "", "", QFileInfo(proposedProjectFile).absolutePath());
     emit changePane(loader);
 }
 

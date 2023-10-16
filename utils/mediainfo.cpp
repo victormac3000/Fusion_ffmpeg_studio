@@ -6,7 +6,7 @@ bool MediaInfo::isVideo(QFile *media)
     return getMimeType(media).preferredSuffix() == "mp4";
 }
 
-float MediaInfo::getFPS(QFile *video)
+VideoInfo MediaInfo::getVideoInfo(QFile *video)
 {
     QProcess *process = new QProcess;
 
@@ -14,126 +14,98 @@ float MediaInfo::getFPS(QFile *video)
 
     if (ffprobePath.isEmpty()) {
         qWarning() << "FFProbe binary path not found:" << ffprobePath;
+        return VideoInfo();
     }
 
     process->setProgram(ffprobePath);
     QStringList params;
     params.append("-v");
-    params.append("error");
+    params.append("quiet");
     params.append("-select_streams");
     params.append("v:0");
-    params.append("-of");
-    params.append("default=noprint_wrappers=1:nokey=1");
     params.append("-show_entries");
-    params.append("stream=r_frame_rate");
+    params.append("stream=width,height,avg_frame_rate:stream_tags=creation_time:format=duration");
+    params.append("-of");
+    params.append("json");
     params.append(QDir::toNativeSeparators(video->fileName()));
     process->setArguments(params);
     process->start();
     process->waitForFinished();
 
-    QString rawFps = process->readAllStandardOutput();
-    QStringList operands = rawFps.split("/");
-    if (operands.size() != 2) {
-        return 0.0;
+    if (process->exitCode() != 0) {
+        qWarning() << "There was an error executing ffprobe" << ffprobePath;
+        return VideoInfo();
     }
-    int a = operands.at(0).toInt();
-    int b = operands.at(1).toInt();
 
-    return (float) a/b;
+    QString normalOut = process->readAllStandardOutput();
+    QString errorOut = process->readAllStandardError();
+
+    QJsonParseError jsonError;
+    QJsonDocument doc = QJsonDocument::fromJson(normalOut.toUtf8(), &jsonError);
+    if (jsonError.error != jsonError.NoError) {
+        qWarning() << "There was an error parsing the JSON from ffprobe: " << errorOut <<  " The JSON was: " << normalOut;
+        return VideoInfo();
+    }
+
+    QString rawLength = doc.object().value("format").toObject().value("duration").toString();
+    QJsonArray streams = doc.object().value("streams").toArray();
+    if (streams.size() < 1) {
+        qWarning() << "FFprobe did not return any streams for the media " << video->fileName();
+        return VideoInfo();
+    }
+    int height = streams.at(0).toObject().value("height").toInt(0);
+    int width = streams.at(0).toObject().value("width").toInt(0);
+    QString rawFps = streams.at(0).toObject().value("avg_frame_rate").toString();
+    QString rawDate = streams.at(0).toObject().value("tags").toObject().value("creation_time").toString();
+
+
+    VideoInfo videoInfo;
+    bool integerA, integerB;
+
+    // Height and width
+    videoInfo.resolution = QSize(width, height);
+
+    // FPS
+    QStringList operandsFps = rawFps.split("/");
+    if (operandsFps.size() == 2) {
+        int a = operandsFps.at(0).toInt(&integerA);
+        int b = operandsFps.at(1).toInt(&integerB);
+        videoInfo.frameRate = (float) a/ (float) b;
+    }
+
+    // Capture date
+    QDateTime date = QDateTime::fromString(rawDate, Qt::ISODateWithMs);
+    if (date.isValid()) {
+        videoInfo.date = date;
+    }
+
+    // Length
+    float ms = rawLength.trimmed().toDouble()*1000;
+    QTime length = QTime::fromMSecsSinceStartOfDay(ms);
+    videoInfo.length = length;
+
+    return videoInfo;
+}
+
+
+float MediaInfo::getFPS(QFile *video)
+{
+    return getVideoInfo(video).frameRate;
 }
 
 QSize MediaInfo::getResolution(QFile *video)
 {
-    QProcess *process = new QProcess;
-    QString ffprobePath = QSettings().value("ffprobe").toString();
-
-    if (ffprobePath.isEmpty()) {
-        qWarning() << "FFProbe binary path not found:" << ffprobePath;
-    }
-
-    process->setProgram(ffprobePath);
-    QStringList params;
-    params.append("-v");
-    params.append("error");
-    params.append("-select_streams");
-    params.append("v:0");
-    params.append("-show_entries");
-    params.append("stream=width,height");
-    params.append("-of");
-    params.append("csv=s=x:p=0");
-    params.append(QDir::toNativeSeparators(video->fileName()));
-    process->setArguments(params);
-    process->start();
-    process->waitForFinished();
-
-    QString rawResolution = process->readAllStandardOutput();
-    QStringList operands = rawResolution.split("x");
-    if (operands.size() != 2) {
-        return QSize(-1,-1);
-    }
-    int a = operands.at(0).toInt();
-    int b = operands.at(1).toInt();
-
-    return QSize(a,b);
+    return getVideoInfo(video).resolution;
 }
 
 QDateTime MediaInfo::getDate(QFile *media)
 {
-    QProcess *process = new QProcess;
-    QString ffprobePath = QSettings().value("ffprobe").toString();
-
-    if (ffprobePath.isEmpty()) {
-        qWarning() << "FFProbe binary path not found:" << ffprobePath;
-    }
-
-    process->setProgram(ffprobePath);
-    QStringList params;
-    params.append("-v");
-    params.append("error");
-    params.append("-select_streams");
-    params.append("v:0");
-    params.append("-show_entries");
-    params.append("stream_tags=creation_time");
-    params.append("-of");
-    params.append("default=noprint_wrappers=1:nokey=1");
-    params.append(QDir::toNativeSeparators(media->fileName()));
-    process->setArguments(params);
-    process->start();
-    process->waitForFinished();
-
-    QString rawDate = process->readAllStandardOutput().trimmed();
-    QDateTime date = QDateTime::fromString(rawDate, Qt::ISODateWithMs);
-
-    return date;
+    return getVideoInfo(media).date;
 }
 
 QTime MediaInfo::getLength(QFile *media1)
 {
-    QProcess *process = new QProcess;
-    QString ffprobePath = QSettings().value("ffprobe").toString();
-
-    if (ffprobePath.isEmpty()) {
-        qWarning() << "FFProbe binary path not found:" << ffprobePath;
-    }
-
-    process->setProgram(ffprobePath);
-    QStringList params;
-    params.append("-v");
-    params.append("error");
-    params.append("-show_entries");
-    params.append("format=duration");
-    params.append("-of");
-    params.append("default=noprint_wrappers=1:nokey=1");
-    params.append(QDir::toNativeSeparators(media1->fileName()));
-    process->setArguments(params);
-    process->start();
-    process->waitForFinished();
-
-    QString rawLength = process->readAllStandardOutput().trimmed();
-    float ms = rawLength.toDouble()*1000;
-
-    QTime length = QTime::fromMSecsSinceStartOfDay(ms);
-    return length;
+    return getVideoInfo(media1).length;
 }
 
 bool MediaInfo::isSameLength(QFile *media1, QFile *media2)

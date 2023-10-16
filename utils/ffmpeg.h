@@ -49,8 +49,6 @@ private:
     bool renderPreviewStep2();
     bool renderPreviewStep3();
 
-    QString getPath();
-
 
 
 };

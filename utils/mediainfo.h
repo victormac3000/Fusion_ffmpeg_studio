@@ -16,6 +16,16 @@
 #include <QTimer>
 #include <QEventLoop>
 #include <QProcess>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
+
+struct VideoInfo {
+    QSize resolution;
+    float frameRate;
+    QDateTime date;
+    QTime length;
+};
 
 class MediaInfo
 {
@@ -30,6 +40,7 @@ public:
     static bool isAudio(QFile *media);
     static bool isImage(QFile *media);
     static QMimeType getMimeType(QFile *media);
+    static VideoInfo getVideoInfo(QFile *video);
 
 private:
     static QMediaMetaData getMetadata(QFile *media);
