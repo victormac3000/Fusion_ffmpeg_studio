@@ -7,9 +7,11 @@
 #include <QStandardPaths>
 #include <QDir>
 #include <QProcess>
+#include <iostream>
 
 
 #include "utils/dialogs.h"
+#include "utils/exitcodes.h"
 
 class Settings
 {
@@ -18,6 +20,10 @@ public:
     static QString getAppDataPath();
 private:
     static void checkCompatible();
+    static void setupAppData();
+    static void setupProjectPath();
+    static void setupBinaries();
+
 };
 
 #endif // SETTINGS_H

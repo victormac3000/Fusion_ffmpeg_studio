@@ -383,7 +383,7 @@ bool Project::indexVideos()
         }
 
         FVideo *video = new FVideo(vid);
-        connect(video, SIGNAL(verifyError(QString)), this, SLOT(videoVerifyError(QString)));
+        connect(video, SIGNAL(verifyError(QString)), this, SIGNAL(loadProjectError(QString)));
 
         // Add main segment
         FSegment *mainSegment = new FSegment(
@@ -397,7 +397,7 @@ bool Project::indexVideos()
             new QFile(back.path() + "/GPBK" + video->getIdString() + ".WAV")
         );
         if (!video->addSegment(mainSegment)) continue;
-        doneSegments += 2;
+        doneSegments++;
         indexSegmentComplete(doneSegments, totalSegments);
 
         front.setNameFilters({"GF??" + video->getIdString() + ".MP4"});
@@ -425,7 +425,7 @@ bool Project::indexVideos()
             );
 
             if (!video->addSegment(secSegment)) break;
-            doneSegments += 2;
+            doneSegments++;
             indexSegmentComplete(doneSegments, totalSegments);
         }
 

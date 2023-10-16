@@ -26,9 +26,6 @@ signals:
     void loadProjectFinished(Project *project);
     void loadProjectError(QString error);
 
-private slots:
-    void videoVerifyError(QString error);
-
 private:
     int doneSegments = 0;
     int totalSegments = 0;

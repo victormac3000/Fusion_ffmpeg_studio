@@ -38,8 +38,3 @@ void Worker::loadProject(QString projectPath)
         emit loadProjectError("Could not load the project, see the logs for more information");
     }
 }
-
-void Worker::videoVerifyError(QString error)
-{
-    emit loadProjectError(error);
-}

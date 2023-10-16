@@ -79,7 +79,7 @@
      <item row="3" column="2">
       <widget class="QLineEdit" name="dcim_location">
        <property name="text">
-        <string>/Volumes/MAQUINAS/Archivos/Test Fusion/DCIM</string>
+        <string>C:\Users\v2510\Desktop\Test Fusion\DCIM</string>
        </property>
        <property name="readOnly">
         <bool>false</bool>
