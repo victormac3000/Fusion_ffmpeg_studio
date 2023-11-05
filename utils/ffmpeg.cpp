@@ -51,11 +51,12 @@ void FFmpeg::render(RenderWork *work)
 
     this->work = work;
 
-    if (RENDER_PREVIEW) {
+    if (work->getType() == RENDER_PREVIEW) {
         renderPreview();
+        emit renderDone(work, false);
+    } else {
+        emit renderDone(work, false);
     }
-
-    emit renderDone(work, false);
 }
 
 void FFmpeg::processStateChanged(QProcess::ProcessState newState)
@@ -70,8 +71,6 @@ void FFmpeg::processReadyReadOut()
 
 void FFmpeg::processReadyReadError()
 {
-    /*
-    process->readAllStandardError();
     QString stderr = process->readAllStandardError();
 
     static QRegularExpression statusRe("frame=\\s*(?<nframe>[0-9]+)\\s+fps=\\s*(?<nfps>[0-9\\.]+)\\s+q=(?<nq>[0-9\\.-]+)\\s+(L?)\\s*size=\\s*(?<nsize>[0-9]+)(?<ssize>kB|mB|b)?\\s*time=\\s*(?<sduration>[0-9\\:\\.]+)\\s*bitrate=\\s*(?<nbitrate>[0-9\\.]+)(?<sbitrate>bits\\/s|mbits\\/s|kbits\\/s)?.*(dup=(?<ndup>\\d+)\\s*)?(drop=(?<ndrop>\\d+)\\s*)?speed=\\s*(?<nspeed>[0-9\\.]+)x");
@@ -124,8 +123,6 @@ void FFmpeg::processReadyReadError()
     } else {
         qWarning() << "FFmpeg has given an stdout error:" << stderr;
     }
-*/
-
 }
 
 void FFmpeg::processErrorOccurred(QProcess::ProcessError error)
@@ -188,7 +185,7 @@ bool FFmpeg::renderPreviewStep1()
         params.append("-filter_complex");
         params.append("hstack");
         params.append("-c:v");
-        params.append("h264_nvenc");
+        params.append("hevc_videotoolbox");
         params.append(QDir::toNativeSeparators(outPath));
 
 
@@ -201,13 +198,14 @@ bool FFmpeg::renderPreviewStep1()
         process->start();
         process->waitForFinished(-1);
 
-        qDebug() << "FFMpeg process finished end wait finished";
+        qDebug() << "FFMpeg process finished";
 
         if (process->exitCode() > 0) {
-            qWarning() << "FFMpeg exited with error code >0" << process->exitCode()
-                       << "and exit status" << process->exitStatus()
+            qWarning() << "FFMpeg exited with error code " << process->exitCode()
+                       << " and exit status" << process->exitStatus()
                        << "Could not generate the dual fisheye video of segment"
-                       << segment->getId() << "on path" << outPath;
+                       << segment->getId() << "on path" << outPath << "The stdout was "
+                       << process->readAllStandardError();
             emit renderDone(work, true);
             return true;
         }
@@ -339,7 +337,7 @@ bool FFmpeg::renderPreviewStep3()
     params.append("-vf");
     params.append("v360=dfisheye:equirect:ih_fov=190:iv_fov=190");
     params.append("-c:v");
-    params.append("nvenc_h264");
+    params.append("hevc_videotoolbox");
     params.append(QDir::toNativeSeparators(outPath));
 
 

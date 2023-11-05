@@ -1,8 +1,10 @@
-QT       += core gui xml multimedia multimediawidgets webenginewidgets
+QT       += core gui xml multimedia multimediawidgets webenginewidgets quickwidgets
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++17
+
+WEBENGINE_CONFIG += use_proprietary_codecs
 
 # App name
 TARGET = 'Fusion ffmpeg studio'
@@ -20,6 +22,7 @@ SOURCES += \
     models/renderwork.cpp \
     panes/items/fqueueitem.cpp \
     panes/items/fvideoitem.cpp \
+    panes/items/videoplayer.cpp \
     panes/projectcreator.cpp \
     utils/dialogs.cpp \
     utils/ffmpeg.cpp \
@@ -44,6 +47,7 @@ HEADERS += \
     models/renderwork.h \
     panes/items/fqueueitem.h \
     panes/items/fvideoitem.h \
+    panes/items/videoplayer.h \
     panes/projectcreator.h \
     utils/dialogs.h \
     utils/exitcodes.h \
@@ -63,6 +67,7 @@ HEADERS += \
 FORMS += \
     panes/items/fqueueitem.ui \
     panes/items/fvideoitem.ui \
+    panes/items/videoplayer.ui \
     panes/projectcreator.ui \
     windows/about.ui \
     windows/mainwindow.ui \
@@ -79,4 +84,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 RESOURCES += \
    Resources/Resources.qrc
 
-DISTFILES +=
+DISTFILES += \
+    Resources/Documents/Qml/videoPlayer360.qml

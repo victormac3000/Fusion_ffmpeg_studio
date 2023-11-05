@@ -2,16 +2,22 @@
 #include "ui_loadingpane.h"
 #include "windows/mainwindow.h"
 
-LoadingPane::LoadingPane(QWidget *parent, QString dcimPath, QString projectName, QString projectPath) :
+LoadingPane::LoadingPane(QWidget *parent, QString projectPath, QString dcimPath, QString projectName) :
     QWidget(parent),
     ui(new Ui::LoadingPane)
 {
     ui->setupUi(this);
 
     this->mainWindowWidget = parent;
+    MainWindow *mainWindow = (MainWindow*) parent;
+    mainWindow->clearMenuBar();
+    mainWindow->setWindowTitle(QCoreApplication::applicationName() + " - Loading project");
 
     this->workerThread = new QThread;
     worker.moveToThread(workerThread);
+    connect(&worker, SIGNAL(loadProjectFinished(Project*)), this, SLOT(loadProjectFinished(Project*)));
+    connect(&worker, SIGNAL(loadProjectError(QString)), this, SLOT(loadProjectError(QString)));
+    connect(&worker, SIGNAL(loadProjectUpdate(int,QString)), this, SLOT(loadProjectUpdate(int,QString)));
     this->workerThread->start();
 
     // Worker actions
@@ -20,9 +26,6 @@ LoadingPane::LoadingPane(QWidget *parent, QString dcimPath, QString projectName,
     } else {
         QMetaObject::invokeMethod(&worker, "createProject", Qt::AutoConnection, Q_ARG(QString, dcimPath), Q_ARG(QString, projectName), Q_ARG(QString, projectPath));
     }
-    connect(&worker, SIGNAL(loadProjectFinished(Project*)), this, SLOT(loadProjectFinished(Project*)));
-    connect(&worker, SIGNAL(loadProjectError(QString)), this, SLOT(loadProjectError(QString)));
-    connect(&worker, SIGNAL(loadProjectUpdate(int,QString)), this, SLOT(loadProjectUpdate(int,QString)));
 }
 
 LoadingPane::~LoadingPane()
@@ -37,7 +40,6 @@ void LoadingPane::loadProjectFinished(Project* project)
 {
     workerThread->quit();
     workerThread->wait();
-    Dialogs::ok("Loaded project Ok");
     emit changePane(new EditorPane(mainWindowWidget, project));
 }
 
@@ -46,7 +48,7 @@ void LoadingPane::loadProjectError(QString error)
     workerThread->quit();
     workerThread->wait();
     Dialogs::warning("Could not load the project, see the logs for more information", "loadProjectError: " + error);
-    emit changePane((QWidget*) new WelcomePane(mainWindowWidget));
+    emit changePane(new WelcomePane(mainWindowWidget));
 }
 
 void LoadingPane::loadProjectUpdate(int percent, QString message)

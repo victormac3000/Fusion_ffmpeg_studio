@@ -87,6 +87,16 @@ VideoInfo MediaInfo::getVideoInfo(QFile *video)
     return videoInfo;
 }
 
+QList<int> MediaInfo::convertToHMS(qint64 miliseconds)
+{
+    qint64 seconds = miliseconds / 1000;
+    int hours = seconds / 3600;
+    for (int i=0; i<hours; i++) seconds -= 3600;
+    int minutes = seconds / 60;
+    for (int i=0; i<minutes; i++) seconds -= 60;
+    return {hours, minutes, (int) seconds};
+}
+
 
 float MediaInfo::getFPS(QFile *video)
 {

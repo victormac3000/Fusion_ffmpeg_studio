@@ -9,13 +9,10 @@ EditorPane::EditorPane(QWidget *parent, Project *project) :
 
     this->project = project;
 
-    /*
-    this->webEngine = new QWebEngineView(ui->media_player_frame);
-    webEngine->load(QUrl("https://www.google.es"));
-    ui->media_player_layout->addWidget(webEngine);
-*/
+    this->videoPlayer = new VideoPlayer;
+    ui->video_player_frame->layout()->addWidget(this->videoPlayer);
 
-    this->queueLayout = new QVBoxLayout(ui->render_queue_scoll_area_widget);
+    this->queueLayout = (QVBoxLayout*) ui->render_queue_scoll_area_widget->layout();
 
     // On load
     // If previews are not available -> Add work to queue and start it
@@ -36,23 +33,24 @@ EditorPane::EditorPane(QWidget *parent, Project *project) :
 
 
     // GUI LOAD VIDEOS
-    int i = 0;
-    //int col = 0;
     QList<FVideo*> videos = project->getVideos();
+
     for (FVideo* video: videos) {
+        // Create GUI element
         FVideoItem *fvideoItem = new FVideoItem(this, video);
         connect(fvideoItem, SIGNAL(clicked(FVideoItem*)), this, SLOT(videoItemClicked(FVideoItem*)));
-        //if (i > 0 && i%2 == 0) col++;
-        ui->videos_layout->addWidget(fvideoItem, i, 0);
+        QGridLayout *layout = (QGridLayout*) ui->videos_scroll_widget->layout();
+        layout->addWidget(fvideoItem);
+        ui->videos_scroll_widget->layout()->addWidget(fvideoItem);
         this->videos.append(fvideoItem);
         fvideoItem->show();
-        i++;
     }
 
+    ui->videos_scroll_widget->layout()->addItem(new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding));
+
+    // If there is any videos, select the first one
     if (videos.length() > 0) {
         videoItemClicked(this->videos.at(0));
-
-
     }
 }
 
@@ -60,15 +58,10 @@ EditorPane::~EditorPane()
 {
     rendererThread->quit();
     rendererThread->wait();
+    delete videoPlayer;
     delete renderer;
-    delete webEngine;
     delete project;
     delete ui;
-}
-
-void EditorPane::saveProject()
-{
-    project->save();
 }
 
 void EditorPane::videoItemClicked(FVideoItem *videoItem)
@@ -84,20 +77,18 @@ void EditorPane::videoItemClicked(FVideoItem *videoItem)
 
     if (found < 0) return;
 
-    videos.at(selected)->setStyleSheet("");
+    videos.at(selected)->setSelected(false);
     selected = found;
 
     FVideoItem *selectedVideoItem = videos.at(selected);
-    selectedVideoItem->setStyleSheet("#FVideoItem { border: 5px solid red }");
+    selectedVideoItem->setSelected(true);
 
     ui->firmware_version_label->setText(QString::number(selectedVideoItem->getVideo()->getFormat().firmwareVersion, 'f', 1));
     ui->recorded_label->setText(MediaInfo::getDate(selectedVideoItem->getVideo()->getSegment(0)->getFrontMP4()).toString("dd/MM/yyyy hh:mm:ss"));
     ui->video_duration_label->setText(selectedVideoItem->getVideo()->getLength().toString("hh:mm:ss"));
 
-    if (selectedVideoItem->getVideo()->isDualFisheyeLowValid()) {
-        //ui->no_preview_widget->setVisible(false);
-        //qDebug() << QUrl(selectedVideoItem->getVideo()->getDualFisheyeLow()->fileName());
-        //player->setSource(QUrl(selectedVideoItem->getVideo()->getDualFisheyeLow()->fileName()));
+    if (selectedVideoItem->getVideo()->isEquirectangularLowValid()) {
+        videoPlayer->setVideo(selectedVideoItem->getVideo()->getEquirectangularLow()->fileName());
     }
 }
 
@@ -126,10 +117,12 @@ void EditorPane::renderWorkFinished(RenderWork *renderWork, bool error)
 
     project->save();
 
-    for (int i=0; i<queueLayout->count(); i++) {
-        FQueueItem *item = (FQueueItem*) queueLayout->itemAt(i);
+    for (FQueueItem *item: queueItems) {
         if (item->getRenderWork() == renderWork) {
+            queueItems.removeOne(item);
+            queueLayout->removeWidget(item);
             delete item;
         }
     }
+
 }

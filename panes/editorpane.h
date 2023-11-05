@@ -3,19 +3,19 @@
 
 #include <QWidget>
 #include <QMouseEvent>
-#include <QVideoWidget>
 #include <QQueue>
-#include <QWebEngineView>
+#include <QVBoxLayout>
+#include <QSpacerItem>
 
-#include "QtWidgets/qboxlayout.h"
 #include "models/fvideo.h"
 #include "models/fsegment.h"
 #include "models/project.h"
 #include "models/renderwork.h"
 #include "panes/items/fqueueitem.h"
+#include "panes/items/fvideoitem.h"
+#include "panes/items/videoplayer.h"
 #include "utils/dialogs.h"
 #include "utils/ffmpeg.h"
-#include "panes/items/fvideoitem.h"
 #include "utils/renderer.h"
 
 namespace Ui {
@@ -32,11 +32,8 @@ public:
 
 signals:
     void changePane(QWidget *pane);
-
     void rendererAdd(RenderWork *renderWork);
 
-public slots:
-    void saveProject();
 
 private slots:
     void videoItemClicked(FVideoItem *videoItem);
@@ -50,8 +47,7 @@ private:
     QList<FVideoItem*> videos;
     QList<FQueueItem*> queueItems;
     QVBoxLayout *queueLayout;
-    QWebEngineView *webEngine;
-    QMediaPlayer *mediaPlayer;
+    VideoPlayer *videoPlayer;
     int selected = 0;
     Renderer *renderer;
     QThread *rendererThread;

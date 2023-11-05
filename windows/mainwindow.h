@@ -41,10 +41,9 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    QWidget *pane;
     About *aboutWindow = nullptr;
     Preferences *preferencesWindow = nullptr;
 
-    void clearLayout(QLayout* layout, bool deleteWidgets = true);
+    void clearLayout(QLayout* layout);
 };
 #endif // MAINWINDOW_H

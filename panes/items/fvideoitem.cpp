@@ -6,6 +6,7 @@ FVideoItem::FVideoItem(QWidget *parent, FVideo *video) :
     ui(new Ui::FVideoItem)
 {
     ui->setupUi(this);
+    this->baseCss = styleSheet();
     this->video = video;
     ui->image->setStyleSheet("border-image: url(" + video->getSegment(0)->getBackTHM()->fileName() + ") 0 0 0 0 stretch stretch;");
     ui->name->setText("VIDEO " + video->getIdString());
@@ -22,6 +23,15 @@ FVideoItem::~FVideoItem()
 FVideo *FVideoItem::getVideo()
 {
     return video;
+}
+
+void FVideoItem::setSelected(bool selected)
+{
+    if (selected) {
+        this->setStyleSheet(baseCss + "#FVideoItem { border: 5px solid red }");
+    } else {
+        this->setStyleSheet(baseCss);
+    }
 }
 
 void FVideoItem::mousePressEvent(QMouseEvent *event)

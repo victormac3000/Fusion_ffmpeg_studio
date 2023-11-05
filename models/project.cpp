@@ -277,7 +277,7 @@ void Project::loadProject(QString projectPath)
                     qDebug() << "Dual fisheye exists for seg" << sid << "of video" << vid << "but not found in fs" << dualFisheyeLowPath;
                 }
             }
-            if (!video->addSegment(segment)) {
+            if (!video->addSegment(segment, false)) {
                 qDebug() << "Segment invalid" << sid << "for video" << vid;
                 valid = false;
                 break;

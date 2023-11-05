@@ -20,6 +20,7 @@ public:
     ~FVideoItem();
 
     FVideo *getVideo();
+    void setSelected(bool selected);
 
 signals:
     void clicked(FVideoItem *videoItem);
@@ -31,6 +32,7 @@ protected:
 private:
     Ui::FVideoItem *ui;
     FVideo *video;
+    QString baseCss;
 };
 
 #endif // FVIDEOITEM_H

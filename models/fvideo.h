@@ -23,7 +23,7 @@ public:
     explicit FVideo(int id = -1);
     ~FVideo();
 
-    bool addSegment(FSegment *segment);
+    bool addSegment(FSegment *segment, bool fileVerify = true);
     bool verify();
     int getId();
     FSegment* getSegment(int i);

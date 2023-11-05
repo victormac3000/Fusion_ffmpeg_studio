@@ -7,12 +7,12 @@ WelcomePane::WelcomePane(QWidget *parent) :
 { 
     ui->setupUi(this);
 
-    MainWindow *mainWindow = (MainWindow*) parent;
+    this->mainWindowWidget = parentWidget();
+    MainWindow *mainWindow = (MainWindow*) parentWidget();
     mainWindow->getMenuBar()->clear();
     mainWindow->setWindowTitle("Welcome to Fusion FFmpeg Studio");
-    this->mainWindowWidget = parent;
 
-    loadRecentProjects();
+    this->loadRecentProjects();
 
     ui->app_name->setText(QCoreApplication::applicationName());
     ui->app_version->setText(QCoreApplication::applicationVersion());
@@ -31,16 +31,16 @@ WelcomePane::~WelcomePane()
 void WelcomePane::openProjectButtonClicked()
 {
     QString proposedProjectFile = QFileDialog::getOpenFileName(
-        this, tr("Select the project file"), QSettings().value("defaultProjectPath").toString(), tr("Fusion FFmpeg studio project (*.ffs)")
+        this, tr("Select the project file"), QSettings().value("defaultProjectPath").toString() + "/MiProyecto", tr("Fusion FFmpeg studio project (*.ffs)")
     );
     if (proposedProjectFile.isEmpty()) return;
-    LoadingPane *loader = new LoadingPane((MainWindow*) mainWindowWidget, "", "", QFileInfo(proposedProjectFile).absolutePath());
+    LoadingPane *loader = new LoadingPane(mainWindowWidget, QFileInfo(proposedProjectFile).absolutePath());
     emit changePane(loader);
 }
 
 void WelcomePane::newProjectButtonClicked()
 {
-    ProjectCreator *creator = new ProjectCreator((MainWindow*) mainWindowWidget);
+    ProjectCreator *creator = new ProjectCreator(mainWindowWidget);
     emit changePane(creator);
 }
 

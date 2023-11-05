@@ -7,7 +7,7 @@ void Dialogs::ok(QString userMsg, QString logMsg)
     box->setWindowTitle("Information");
     box->setIcon(QMessageBox::Information);
     box->setText(userMsg);
-    box->exec();
+    box->open();
 }
 
 void Dialogs::warning(QString userMsg, QString logMsg)
@@ -17,7 +17,7 @@ void Dialogs::warning(QString userMsg, QString logMsg)
     box->setWindowTitle("Concerning error");
     box->setIcon(QMessageBox::Warning);
     box->setText(userMsg);
-    box->exec();
+    box->open();
 }
 
 void Dialogs::critical(QString userMsg, QString logMsg)

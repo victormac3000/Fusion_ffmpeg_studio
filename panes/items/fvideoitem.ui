@@ -16,11 +16,19 @@
     <height>200</height>
    </size>
   </property>
+  <property name="maximumSize">
+   <size>
+    <width>200</width>
+    <height>200</height>
+   </size>
+  </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
   <property name="styleSheet">
-   <string notr="true"/>
+   <string notr="true">#FVideoItem {
+	background-color: rgb(255, 251, 0);
+}</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout" stretch="100,0">
    <property name="spacing">
@@ -68,8 +76,7 @@
         </font>
        </property>
        <property name="styleSheet">
-        <string notr="true">background-color: rgb(255, 251, 0);
-color: blue;</string>
+        <string notr="true">#date { color: blue; }</string>
        </property>
        <property name="text">
         <string>00/00/0000</string>
@@ -80,6 +87,19 @@ color: blue;</string>
       </widget>
      </item>
      <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
       <widget class="QLabel" name="name">
        <property name="font">
         <font>
@@ -88,8 +108,7 @@ color: blue;</string>
         </font>
        </property>
        <property name="styleSheet">
-        <string notr="true">background-color: rgb(255, 251, 0);
-color: blue;</string>
+        <string notr="true">#name { color: blue; }</string>
        </property>
        <property name="text">
         <string>VÍDEO 309</string>

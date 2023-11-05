@@ -16,10 +16,10 @@ FVideo::~FVideo()
     delete equirectangularLow;
 }
 
-bool FVideo::addSegment(FSegment *segment)
+bool FVideo::addSegment(FSegment *segment, bool fileVerify)
 {
     connect(segment, SIGNAL(verifyError(QString)), this, SLOT(segmentVerifyError(QString)));
-    if (!segment->verify()) return false;
+    if (fileVerify && !segment->verify()) return false;
     this->segments.append(segment);
     return true;
 }

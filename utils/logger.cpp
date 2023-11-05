@@ -14,11 +14,6 @@ QFile* Logger::getLogFile()
     QString appDataPath = Settings::getAppDataPath();
     QDir appData(appDataPath);
 
-    if (!appData.exists()) {
-        std::cerr << "Could not open appdata for the logfile. The appData path is: " << appData.absolutePath().toStdString() << std::endl;
-        exit(ERROR_COULD_NOT_OPEN_APPDATA);
-    }
-
     if (!appData.exists("Logs") && !appData.mkdir("Logs")) {
         std::cerr << "Could not create the log folder inside appdata. The appData path is: " << appData.absolutePath().toStdString() << std::endl;
         exit(ERROR_COULD_NOT_CREATE_LOG_FOLDER);
@@ -39,15 +34,20 @@ QFile* Logger::getLogFile()
         exit(ERROR_COULD_NOT_OPEN_LOG);
     }
 
-    logFile->write("FUSION FFMPEG STUDIO STARTING...\n");
+    logFile->write("\n");
+
+    if (logFile->size() < 1) {
+        logFile->write("\n");
+    }
+
     logFile->close();
     return logFile;
 }
 
 void Logger::messageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
-    bool isLogOpen = true;
     QFile *logFile = Logger::getLogFile();
+    bool isLogOpen = true;
 
     for (int i=0; i<5; i++) {
         isLogOpen = logFile->isOpen();
@@ -59,24 +59,21 @@ void Logger::messageHandler(QtMsgType type, const QMessageLogContext &context, c
         exit(ERROR_LOG_IN_USE);
     }
 
-    if (!isLogOpen && !logFile->open(QFile::ReadWrite | QFile::Append)) {
+    if (!logFile->open(QFile::ReadWrite | QFile::Append)) {
         std::cerr << "Debug handler could not open logFile. Error number " << logFile->error()
                   << " and error string " << logFile->errorString().toStdString()
                   <<  ". The log file trying to open is: " << logFile->fileName().toStdString() << std::endl;
         exit(ERROR_COULD_NOT_OPEN_LOG);
     }
 
-    QString logLine = QString("%1 | %2 | %3 | %4 | %5 | %6\n").
-                    arg(QDateTime::currentDateTime().toString("dd-MM-yyyy hh:mm:ss")).
-                    arg(Logger::contextNames.value(type)).
-                    arg(context.line).
-                    arg(QString(context.file).
-                        section('\\', -1)).
-                    arg(QString(context.function).
-                        section('(', -2, -2).
-                        section(' ', -1).
-                        section(':', -1)).
-                    arg(msg);
+    QString logLine = QString("%1 | %2 | %3 | %4 | %5 | %6\n").arg(
+        QDateTime::currentDateTime().toString("dd-MM-yyyy hh:mm:ss"),
+        Logger::contextNames.value(type),
+        QString::number(context.line),
+        QString(context.file),
+        QString(context.function),
+        msg
+    );
 
     logFile->write(logLine.toUtf8());
 

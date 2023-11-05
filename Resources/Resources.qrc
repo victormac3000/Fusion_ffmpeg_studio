@@ -9,5 +9,8 @@
         <file>Images/MediaPlayer/Right.png</file>
         <file>Documents/Txt/Attributions.txt</file>
         <file>Icons/General/settings-icon.png</file>
+        <file>Documents/Html/360Viewer/index.html</file>
+        <file>Documents/Html/Viewer/index.html</file>
+        <file>Documents/Qml/videoPlayer.qml</file>
     </qresource>
 </RCC>

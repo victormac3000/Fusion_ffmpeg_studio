@@ -41,6 +41,7 @@ public:
     static bool isImage(QFile *media);
     static QMimeType getMimeType(QFile *media);
     static VideoInfo getVideoInfo(QFile *video);
+    static QList<int> convertToHMS(qint64 miliseconds);
 
 private:
     static QMediaMetaData getMetadata(QFile *media);

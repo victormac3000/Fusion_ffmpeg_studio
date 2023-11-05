@@ -46,7 +46,7 @@ void Settings::setupAppData()
 
     if (actualAppData.isEmpty() || !QDir(actualAppData).exists()) {
         settings.setValue("appData", defaultAppData);
-        if (!QDir(defaultAppData).exists() && !QDir(QDir::rootPath()).mkpath(defaultAppData)) {
+        if (!QDir(defaultAppData).exists() || !QDir(QDir::rootPath()).mkpath(defaultAppData)) {
             std::cerr << "Could not create the default appdata folder in the default path. The default appdata path is: "
                       << defaultAppData.toStdString() << std::endl;
             exit(ERROR_COULD_NOT_CREATE_APPDATA);
