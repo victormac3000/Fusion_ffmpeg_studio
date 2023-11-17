@@ -3,8 +3,11 @@ import QtQuick.Controls 6.5
 import QtQuick.Layouts
 import QtMultimedia
 import QtQuick.Window
+import QtQuick.Controls.iOS
 
 Rectangle {
+    width: 800
+    height: 600
     color: "yellow"
 
     ColumnLayout {
@@ -50,7 +53,7 @@ Rectangle {
                     id: slider
                     value: mediaPlayer.position / mediaPlayer.duration
                     onMoved: {
-                        mediaPlayer.setPosition(value * mediaPlayer.duration)
+                        mediaPlayer.setPosition(first.value * mediaPlayer.duration)
                     }
                 }
 
@@ -62,31 +65,44 @@ Rectangle {
                     }
                 }
             }
+
+
         }
 
         Rectangle {
             color: "red"
             Layout.fillWidth: true
             Layout.fillHeight: true
-            Layout.maximumHeight: 35
+            Layout.minimumHeight: 40
+            Layout.maximumHeight: 40
 
             RowLayout {
                 width: parent.width
+                height: parent.height
 
                 Button {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     id: rewindButton
-                    icon.source: "qrc:/Images/MediaPlayer/Left.png"
-                    onClicked: {
-
+                    Image {
+                        source: "Icons/VideoPlayer/Left.png"
+                        fillMode: Image.PreserveAspectFit
+                        anchors.centerIn: parent
+                        sourceSize.height: rewindButton.background.height - 6
+                        height: sourceSize.height
                     }
                 }
                 Button {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     id: playButton
-                    icon.source: "qrc:/Images/MediaPlayer/Play.png"
+                    Image {
+                        source: "Icons/VideoPlayer/Play.png"
+                        fillMode: Image.PreserveAspectFit
+                        anchors.centerIn: parent
+                        sourceSize.height: playButton.background.height - 6
+                        height: sourceSize.height
+                    }
                     onClicked: {
                         mediaPlayer.play()
                     }
@@ -95,7 +111,13 @@ Rectangle {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     id: pauseButton
-                    icon.source: "qrc:/Images/MediaPlayer/Pause.png"
+                    Image {
+                        source: "Icons/VideoPlayer/Pause.png"
+                        fillMode: Image.PreserveAspectFit
+                        anchors.centerIn: parent
+                        sourceSize.height: pauseButton.background.height - 6
+                        height: sourceSize.height
+                    }
                     onClicked: {
                         mediaPlayer.pause()
                     }
@@ -104,9 +126,12 @@ Rectangle {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     id: forwardButton
-                    icon.source: "qrc:/Images/MediaPlayer/Right.png"
-                    onClicked: {
-
+                    Image {
+                        source: "Icons/VideoPlayer/Right.png"
+                        fillMode: Image.PreserveAspectFit
+                        anchors.centerIn: parent
+                        sourceSize.height: forwardButton.background.height - 6
+                        height: sourceSize.height
                     }
                 }
             }
