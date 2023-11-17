@@ -3,14 +3,18 @@
         <file>Images/GoProPlayerAppIcon.png</file>
         <file>Images/Snow.jpg</file>
         <file>Documents/Json/FusionFormats.json</file>
-        <file>Images/MediaPlayer/Left.png</file>
-        <file>Images/MediaPlayer/Pause.png</file>
-        <file>Images/MediaPlayer/Play.png</file>
-        <file>Images/MediaPlayer/Right.png</file>
         <file>Documents/Txt/Attributions.txt</file>
         <file>Icons/General/settings-icon.png</file>
-        <file>Documents/Html/360Viewer/index.html</file>
-        <file>Documents/Html/Viewer/index.html</file>
-        <file>Documents/Qml/videoPlayer.qml</file>
+        <file>Documents/Qml/EditorPane.qml</file>
+        <file>Documents/Qml/QueueItem.qml</file>
+        <file>Documents/Qml/VideoItem.qml</file>
+        <file>Documents/Qml/VideoPlayerUx.qml</file>
+    </qresource>
+    <qresource prefix="/Documents/Qml">
+        <file>Icons/VideoPlayer/Left.png</file>
+        <file>Icons/VideoPlayer/no_video.png</file>
+        <file>Icons/VideoPlayer/Pause.png</file>
+        <file>Icons/VideoPlayer/Play.png</file>
+        <file>Icons/VideoPlayer/Right.png</file>
     </qresource>
 </RCC>

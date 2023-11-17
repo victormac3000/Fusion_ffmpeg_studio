@@ -12,7 +12,6 @@
 #include "models/project.h"
 #include "models/renderwork.h"
 #include "panes/items/fqueueitem.h"
-#include "panes/items/fvideoitem.h"
 #include "panes/items/videoplayer.h"
 #include "utils/dialogs.h"
 #include "utils/ffmpeg.h"
@@ -36,17 +35,14 @@ signals:
 
 
 private slots:
-    void videoItemClicked(FVideoItem *videoItem);
-
     void renderPreviewClicked();
     void renderWorkFinished(RenderWork *renderWork, bool error);
 
 private:
     Ui::EditorPane *ui;
     Project *project;
-    QList<FVideoItem*> videos;
+    QQuickItem *videosGridLayout;
     QList<FQueueItem*> queueItems;
-    QVBoxLayout *queueLayout;
     VideoPlayer *videoPlayer;
     int selected = 0;
     Renderer *renderer;

@@ -26,6 +26,8 @@ public:
     bool addSegment(FSegment *segment, bool fileVerify = true);
     bool verify();
     int getId();
+    QDateTime getDate();
+    QFile *getThumnail();
     FSegment* getSegment(int i);
     QList<FSegment*> getSegments();
     int getNumSegments();

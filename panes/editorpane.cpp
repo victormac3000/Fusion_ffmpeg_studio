@@ -9,20 +9,16 @@ EditorPane::EditorPane(QWidget *parent, Project *project) :
 
     this->project = project;
 
-    this->videoPlayer = new VideoPlayer;
-    ui->video_player_frame->layout()->addWidget(this->videoPlayer);
-
-    this->queueLayout = (QVBoxLayout*) ui->render_queue_scoll_area_widget->layout();
-
     // On load
     // If previews are not available -> Add work to queue and start it
 
     this->renderer = new Renderer;
     this->rendererThread = new QThread;
+    this->videosGridLayout = (QQuickItem*) ui->editor_pane_widget->rootObject()->findChild<QObject*>("videosGridLayout");
 
     // Connect buttons
-    connect(ui->generate_preview_button, SIGNAL(clicked()), this, SLOT(renderPreviewClicked()));
-    connect(ui->render_button, SIGNAL(clicked()), renderer, SLOT(run()));
+    //connect(ui->generate_preview_button, SIGNAL(clicked()), this, SLOT(renderPreviewClicked()));
+    //connect(ui->render_button, SIGNAL(clicked()), renderer, SLOT(run()));
 
     // Connect signals
     connect(this, SIGNAL(rendererAdd(RenderWork*)), renderer, SLOT(add(RenderWork*)));
@@ -33,18 +29,25 @@ EditorPane::EditorPane(QWidget *parent, Project *project) :
 
 
     // GUI LOAD VIDEOS
+
     QList<FVideo*> videos = project->getVideos();
 
     for (FVideo* video: videos) {
-        // Create GUI element
-        FVideoItem *fvideoItem = new FVideoItem(this, video);
-        connect(fvideoItem, SIGNAL(clicked(FVideoItem*)), this, SLOT(videoItemClicked(FVideoItem*)));
-        QGridLayout *layout = (QGridLayout*) ui->videos_scroll_widget->layout();
-        layout->addWidget(fvideoItem);
-        ui->videos_scroll_widget->layout()->addWidget(fvideoItem);
-        this->videos.append(fvideoItem);
-        fvideoItem->show();
+        QMetaObject::invokeMethod(videosGridLayout, "addVideoItem",
+            Q_ARG(QVariant, video->getId()), Q_ARG(QVariant, video->getIdString()),
+            Q_ARG(QVariant, video->getDate().toString("dd.MM.yy")),
+            Q_ARG(QVariant, "Icons/VideoPlayer/no_video.png")
+        );
     }
+
+
+/*
+    for (int i=0; i<10; i++) {
+        QMetaObject::invokeMethod(queueLayout, "addQueueItem");
+    }
+*/
+/*
+
 
     ui->videos_scroll_widget->layout()->addItem(new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding));
 
@@ -52,6 +55,7 @@ EditorPane::EditorPane(QWidget *parent, Project *project) :
     if (videos.length() > 0) {
         videoItemClicked(this->videos.at(0));
     }
+*/
 }
 
 EditorPane::~EditorPane()
@@ -64,36 +68,9 @@ EditorPane::~EditorPane()
     delete ui;
 }
 
-void EditorPane::videoItemClicked(FVideoItem *videoItem)
-{
-    int found = -1;
-
-    for (int i=0; i<videos.length(); i++) {
-        if (videoItem->getVideo()->getId() == videos.at(i)->getVideo()->getId()) {
-            found = i;
-            break;
-        }
-    }
-
-    if (found < 0) return;
-
-    videos.at(selected)->setSelected(false);
-    selected = found;
-
-    FVideoItem *selectedVideoItem = videos.at(selected);
-    selectedVideoItem->setSelected(true);
-
-    ui->firmware_version_label->setText(QString::number(selectedVideoItem->getVideo()->getFormat().firmwareVersion, 'f', 1));
-    ui->recorded_label->setText(MediaInfo::getDate(selectedVideoItem->getVideo()->getSegment(0)->getFrontMP4()).toString("dd/MM/yyyy hh:mm:ss"));
-    ui->video_duration_label->setText(selectedVideoItem->getVideo()->getLength().toString("hh:mm:ss"));
-
-    if (selectedVideoItem->getVideo()->isEquirectangularLowValid()) {
-        videoPlayer->setVideo(selectedVideoItem->getVideo()->getEquirectangularLow()->fileName());
-    }
-}
-
 void EditorPane::renderPreviewClicked()
 {
+    /*
     RenderWork *renderWork = new RenderWork(nullptr, project, videos.at(selected)->getVideo(), RENDER_PREVIEW);
 
     emit rendererAdd(renderWork);
@@ -101,10 +78,12 @@ void EditorPane::renderPreviewClicked()
     FQueueItem *item = new FQueueItem(queueLayout->parentWidget(), renderWork);
     queueLayout->addWidget(item);
     queueItems.append(item);
+*/
 }
 
 void EditorPane::renderWorkFinished(RenderWork *renderWork, bool error)
 {
+/*
     if (error) {
         if (renderWork == nullptr) {
             qWarning() << "The render queue is empty";
@@ -124,5 +103,5 @@ void EditorPane::renderWorkFinished(RenderWork *renderWork, bool error)
             delete item;
         }
     }
-
+*/
 }

@@ -58,6 +58,25 @@ int FVideo::getNumSegments()
     return this->segments.length();
 }
 
+QDateTime FVideo::getDate()
+{
+    if (this->segments.length() < 1) {
+        qWarning() << "Could not get the date from video " << id;
+        return QDateTime();
+    }
+    return this->segments.at(0)->getDate();
+}
+
+QFile* FVideo::getThumnail()
+{
+    if (this->segments.length() < 1) {
+        qWarning() << "Could not get the thumnail from video " << id;
+        return new QFile("qrc:/Documents/Qml/Icons/VideoPlayer/no_video.png");
+    }
+    // TODO get thumnail
+    return nullptr;
+}
+
 QString FVideo::getIdString()
 {
     QString vidIdString = QString::number(id);

@@ -21,7 +21,6 @@ SOURCES += \
     models/project.cpp \
     models/renderwork.cpp \
     panes/items/fqueueitem.cpp \
-    panes/items/fvideoitem.cpp \
     panes/items/videoplayer.cpp \
     panes/projectcreator.cpp \
     utils/dialogs.cpp \
@@ -46,7 +45,6 @@ HEADERS += \
     models/project.h \
     models/renderwork.h \
     panes/items/fqueueitem.h \
-    panes/items/fvideoitem.h \
     panes/items/videoplayer.h \
     panes/projectcreator.h \
     utils/dialogs.h \
@@ -66,7 +64,6 @@ HEADERS += \
 
 FORMS += \
     panes/items/fqueueitem.ui \
-    panes/items/fvideoitem.ui \
     panes/items/videoplayer.ui \
     panes/projectcreator.ui \
     windows/about.ui \
