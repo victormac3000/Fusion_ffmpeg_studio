@@ -14,7 +14,7 @@ EditorPane::EditorPane(QWidget *parent, Project *project) :
 
     this->renderer = new Renderer;
     this->rendererThread = new QThread;
-    this->videosGridLayout = (QQuickItem*) ui->editor_pane_widget->rootObject()->findChild<QObject*>("videosGridLayout");
+    this->videosGridLayout = (QQuickItem*) ui->editor_pane_widget->rootContext()->findChild<QObject*>("videosGridLayout");
 
     // Connect buttons
     //connect(ui->generate_preview_button, SIGNAL(clicked()), this, SLOT(renderPreviewClicked()));
@@ -32,12 +32,20 @@ EditorPane::EditorPane(QWidget *parent, Project *project) :
 
     QList<FVideo*> videos = project->getVideos();
 
+    /*
+     *  Q_ARG(QVariant, video->getId()), Q_ARG(QVariant, video->getIdString()),
+        Q_ARG(QVariant, video->getDate().toString("dd.MM.yy")),
+        Q_ARG(QVariant, "Icons/VideoPlayer/no_video.png")
+    */
+
     for (FVideo* video: videos) {
-        QMetaObject::invokeMethod(videosGridLayout, "addVideoItem",
-            Q_ARG(QVariant, video->getId()), Q_ARG(QVariant, video->getIdString()),
-            Q_ARG(QVariant, video->getDate().toString("dd.MM.yy")),
-            Q_ARG(QVariant, "Icons/VideoPlayer/no_video.png")
-        );
+        QQuickItem *videoElement = nullptr;
+        bool succcess = QMetaObject::invokeMethod(videosGridLayout, "addVideoItem", Qt::AutoConnection, Q_RETURN_ARG(QQuickItem*, videoElement));
+        if (succcess) {
+            videoElement->setProperty("idString", video->getIdString());
+            videoElement->setProperty("imagePath", video->getIdString());
+            videoElement->setProperty("recorded", "Icons/VideoPlayer/no_video.png");
+        }
     }
 
 

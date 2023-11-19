@@ -3,11 +3,10 @@ import QtQuick.Layouts
 import QtQuick.Controls 2.15
 
 Rectangle {
-    property int id: -1
-    property string idString: "VIDEO N/A"
-    property date recorded: Date.fromLocaleDateString("01/01/1970")
-    property string imagePath: "Icons/VideoPlayer/no_video.png"
     property bool selected: false
+    property string idString
+    property string imagePath
+    property string recorded
 
     height: 200
     width: 200
@@ -16,12 +15,6 @@ Rectangle {
     radius: 20
     color: "blue"
 
-    function init(id, idString, recorded, imagePath) {
-        this.id = id
-        this.idString = idString
-        this.recorded = recorded
-        this.imagePath = imagePath
-    }
 
     onWidthChanged: {
         if (width >= 190) {
@@ -50,7 +43,7 @@ Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
             objectName: "image"
-            source: imagePath
+            source: { imagePath ? imagePath : "Icons/VideoPlayer/no_video.png" }
             fillMode: Image.PreserveAspectFit
         }
 
@@ -64,7 +57,7 @@ Rectangle {
                 color: "#ffffff"
                 Layout.fillWidth: true
                 objectName: "date"
-                text: recorded.toDateString()
+                text: { recorded ? recorded : "DD/MM/YYYY" }
                 font.family: "Helvetica"
                 font.pointSize: 15
                 fontSizeMode: Text.Fit
@@ -77,7 +70,7 @@ Rectangle {
                 color: "#ffffff"
                 Layout.fillWidth: true
                 objectName: "name"
-                text: idString
+                text: { idString ? idString : "VIDEO XX" }
                 horizontalAlignment: Text.AlignRight
                 font.family: "Helvetica"
                 font.pointSize: 15

@@ -8,7 +8,6 @@ import QtQuick.Controls
 Rectangle {
     width: 1280
     height: 720
-    visible: true
 
     SplitView {
         id: splitView
@@ -41,6 +40,8 @@ Rectangle {
                 width: parent.width
                 height: parent.height
                 contentWidth: videosGridLayout.width
+                ScrollBar.vertical.policy: ScrollBar.AlwaysOn
+                ScrollBar.horizontal.policy: ScrollBar.AlwaysOn
 
                 Component.onCompleted: {
                     for (var i=0; i<10; i++)
@@ -66,13 +67,12 @@ Rectangle {
                         selectedVideo = videoItem
                     }
 
-                    function addVideoItem(id, idString, date, imagePath) {
+                    function addVideoItem() {
                         var newVideoItem = Qt.createQmlObject('import QtQuick 2.15; VideoItem {}', videosGridLayout)
                         newVideoItem.Layout.alignment = Qt.AlignTop
                         newVideoItem.Layout.fillWidth = true
-                        var dateParts = date.split(".")
-                        newVideoItem.init(id, idString, new Date(dateParts[2], dateParts[1] - 1, dateParts[0]), imagePath)
-                        var newVideoItemMouseArea = Qt.createQmlObject('import QtQuick 2.15; MouseArea {}', newVideoItem)
+                        Qt.createQmlObject('import QtQuick 2.15; MouseArea {}', newVideoItem)
+                        return newVideoItem;
                     }
 
                 }
@@ -109,6 +109,8 @@ Rectangle {
                 width: parent.width
                 height: parent.height
                 contentWidth: queueLayout.width
+                ScrollBar.vertical.policy: ScrollBar.AlwaysOn
+                ScrollBar.horizontal.policy: ScrollBar.AlwaysOn
 
                 Component.onCompleted: {
                     /*
@@ -134,4 +136,3 @@ Rectangle {
         }
     }
 }
-
