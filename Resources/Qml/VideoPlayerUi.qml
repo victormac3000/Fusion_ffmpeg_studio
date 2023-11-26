@@ -10,19 +10,25 @@ Rectangle {
     height: 600
     color: "yellow"
 
+    function setSource(source) {
+        mediaPlayer.source = "file://" + source
+    }
+
     ColumnLayout {
         anchors.fill: parent
 
         MediaPlayer {
             id: mediaPlayer
-            objectName: "videoPlayer"
+            objectName: "mediaPlayer"
             audioOutput: AudioOutput {}
             videoOutput: videoOutput
+            source: ""
         }
 
         Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
+
 
             VideoOutput {
                 id: videoOutput
@@ -53,7 +59,7 @@ Rectangle {
                     id: slider
                     value: mediaPlayer.position / mediaPlayer.duration
                     onMoved: {
-                        mediaPlayer.setPosition(first.value * mediaPlayer.duration)
+                        mediaPlayer.setPosition(value * mediaPlayer.duration)
                     }
                 }
 
@@ -137,4 +143,5 @@ Rectangle {
             }
         }
     }
+
 }

@@ -1,12 +1,10 @@
 import QtQuick 6.5
 import QtQuick.Layouts
 import QtQuick.Controls 2.15
+import es.victor.components
 
 Rectangle {
     property bool selected: false
-    property string idString
-    property string imagePath
-    property string recorded
 
     height: 200
     width: 200
@@ -15,6 +13,13 @@ Rectangle {
     radius: 20
     color: "blue"
 
+    VideoItemModel {
+        id: videoData
+    }
+
+    function getModel() {
+        return videoData;
+    }
 
     onWidthChanged: {
         if (width >= 190) {
@@ -27,9 +32,10 @@ Rectangle {
     }
 
     MouseArea {
+        id: mouseArea
         anchors.fill: parent
         onClicked: {
-            videosGridLayout.videoItemClicked(parent)
+            videosGridView.videoItemClicked(this)
         }
     }
 
@@ -43,7 +49,7 @@ Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
             objectName: "image"
-            source: { imagePath ? imagePath : "Icons/VideoPlayer/no_video.png" }
+            source: videoData.imagePath
             fillMode: Image.PreserveAspectFit
         }
 
@@ -57,7 +63,7 @@ Rectangle {
                 color: "#ffffff"
                 Layout.fillWidth: true
                 objectName: "date"
-                text: { recorded ? recorded : "DD/MM/YYYY" }
+                text: videoData.recorded
                 font.family: "Helvetica"
                 font.pointSize: 15
                 fontSizeMode: Text.Fit
@@ -70,7 +76,7 @@ Rectangle {
                 color: "#ffffff"
                 Layout.fillWidth: true
                 objectName: "name"
-                text: { idString ? idString : "VIDEO XX" }
+                text: videoData.idString
                 horizontalAlignment: Text.AlignRight
                 font.family: "Helvetica"
                 font.pointSize: 15

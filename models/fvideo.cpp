@@ -71,10 +71,10 @@ QFile* FVideo::getThumnail()
 {
     if (this->segments.length() < 1) {
         qWarning() << "Could not get the thumnail from video " << id;
-        return new QFile("qrc:/Documents/Qml/Icons/VideoPlayer/no_video.png");
+        return new QFile("qrc:/Qml/Icons/VideoPlayer/no_video.png");
     }
-    // TODO get thumnail
-    return nullptr;
+    // TODO Parse thumnail into fvideo model
+    return new QFile("qrc:/Qml/Icons/VideoPlayer/no_video.png");;
 }
 
 QString FVideo::getIdString()

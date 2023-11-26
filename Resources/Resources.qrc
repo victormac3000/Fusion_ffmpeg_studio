@@ -5,12 +5,12 @@
         <file>Documents/Json/FusionFormats.json</file>
         <file>Documents/Txt/Attributions.txt</file>
         <file>Icons/General/settings-icon.png</file>
-        <file>Documents/Qml/EditorPane.qml</file>
-        <file>Documents/Qml/QueueItem.qml</file>
-        <file>Documents/Qml/VideoItem.qml</file>
-        <file>Documents/Qml/VideoPlayerUx.qml</file>
+        <file>Qml/EditorPane.qml</file>
+        <file>Qml/QueueItem.qml</file>
+        <file>Qml/VideoItem.qml</file>
+        <file>Qml/VideoPlayerUi.qml</file>
     </qresource>
-    <qresource prefix="/Documents/Qml">
+    <qresource prefix="/Qml">
         <file>Icons/VideoPlayer/Left.png</file>
         <file>Icons/VideoPlayer/no_video.png</file>
         <file>Icons/VideoPlayer/Pause.png</file>

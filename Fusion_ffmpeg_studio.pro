@@ -1,6 +1,6 @@
-QT       += core gui xml multimedia multimediawidgets webenginewidgets quickwidgets
+QT       += core gui xml multimedia multimediawidgets webenginewidgets quick quickwidgets
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+greaterThan(QT_MAJOR_VERSION, 6): QT += widgets
 
 CONFIG += c++17
 
@@ -21,7 +21,7 @@ SOURCES += \
     models/project.cpp \
     models/renderwork.cpp \
     panes/items/fqueueitem.cpp \
-    panes/items/videoplayer.cpp \
+    panes/items/videoitem.cpp \
     panes/projectcreator.cpp \
     utils/dialogs.cpp \
     utils/ffmpeg.cpp \
@@ -45,7 +45,7 @@ HEADERS += \
     models/project.h \
     models/renderwork.h \
     panes/items/fqueueitem.h \
-    panes/items/videoplayer.h \
+    panes/items/videoitem.h \
     panes/projectcreator.h \
     utils/dialogs.h \
     utils/exitcodes.h \
@@ -64,7 +64,6 @@ HEADERS += \
 
 FORMS += \
     panes/items/fqueueitem.ui \
-    panes/items/videoplayer.ui \
     panes/projectcreator.ui \
     windows/about.ui \
     windows/mainwindow.ui \
@@ -80,6 +79,3 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 RESOURCES += \
    Resources/Resources.qrc
-
-DISTFILES += \
-    Resources/Documents/Qml/videoPlayer360.qml

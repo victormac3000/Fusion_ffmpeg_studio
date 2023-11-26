@@ -42,7 +42,7 @@
      </property>
      <property name="source">
       <url>
-       <string>qrc:/Documents/Qml/EditorPane.qml</string>
+       <string>qrc:/Qml/EditorPane.qml</string>
       </url>
      </property>
     </widget>

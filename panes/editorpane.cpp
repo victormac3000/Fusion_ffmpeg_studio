@@ -5,8 +5,8 @@ EditorPane::EditorPane(QWidget *parent, Project *project) :
     QWidget(parent),
     ui(new Ui::EditorPane)
 {
+    qmlRegisterType<VideoItem>("es.victor.components", 1, 0, "VideoItemModel");
     ui->setupUi(this);
-
     this->project = project;
 
     // On load
@@ -14,7 +14,10 @@ EditorPane::EditorPane(QWidget *parent, Project *project) :
 
     this->renderer = new Renderer;
     this->rendererThread = new QThread;
-    this->videosGridLayout = (QQuickItem*) ui->editor_pane_widget->rootContext()->findChild<QObject*>("videosGridLayout");
+
+    QQuickItem* rootObject = ui->editor_pane_widget->rootObject();
+    this->videosGrid = rootObject->findChild<QQuickItem*>("videosGridView");
+    this->videoPlayer = rootObject->findChild<QQuickItem*>("videoPlayerRoot");
 
     // Connect buttons
     //connect(ui->generate_preview_button, SIGNAL(clicked()), this, SLOT(renderPreviewClicked()));
@@ -32,45 +35,30 @@ EditorPane::EditorPane(QWidget *parent, Project *project) :
 
     QList<FVideo*> videos = project->getVideos();
 
-    /*
-     *  Q_ARG(QVariant, video->getId()), Q_ARG(QVariant, video->getIdString()),
-        Q_ARG(QVariant, video->getDate().toString("dd.MM.yy")),
-        Q_ARG(QVariant, "Icons/VideoPlayer/no_video.png")
-    */
-
     for (FVideo* video: videos) {
-        QQuickItem *videoElement = nullptr;
-        bool succcess = QMetaObject::invokeMethod(videosGridLayout, "addVideoItem", Qt::AutoConnection, Q_RETURN_ARG(QQuickItem*, videoElement));
-        if (succcess) {
-            videoElement->setProperty("idString", video->getIdString());
-            videoElement->setProperty("imagePath", video->getIdString());
-            videoElement->setProperty("recorded", "Icons/VideoPlayer/no_video.png");
+        QVariant returnValue;
+        bool sucess = QMetaObject::invokeMethod(
+            videosGrid, "addVideo", Q_RETURN_ARG(QVariant, returnValue)
+        );
+        if (sucess) {
+            VideoItem *createdItem = qobject_cast<VideoItem*>(returnValue.value<QObject*>());
+            createdItem->setIdString(video->getIdString());
+            createdItem->setImagePath(video->getThumnail()->fileName());
+            createdItem->setRecorded(video->getDate().toString("dd/MM/yyyy"));
+        }
+        bool sucess2 = QMetaObject::invokeMethod(
+            videoPlayer, "setSource", Q_ARG(QVariant, video->getEquirectangularLow()->fileName())
+        );
+        if (!sucess2) {
+            qWarning() << "Could not set the video preview path";
         }
     }
-
-
-/*
-    for (int i=0; i<10; i++) {
-        QMetaObject::invokeMethod(queueLayout, "addQueueItem");
-    }
-*/
-/*
-
-
-    ui->videos_scroll_widget->layout()->addItem(new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding));
-
-    // If there is any videos, select the first one
-    if (videos.length() > 0) {
-        videoItemClicked(this->videos.at(0));
-    }
-*/
 }
 
 EditorPane::~EditorPane()
 {
     rendererThread->quit();
     rendererThread->wait();
-    delete videoPlayer;
     delete renderer;
     delete project;
     delete ui;

@@ -4,8 +4,10 @@
 import QtQuick 6.5
 import QtQuick.Layouts
 import QtQuick.Controls
+import es.victor.components 1.0
 
 Rectangle {
+    id: root
     width: 1280
     height: 720
 
@@ -39,42 +41,51 @@ Rectangle {
                 objectName: "videosScrollView"
                 width: parent.width
                 height: parent.height
-                contentWidth: videosGridLayout.width
+                contentWidth: videosGridView.width
                 ScrollBar.vertical.policy: ScrollBar.AlwaysOn
                 ScrollBar.horizontal.policy: ScrollBar.AlwaysOn
 
                 Component.onCompleted: {
-                    for (var i=0; i<10; i++)
-                        videosGridLayout.addVideoItem()
+                    //for (var i=0; i<10; i++)
+                        //videosGridLayout.addVideo()
                 }
 
-                GridLayout {
+                GridView {
                     property VideoItem selectedVideo
+                    property list<VideoItem> videos: []
 
-                    id: videosGridLayout
-                    objectName: "videosGridLayout"
+                    id: videosGridView
+                    objectName: "videosGridView"
                     width: videosRectangle.width
                     height: videosRectangle.height
-                    columnSpacing: 5
-                    rows: 3
-                    columns: 2
 
-                    function videoItemClicked(videoItem) {
-                        if (selectedVideo != undefined) {
-                            selectedVideo.selected = false;
+                    Loader {
+                        id: videoItemLoader
+                        sourceComponent: VideoItem {}
+                    }
+
+                    function videoItemClicked(videoItemMouseArea) {
+                        if (selectedVideo) {
+                            selectedVideo.selected = false
                         }
+                        var videoItem = videoItemMouseArea.parent
                         videoItem.selected = true
                         selectedVideo = videoItem
                     }
 
-                    function addVideoItem() {
-                        var newVideoItem = Qt.createQmlObject('import QtQuick 2.15; VideoItem {}', videosGridLayout)
-                        newVideoItem.Layout.alignment = Qt.AlignTop
-                        newVideoItem.Layout.fillWidth = true
-                        Qt.createQmlObject('import QtQuick 2.15; MouseArea {}', newVideoItem)
-                        return newVideoItem;
+                    function addVideo() {
+                        var video = videoItemLoader.item
+                        videos.push(video)
+                        if (videos.length <= 1) {
+                            video.selected = true
+                            selectedVideo = video
+                        }
+                        return video.getModel()
                     }
 
+                    function getNumVideos() {
+                        return videos.count
+                    }
                 }
             }
 
@@ -86,13 +97,12 @@ Rectangle {
             implicitWidth: parent.width*0.6
             color: "#666"
 
-            VideoPlayerUx {
+            VideoPlayerUi {
+                id: videoPlayerRoot
+                objectName: "videoPlayerRoot"
                 width: parent.width
                 height: parent.height
             }
-
-
-
         }
 
         Rectangle {
