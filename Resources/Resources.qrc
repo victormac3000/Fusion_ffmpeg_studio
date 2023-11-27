@@ -8,7 +8,12 @@
         <file>Qml/EditorPane.qml</file>
         <file>Qml/QueueItem.qml</file>
         <file>Qml/VideoItem.qml</file>
-        <file>Qml/VideoPlayerUi.qml</file>
+        <file>Qml/VideoPlayerMain.qml</file>
+        <file>Qml/VideoPlayerControls.qml</file>
+        <file>Qml/VideoPlayerCutMode.qml</file>
+        <file>Qml/VideoPlayerViewMode.qml</file>
+        <file>Qml/VideoPlayerSeeker.qml</file>
+        <file>Qml/VideoPlayerActions.qml</file>
     </qresource>
     <qresource prefix="/Qml">
         <file>Icons/VideoPlayer/Left.png</file>

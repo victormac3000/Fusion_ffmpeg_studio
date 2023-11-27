@@ -1,4 +1,4 @@
-QT       += core gui xml multimedia multimediawidgets webenginewidgets quick quickwidgets
+QT       += core gui xml multimedia multimediawidgets webenginewidgets quick quickwidgets quickcontrols2
 
 greaterThan(QT_MAJOR_VERSION, 6): QT += widgets
 
@@ -79,3 +79,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 RESOURCES += \
    Resources/Resources.qrc
+
+DISTFILES +=

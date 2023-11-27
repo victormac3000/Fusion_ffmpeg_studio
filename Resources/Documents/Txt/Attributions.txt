@@ -1,2 +1,3 @@
 https://www.svgrepo.com/collection/16pxls-tiny-sharp-icons/2 - Play, pause, left and right buttons
 https://www.rawpixel.com/image/6664576 - Settings button icon
+https://github.com/zhuzichu520/FluentUI - UI components

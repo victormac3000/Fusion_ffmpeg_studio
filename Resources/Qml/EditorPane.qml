@@ -4,7 +4,6 @@
 import QtQuick 6.5
 import QtQuick.Layouts
 import QtQuick.Controls
-import es.victor.components 1.0
 
 Rectangle {
     id: root
@@ -97,7 +96,7 @@ Rectangle {
             implicitWidth: parent.width*0.6
             color: "#666"
 
-            VideoPlayerUi {
+            VideoPlayerMain {
                 id: videoPlayerRoot
                 objectName: "videoPlayerRoot"
                 width: parent.width
