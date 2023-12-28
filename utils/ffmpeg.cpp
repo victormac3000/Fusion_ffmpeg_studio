@@ -71,11 +71,11 @@ void FFmpeg::processReadyReadOut()
 
 void FFmpeg::processReadyReadError()
 {
-    QString stderr = process->readAllStandardError();
+    QString standardError = QString::fromUtf8(process->readAllStandardError());
 
-    static QRegularExpression statusRe("frame=\\s*(?<nframe>[0-9]+)\\s+fps=\\s*(?<nfps>[0-9\\.]+)\\s+q=(?<nq>[0-9\\.-]+)\\s+(L?)\\s*size=\\s*(?<nsize>[0-9]+)(?<ssize>kB|mB|b)?\\s*time=\\s*(?<sduration>[0-9\\:\\.]+)\\s*bitrate=\\s*(?<nbitrate>[0-9\\.]+)(?<sbitrate>bits\\/s|mbits\\/s|kbits\\/s)?.*(dup=(?<ndup>\\d+)\\s*)?(drop=(?<ndrop>\\d+)\\s*)?speed=\\s*(?<nspeed>[0-9\\.]+)x");
+    QRegularExpression statusRe("frame=\\s*(?<nframe>[0-9]+)\\s+fps=\\s*(?<nfps>[0-9\\.]+)\\s+q=(?<nq>[0-9\\.-]+)\\s+(L?)\\s*size=\\s*(?<nsize>[0-9]+)(?<ssize>kB|mB|b)?\\s*time=\\s*(?<sduration>[0-9\\:\\.]+)\\s*bitrate=\\s*(?<nbitrate>[0-9\\.]+)(?<sbitrate>bits\\/s|mbits\\/s|kbits\\/s)?.*(dup=(?<ndup>\\d+)\\s*)?(drop=(?<ndrop>\\d+)\\s*)?speed=\\s*(?<nspeed>[0-9\\.]+)x");
 
-    QRegularExpressionMatch statusReMatch = statusRe.match(stderr);
+    QRegularExpressionMatch statusReMatch = statusRe.match(standardError);
     if (statusReMatch.hasMatch()) {
         bool frameOk = false;
         bool fpsOk = false;
@@ -107,7 +107,7 @@ void FFmpeg::processReadyReadError()
         status.elapsedTime = QTime::fromString(time);
         status.bitrate = bitrate;
         status.speed = speed;
-        status.percent = 0.55;
+        status.percent = 0.55f;
 
         emit work->updateRenderStatus(&status);
 
