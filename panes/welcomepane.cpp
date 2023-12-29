@@ -31,7 +31,7 @@ WelcomePane::~WelcomePane()
 void WelcomePane::openProjectButtonClicked()
 {
     QString proposedProjectFile = QFileDialog::getOpenFileName(
-        this, tr("Select the project file"), QSettings().value("defaultProjectPath").toString() + "/MiProyecto", tr("Fusion FFmpeg studio project (*.ffs)")
+        this, tr("Select the project file"), QSettings().value("defaultProjectPath").toString() + "/Mi proyecto", tr("Fusion FFmpeg studio project (*.ffs)")
     );
     if (proposedProjectFile.isEmpty()) return;
     LoadingPane *loader = new LoadingPane(mainWindowWidget, QFileInfo(proposedProjectFile).absolutePath());

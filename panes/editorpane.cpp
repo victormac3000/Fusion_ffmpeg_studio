@@ -17,11 +17,7 @@ EditorPane::EditorPane(QWidget *parent, Project *project) :
 
     QQuickItem* rootObject = ui->editor_pane_widget->rootObject();
     this->videosGrid = rootObject->findChild<QQuickItem*>("videosGridView");
-    this->videoPlayer = rootObject->findChild<QQuickItem*>("videoPlayerRoot");
-
-    // Connect buttons
-    //connect(ui->generate_preview_button, SIGNAL(clicked()), this, SLOT(renderPreviewClicked()));
-    //connect(ui->render_button, SIGNAL(clicked()), renderer, SLOT(run()));
+    this->videoPlayer = rootObject->findChild<QQuickItem*>("mediaPlayer");
 
     // Connect signals
     connect(this, SIGNAL(rendererAdd(RenderWork*)), renderer, SLOT(add(RenderWork*)));
@@ -53,6 +49,7 @@ EditorPane::EditorPane(QWidget *parent, Project *project) :
             qWarning() << "Could not set the video preview path";
         }
     }
+
 }
 
 EditorPane::~EditorPane()
