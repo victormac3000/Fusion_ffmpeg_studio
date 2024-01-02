@@ -5,9 +5,22 @@ EditorPane::EditorPane(QWidget *parent, Project *project) :
     QWidget(parent),
     ui(new Ui::EditorPane)
 {
-    qmlRegisterType<VideoItem>("es.victor.components", 1, 0, "VideoItemModel");
     ui->setupUi(this);
+
+    QVBoxLayout *mainLayout = new QVBoxLayout(this);
+    this->setLayout(mainLayout);
+
+    qmlRegisterType<VideoItem>("es.victor.components", 1, 0, "VideoItemModel");
+
+    QQuickWidget *qmlWidget = new QQuickWidget;
+    qmlWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
+    qmlWidget->setSource(QUrl("qrc:/Qml/EditorPane.qml"));
+    mainLayout->addWidget(qmlWidget);
+
+
     this->project = project;
+
+
 
     // On load
     // If previews are not available -> Add work to queue and start it
@@ -15,13 +28,13 @@ EditorPane::EditorPane(QWidget *parent, Project *project) :
     this->renderer = new Renderer;
     this->rendererThread = new QThread;
 
-    QQuickItem* rootObject = ui->editor_pane_widget->rootObject();
+    QQuickItem* rootObject = qmlWidget->rootObject();
     this->videosGrid = rootObject->findChild<QQuickItem*>("videosGridView");
-    this->videoPlayer = rootObject->findChild<QQuickItem*>("mediaPlayer");
+    this->videoPlayer = rootObject->findChild<QQuickItem*>("videoPlayerRoot");
 
     // Connect signals
     connect(this, SIGNAL(rendererAdd(RenderWork*)), renderer, SLOT(add(RenderWork*)));
-    connect(renderer, SIGNAL(renderWorkFinished(RenderWork*,bool)), this, SLOT(renderWorkFinished(RenderWork*,bool)));
+    //connect(renderer, SIGNAL(renderWorkFinished(RenderWork*,bool)), this, SLOT(renderWorkFinished(RenderWork*,bool)));
 
     this->renderer->moveToThread(rendererThread);
     this->rendererThread->start();
@@ -42,12 +55,14 @@ EditorPane::EditorPane(QWidget *parent, Project *project) :
             createdItem->setImagePath(video->getThumnail()->fileName());
             createdItem->setRecorded(video->getDate().toString("dd/MM/yyyy"));
         }
+        /*
         bool sucess2 = QMetaObject::invokeMethod(
             videoPlayer, "setSource", Q_ARG(QVariant, video->getEquirectangularLow()->fileName())
         );
         if (!sucess2) {
             qWarning() << "Could not set the video preview path";
         }
+        */
     }
 
 }
@@ -74,9 +89,10 @@ void EditorPane::renderPreviewClicked()
 */
 }
 
+/*
 void EditorPane::renderWorkFinished(RenderWork *renderWork, bool error)
 {
-/*
+
     if (error) {
         if (renderWork == nullptr) {
             qWarning() << "The render queue is empty";
@@ -96,5 +112,7 @@ void EditorPane::renderWorkFinished(RenderWork *renderWork, bool error)
             delete item;
         }
     }
-*/
+
 }
+
+*/

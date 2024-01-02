@@ -2,6 +2,7 @@
 #define EDITORPANE_H
 
 #include <QWidget>
+#include <QQuickWidget>
 #include <QMouseEvent>
 #include <QQueue>
 #include <QVBoxLayout>
@@ -36,7 +37,7 @@ signals:
 
 private slots:
     void renderPreviewClicked();
-    void renderWorkFinished(RenderWork *renderWork, bool error);
+    //void renderWorkFinished(RenderWork *renderWork, bool error);
 
 private:
     Ui::EditorPane *ui;

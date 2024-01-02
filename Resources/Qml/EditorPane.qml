@@ -6,7 +6,6 @@ import QtQuick.Layouts
 import QtQuick.Controls
 
 Rectangle {
-    id: root
     width: 1280
     height: 720
 
@@ -17,50 +16,49 @@ Rectangle {
         handle: Rectangle {
             id: handleDelegate
             implicitWidth: 4
-            implicitHeight: 4
+            implicitHeight: splitView.height
             color: SplitHandle.pressed ? "#81e889"
                 : (SplitHandle.hovered ? Qt.lighter("#c2f4c6", 1.1) : "#c2f4c6")
-
-            containmentMask: Item {
-                x: (handleDelegate.width - width) / 2
-                width: 64
-                height: splitView.height
-            }
         }
 
         Rectangle {
             id: videosRectangle
             SplitView.fillWidth: true
-            SplitView.minimumWidth: 200
+            SplitView.minimumWidth: 260
             implicitWidth: parent.width*0.2
             color: "#353637"
 
             ScrollView {
                 id: videosScrollView
                 objectName: "videosScrollView"
-                width: parent.width
+                clip: true
+
                 height: parent.height
-                contentWidth: videosGridView.width
+                width: parent.width
                 ScrollBar.vertical.policy: ScrollBar.AlwaysOn
                 ScrollBar.horizontal.policy: ScrollBar.AlwaysOn
 
                 Component.onCompleted: {
-                    //for (var i=0; i<10; i++)
-                        //videosGridLayout.addVideo()
+                    for (var i=0; i<10; i++)
+                        videosGridView.addVideo()
                 }
 
                 GridView {
                     property VideoItem selectedVideo
-                    property list<VideoItem> videos: []
+                    property ListModel videosModel: ListModel {}
 
                     id: videosGridView
                     objectName: "videosGridView"
-                    width: videosRectangle.width
-                    height: videosRectangle.height
+                    width: videosScrollView.width
+                    height: videosScrollView.height
+                    model: videosModel
+                    cellWidth: 125
+                    cellHeight: 125
 
-                    Loader {
-                        id: videoItemLoader
-                        sourceComponent: VideoItem {}
+
+                    delegate: VideoItem {
+                        width: videosGridView.cellWidth
+                        height: videosGridView.cellHeight
                     }
 
                     function videoItemClicked(videoItemMouseArea) {
@@ -73,17 +71,17 @@ Rectangle {
                     }
 
                     function addVideo() {
-                        var video = videoItemLoader.item
-                        videos.push(video)
-                        if (videos.length <= 1) {
-                            video.selected = true
-                            selectedVideo = video
+                        var video = Qt.createComponent("VideoItem.qml");
+                        var videoItem = video.createObject(videosGridView);
+                        if (selectedVideo == null) {
+                            videoItem.selected = true
+                            selectedVideo = videoItem
                         }
-                        return video.getModel()
+                        return videoItem.getModel();
                     }
 
                     function getNumVideos() {
-                        return videos.count
+                        return videosModel.count
                     }
                 }
             }
@@ -94,7 +92,7 @@ Rectangle {
             SplitView.fillWidth: true
             SplitView.minimumWidth: 300
             implicitWidth: parent.width*0.6
-            color: "#666"
+            color: "#666666"
 
             VideoPlayerMain {
                 id: videoPlayerRoot

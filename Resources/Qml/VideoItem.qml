@@ -6,12 +6,13 @@ import es.victor.components
 Rectangle {
     property bool selected: false
 
-    height: 200
-    width: 200
+    width: 125
+    height: 125
+
     border.color: { selected ? "red" : "green"}
     border.width: 10
     radius: 20
-    color: "blue"
+    color: "#0000FF"
 
     VideoItemModel {
         id: videoData
@@ -19,16 +20,6 @@ Rectangle {
 
     function getModel() {
         return videoData;
-    }
-
-    onWidthChanged: {
-        if (width >= 190) {
-            videoDate.visible = true
-            videoName.horizontalAlignment = Text.AlignLeft
-        } else {
-            videoDate.visible = false
-            videoName.horizontalAlignment = Text.AlignHCenter
-        }
     }
 
     MouseArea {
@@ -65,10 +56,10 @@ Rectangle {
                 objectName: "date"
                 text: videoData.recorded
                 font.family: "Helvetica"
-                font.pointSize: 15
+                font.pointSize: 9
                 fontSizeMode: Text.Fit
                 horizontalAlignment: Text.AlignLeft
-                leftPadding: 10
+                leftPadding: 0
             }
 
             Text {
@@ -79,9 +70,9 @@ Rectangle {
                 text: videoData.idString
                 horizontalAlignment: Text.AlignRight
                 font.family: "Helvetica"
-                font.pointSize: 15
+                font.pointSize: 9
                 fontSizeMode: Text.Fit
-                rightPadding: 10
+                rightPadding: 0
             }
         }
     }
