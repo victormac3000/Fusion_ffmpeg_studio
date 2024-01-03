@@ -9,13 +9,17 @@ Rectangle {
     width: 125
     height: 125
 
-    border.color: { selected ? "red" : "green"}
+    border.color: { videoData.selected ? "red" : "green"}
     border.width: 10
     radius: 20
     color: "#0000FF"
 
     VideoItemModel {
         id: videoData
+
+        function setSelected(selected) {
+            this.selected = selected;
+        }
     }
 
     function getModel() {

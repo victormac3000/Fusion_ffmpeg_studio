@@ -4,7 +4,7 @@ VideoItem::VideoItem(QObject *parent) :
     QObject(parent)
 {
     this->m_selected = false;
-    this->m_idString = "VIDEO N/A";
+    this->m_idString = "000";
     this->m_imagePath = "Icons/VideoPlayer/no_video.png";
     this->m_recorded = "DD/MM/YYYY";
 }

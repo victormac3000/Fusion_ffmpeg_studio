@@ -45,6 +45,7 @@ EditorPane::EditorPane(QWidget *parent, Project *project) :
     QList<FVideo*> videos = project->getVideos();
 
     for (FVideo* video: videos) {
+        /*
         QVariant returnValue;
         bool sucess = QMetaObject::invokeMethod(
             videosGrid, "addVideo", Q_RETURN_ARG(QVariant, returnValue)
@@ -55,7 +56,7 @@ EditorPane::EditorPane(QWidget *parent, Project *project) :
             createdItem->setImagePath(video->getThumnail()->fileName());
             createdItem->setRecorded(video->getDate().toString("dd/MM/yyyy"));
         }
-        /*
+
         bool sucess2 = QMetaObject::invokeMethod(
             videoPlayer, "setSource", Q_ARG(QVariant, video->getEquirectangularLow()->fileName())
         );

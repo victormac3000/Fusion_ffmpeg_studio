@@ -6,6 +6,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 
 Rectangle {
+    id: editorPaneRectangle
     width: 1280
     height: 720
 
@@ -51,10 +52,9 @@ Rectangle {
                     objectName: "videosGridView"
                     width: videosScrollView.width
                     height: videosScrollView.height
-                    model: videosModel
                     cellWidth: 125
                     cellHeight: 125
-
+                    model: videosModel
 
                     delegate: VideoItem {
                         width: videosGridView.cellWidth
@@ -62,28 +62,32 @@ Rectangle {
                     }
 
                     function videoItemClicked(videoItemMouseArea) {
-                        if (selectedVideo) {
+                        var videoItem = videoItemMouseArea.parent
+                        var videoItemModel = videoItem.getModel()
+                        if (selectedVideo != null) {
                             selectedVideo.selected = false
                         }
-                        var videoItem = videoItemMouseArea.parent
-                        videoItem.selected = true
+                        videoItemModel.selected = true
                         selectedVideo = videoItem
                     }
 
                     function addVideo() {
-                        var video = Qt.createComponent("VideoItem.qml");
-                        var videoItem = video.createObject(videosGridView);
+                        var video = Qt.createComponent("VideoItem.qml")
+                        var videoItem = video.createObject()
+                        var videoItemModel = videoItem.getModel()
                         if (selectedVideo == null) {
-                            videoItem.selected = true
+                            videoItemModel.selected = true
                             selectedVideo = videoItem
                         }
-                        return videoItem.getModel();
+                        videosModel.append(videoItem)
+                        return videoItemModel;
                     }
 
                     function getNumVideos() {
-                        return videosModel.count
+                        return count;
                     }
                 }
+
             }
 
         }
