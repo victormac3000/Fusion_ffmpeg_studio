@@ -6,13 +6,16 @@ import es.victor.components
 Rectangle {
     property bool selected: false
 
-    width: 125
-    height: 125
+    Layout.minimumHeight: 125
+    Layout.minimumWidth: 125
+    Layout.fillHeight: true
+    Layout.fillWidth: true
 
     border.color: { videoData.selected ? "red" : "green"}
     border.width: 10
     radius: 20
     color: "#0000FF"
+
 
     VideoItemModel {
         id: videoData
@@ -30,7 +33,7 @@ Rectangle {
         id: mouseArea
         anchors.fill: parent
         onClicked: {
-            videosGridView.videoItemClicked(this)
+            videosGridLayout.videoItemClicked(this)
         }
     }
 

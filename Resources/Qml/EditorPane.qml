@@ -25,71 +25,87 @@ Rectangle {
         Rectangle {
             id: videosRectangle
             SplitView.fillWidth: true
-            SplitView.minimumWidth: 260
+            SplitView.minimumWidth: 270
             implicitWidth: parent.width*0.2
             color: "#353637"
 
-            ScrollView {
-                id: videosScrollView
-                objectName: "videosScrollView"
+            Flickable {
+                anchors.fill: parent
+                flickableDirection: Flickable.VerticalFlick
+                boundsBehavior: Flickable.DragOverBounds
                 clip: true
+                contentHeight: videosGridLayout.height
 
-                height: parent.height
-                width: parent.width
-                ScrollBar.vertical.policy: ScrollBar.AlwaysOn
-                ScrollBar.horizontal.policy: ScrollBar.AlwaysOn
+                GridLayout {
+                    id: videosGridLayout
+                    objectName: "videosGridLayout"
+                    columns: 2
 
-                Component.onCompleted: {
-                    for (var i=0; i<10; i++)
-                        videosGridView.addVideo()
-                }
-
-                GridView {
-                    property VideoItem selectedVideo
-                    property ListModel videosModel: ListModel {}
-
-                    id: videosGridView
-                    objectName: "videosGridView"
-                    width: videosScrollView.width
-                    height: videosScrollView.height
-                    cellWidth: 125
-                    cellHeight: 125
-                    model: videosModel
-
-                    delegate: VideoItem {
-                        width: videosGridView.cellWidth
-                        height: videosGridView.cellHeight
-                    }
-
-                    function videoItemClicked(videoItemMouseArea) {
-                        var videoItem = videoItemMouseArea.parent
-                        var videoItemModel = videoItem.getModel()
-                        if (selectedVideo != null) {
-                            selectedVideo.selected = false
+                    Component.onCompleted: {
+                        for (var i=0; i<100; i++) {
+                            var videoComponent = Qt.createComponent("VideoItem.qml")
+                            var videoElement = videoComponent.createObject(videosGridLayout)
                         }
-                        videoItemModel.selected = true
-                        selectedVideo = videoItem
-                    }
-
-                    function addVideo() {
-                        var video = Qt.createComponent("VideoItem.qml")
-                        var videoItem = video.createObject()
-                        var videoItemModel = videoItem.getModel()
-                        if (selectedVideo == null) {
-                            videoItemModel.selected = true
-                            selectedVideo = videoItem
-                        }
-                        videosModel.append(videoItem)
-                        return videoItemModel;
-                    }
-
-                    function getNumVideos() {
-                        return count;
                     }
                 }
 
+                ScrollBar.vertical: ScrollBar {
+                    policy: ScrollBar.AlwaysOn
+                }
             }
 
+
+
+            /*
+            GridView {
+                property VideoItem selectedVideo
+
+                id: videosGridView
+                objectName: "videosGridView"
+                width: parent.width
+                height: parent.height
+                cellWidth: 125
+                cellHeight: 125
+                model: ListModel {}
+
+                delegate: VideoItem {
+                    width: videosGridView.cellWidth
+                    height: videosGridView.cellHeight
+                }
+
+                Component.onCompleted: {
+                    //for (var i=0; i<10; i++)
+                        //videosGridView.addVideo()
+                }
+
+                function videoItemClicked(videoItemMouseArea) {
+                    var videoItem = videoItemMouseArea.parent
+                    var videoItemModel = videoItem.getModel()
+                    if (selectedVideo != null) {
+                        selectedVideo.selected = false
+                    }
+                    videoItemModel.selected = true
+                    selectedVideo = videoItem
+                }
+
+                function addVideo() {
+                    videosGridView.model.append({})
+                    var videoListElement = videosGridView.model.get(videosGridView.model.count-1)
+                    var videoModel = videoListElement.getModel()
+
+                    if (selectedVideo == null) {
+                        videoModel.selected = true
+                        selectedVideo = videoListElement
+                    }
+
+                    return videoModel;
+                }
+
+                function getNumVideos() {
+                    return count;
+                }
+            }
+            */
         }
 
         Rectangle {
