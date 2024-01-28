@@ -74,7 +74,7 @@ QFile* FVideo::getThumnail()
         return new QFile("qrc:/Qml/Icons/VideoPlayer/no_video.png");
     }
     // TODO Parse thumnail into fvideo model
-    return new QFile("qrc:/Qml/Icons/VideoPlayer/no_video.png");;
+    return new QFile("qrc:/Qml/Icons/VideoPlayer/no_video.png");
 }
 
 QString FVideo::getIdString()

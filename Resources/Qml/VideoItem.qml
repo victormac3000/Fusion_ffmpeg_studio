@@ -1,39 +1,37 @@
 import QtQuick 6.5
 import QtQuick.Layouts
 import QtQuick.Controls 2.15
-import es.victor.components
 
 Rectangle {
     property bool selected: false
+    property string idString: "000"
+    property string imagePath: "Icons/VideoPlayer/no_video.png"
+    property string recorded: "DD/MM/YYYY"
+
 
     Layout.minimumHeight: 125
     Layout.minimumWidth: 125
     Layout.fillHeight: true
     Layout.fillWidth: true
 
-    border.color: { videoData.selected ? "red" : "green"}
+    border.color: { selected ? "red" : "green"}
     border.width: 10
     radius: 20
     color: "#0000FF"
 
-
-    VideoItemModel {
-        id: videoData
-
-        function setSelected(selected) {
-            this.selected = selected;
-        }
-    }
-
     function getModel() {
         return videoData;
+    }
+
+    function setSelected(selected) {
+       this.selected = selected
     }
 
     MouseArea {
         id: mouseArea
         anchors.fill: parent
         onClicked: {
-            videosGridLayout.videoItemClicked(this)
+            parent.parent.videoItemClicked(parent)
         }
     }
 
@@ -47,7 +45,7 @@ Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
             objectName: "image"
-            source: videoData.imagePath
+            source: imagePath
             fillMode: Image.PreserveAspectFit
         }
 
@@ -61,9 +59,9 @@ Rectangle {
                 color: "#ffffff"
                 Layout.fillWidth: true
                 objectName: "date"
-                text: videoData.recorded
+                text: recorded
                 font.family: "Helvetica"
-                font.pointSize: 9
+                font.pointSize: 15
                 fontSizeMode: Text.Fit
                 horizontalAlignment: Text.AlignLeft
                 leftPadding: 0
@@ -74,10 +72,10 @@ Rectangle {
                 color: "#ffffff"
                 Layout.fillWidth: true
                 objectName: "name"
-                text: videoData.idString
+                text: idString
                 horizontalAlignment: Text.AlignRight
                 font.family: "Helvetica"
-                font.pointSize: 9
+                font.pointSize: 15
                 fontSizeMode: Text.Fit
                 rightPadding: 0
             }

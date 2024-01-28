@@ -10,8 +10,6 @@ EditorPane::EditorPane(QWidget *parent, Project *project) :
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
     this->setLayout(mainLayout);
 
-    qmlRegisterType<VideoItem>("es.victor.components", 1, 0, "VideoItemModel");
-
     QQuickWidget *qmlWidget = new QQuickWidget;
     qmlWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
     qmlWidget->setSource(QUrl("qrc:/Qml/EditorPane.qml"));
@@ -20,8 +18,6 @@ EditorPane::EditorPane(QWidget *parent, Project *project) :
 
     this->project = project;
 
-
-
     // On load
     // If previews are not available -> Add work to queue and start it
 
@@ -29,7 +25,7 @@ EditorPane::EditorPane(QWidget *parent, Project *project) :
     this->rendererThread = new QThread;
 
     QQuickItem* rootObject = qmlWidget->rootObject();
-    this->videosGrid = rootObject->findChild<QQuickItem*>("videosGridView");
+    this->videosGridLayout = rootObject->findChild<QQuickItem*>("videosGridLayout");
     this->videoPlayer = rootObject->findChild<QQuickItem*>("videoPlayerRoot");
 
     // Connect signals
@@ -45,25 +41,24 @@ EditorPane::EditorPane(QWidget *parent, Project *project) :
     QList<FVideo*> videos = project->getVideos();
 
     for (FVideo* video: videos) {
-        /*
-        QVariant returnValue;
         bool sucess = QMetaObject::invokeMethod(
-            videosGrid, "addVideo", Q_RETURN_ARG(QVariant, returnValue)
+            videosGridLayout, "addVideo",
+            Q_ARG(QVariant, video->getIdString()),
+            Q_ARG(QVariant, video->getThumnail()->fileName()),
+            Q_ARG(QVariant, video->getDate().toString("dd/MM/yyyy"))
         );
-        if (sucess) {
-            VideoItem *createdItem = qobject_cast<VideoItem*>(returnValue.value<QObject*>());
-            createdItem->setIdString(video->getIdString());
-            createdItem->setImagePath(video->getThumnail()->fileName());
-            createdItem->setRecorded(video->getDate().toString("dd/MM/yyyy"));
+
+        if (!sucess) {
+            qWarning() << "Could add the video " << video->getIdString();
         }
 
         bool sucess2 = QMetaObject::invokeMethod(
             videoPlayer, "setSource", Q_ARG(QVariant, video->getEquirectangularLow()->fileName())
         );
+
         if (!sucess2) {
             qWarning() << "Could not set the video preview path";
         }
-        */
     }
 
 }

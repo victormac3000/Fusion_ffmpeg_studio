@@ -9,6 +9,8 @@ Rectangle {
 
     function setSource(source) {
         mediaPlayer.source = "file://" + source
+        mediaPlayer.play()
+        mediaPlayer.pause()
     }
 
     ColumnLayout {

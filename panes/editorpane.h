@@ -7,13 +7,12 @@
 #include <QQueue>
 #include <QVBoxLayout>
 #include <QSpacerItem>
+#include <QQuickItem>
 
 #include "models/fvideo.h"
 #include "models/fsegment.h"
 #include "models/project.h"
 #include "models/renderwork.h"
-#include "panes/items/fqueueitem.h"
-#include "panes/items/videoitem.h"
 #include "utils/dialogs.h"
 #include "utils/ffmpeg.h"
 #include "utils/renderer.h"
@@ -42,8 +41,7 @@ private slots:
 private:
     Ui::EditorPane *ui;
     Project *project;
-    QQuickItem *videosGrid, *videoPlayer;
-    QList<FQueueItem*> queueItems;
+    QQuickItem *videosGridLayout, *videoPlayer;
     int selected = 0;
     Renderer *renderer;
     QThread *rendererThread;

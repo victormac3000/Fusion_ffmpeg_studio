@@ -20,8 +20,6 @@ SOURCES += \
     models/fvideo.cpp \
     models/project.cpp \
     models/renderwork.cpp \
-    panes/items/fqueueitem.cpp \
-    panes/items/videoitem.cpp \
     panes/projectcreator.cpp \
     utils/dialogs.cpp \
     utils/ffmpeg.cpp \
@@ -44,8 +42,6 @@ HEADERS += \
     models/fvideo.h \
     models/project.h \
     models/renderwork.h \
-    panes/items/fqueueitem.h \
-    panes/items/videoitem.h \
     panes/projectcreator.h \
     utils/dialogs.h \
     utils/exitcodes.h \
@@ -63,7 +59,6 @@ HEADERS += \
     worker.h
 
 FORMS += \
-    panes/items/fqueueitem.ui \
     panes/projectcreator.ui \
     windows/about.ui \
     windows/mainwindow.ui \
