@@ -41,6 +41,7 @@ public slots:
 
 
 private slots:
+    void selectedVideoChanged(int position);
     void renderPreviewClicked();
     //void renderWorkFinished(RenderWork *renderWork, bool error);
 
@@ -48,7 +49,7 @@ private:
     Ui::EditorPane *ui;
     Project *project;
     QQuickItem *videosGridLayout, *videoPlayer, *queueGridLayout, *activeVideo;
-    QList<QPair<FVideo*, QObject*>> videos;
+    QList<FVideo*> videos;
     int selected = 0;
     Renderer *renderer;
     QThread *rendererThread;

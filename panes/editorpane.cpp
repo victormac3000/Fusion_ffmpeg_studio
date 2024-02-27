@@ -33,6 +33,7 @@ EditorPane::EditorPane(QWidget *parent, Project *project) :
 
     // Connect signals
     connect(this, SIGNAL(rendererAdd(RenderWork*)), renderer, SLOT(add(RenderWork*)));
+    connect(videosGridLayout, SIGNAL(activeVideoChanged(int)), this, SLOT(selectedVideoChanged(int)));
     //connect(renderer, SIGNAL(renderWorkFinished(RenderWork*,bool)), this, SLOT(renderWorkFinished(RenderWork*,bool)));
 
     this->renderer->moveToThread(rendererThread);
@@ -40,10 +41,10 @@ EditorPane::EditorPane(QWidget *parent, Project *project) :
 
 
     // GUI LOAD VIDEOS
-    QList<FVideo*> videosList = project->getVideos();
+    this->videos = project->getVideos();
     int i = 0;
 
-    for (FVideo* video: videosList) {
+    for (FVideo* video: videos) {
         QVariant returnedValue;
 
         bool addVideo = QMetaObject::invokeMethod(
@@ -58,6 +59,9 @@ EditorPane::EditorPane(QWidget *parent, Project *project) :
         if (!addVideo) {
             qWarning() << "Could add the video " << video->getIdString() << " to the preview pane";
         }
+
+/*
+
 
         if (!returnedValue.canConvert<QQuickItem*>()) {
             qWarning() << "Could not convert the QML object to a video QQuickItem";
@@ -79,13 +83,17 @@ EditorPane::EditorPane(QWidget *parent, Project *project) :
         if (selected.isValid() && selected.toBool()) {
             this->selected = i;
         }
+*/
 
         i++;
     }
 
+
     if (videos.length() > 0) {
-        setPlayerSource(videos.first().first);
+        setPlayerSource(videos.first());
     }
+
+    qDebug() << "Videos added";
 }
 
 EditorPane::~EditorPane()
@@ -97,14 +105,27 @@ EditorPane::~EditorPane()
     delete ui;
 }
 
+void EditorPane::selectedVideoChanged(int position)
+{
+    qDebug() << "Video changed to " << position;
+}
+
 void EditorPane::setPlayerSource(FVideo* video, int mode)
 {
     bool setSource = false;
+    QFile* media = nullptr;
 
     if (mode == PLAYER_DEFAULT) {
-        setSource = QMetaObject::invokeMethod(
-            videoPlayer, "setSource", Q_ARG(QVariant, video->getEquirectangularLow()->fileName())
-        );
+        media = video->getEquirectangularLow();
+        if (media == nullptr) {
+            setSource = QMetaObject::invokeMethod(
+                videoPlayer, "setDisableMessage", Q_ARG(QVariant, "The video\n has no preview")
+            );
+        } else {
+            setSource = QMetaObject::invokeMethod(
+                videoPlayer, "setSource", Q_ARG(QVariant, video->getEquirectangularLow()->fileName())
+            );
+        }
     }
 
     if (!setSource) {
@@ -114,7 +135,7 @@ void EditorPane::setPlayerSource(FVideo* video, int mode)
 
 void EditorPane::renderPreviewClicked()
 {
-    qDebug() << "THE VIDEO TO RENDER IS ID " << videos.at(selected).first->getIdString();
+    qDebug() << "THE VIDEO TO RENDER IS ID " << videos.at(selected)->getIdString();
 
     /*
     RenderWork *renderWork = new RenderWork(nullptr, project, videos.at(selected)->getVideo(), RENDER_PREVIEW);

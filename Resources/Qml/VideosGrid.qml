@@ -26,7 +26,12 @@ Rectangle {
                     return videosRectangle.width / 125
                 }
 
+                signal activeVideoChanged(position: variant)
                 property VideoItem selectedVideo: null
+
+                onSelectedVideoChanged: {
+                    activeVideoChanged(selectedVideo);
+                }
 
                 Component.onCompleted: {
                     /*

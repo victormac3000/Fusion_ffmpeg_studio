@@ -156,7 +156,7 @@ bool FVideo::isEquirectangularValid()
            && a.second() == b.second();
 }
 
-QFile *FVideo::getEquirectangularLow()
+QFile* FVideo::getEquirectangularLow()
 {
     return equirectangularLow;
 }
