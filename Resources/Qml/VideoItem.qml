@@ -1,17 +1,20 @@
-import QtQuick 6.5
+import QtQuick
 import QtQuick.Layouts
-import QtQuick.Controls 2.15
+import QtQuick.Controls
+
+/*
+  <a href="https://www.flaticon.es/iconos-gratis/informacion" title="información iconos">Información iconos creados por Freepik - Flaticon</a>
+*/
 
 Rectangle {
     property bool selected: false
+    property int id: -1
     property string idString: "000"
     property string imagePath: "Icons/VideoPlayer/no_video.png"
     property string recorded: "DD/MM/YYYY"
 
-
     Layout.minimumHeight: 125
     Layout.minimumWidth: 125
-    Layout.fillHeight: true
     Layout.fillWidth: true
 
     border.color: { selected ? "red" : "green"}
@@ -19,12 +22,17 @@ Rectangle {
     radius: 20
     color: "#0000FF"
 
-    function getModel() {
-        return videoData;
-    }
-
     function setSelected(selected) {
        this.selected = selected
+    }
+
+    function setData(id, idString, path, rec) {
+        if (id >= 0 && idString !== "" && path !== "" && rec !== "") {
+            this.id = id
+            this.idString = idString
+            this.imagePath = path
+            this.recorded = rec
+        }
     }
 
     MouseArea {
@@ -36,49 +44,42 @@ Rectangle {
     }
 
     ColumnLayout {
-        height: parent.height
-        width: parent.width
+        anchors.fill: parent
         spacing: 0
 
-        Image {
-            Layout.margins: 15
-            Layout.fillWidth: true
+        Text {
+            Layout.topMargin: 15
             Layout.fillHeight: true
-            objectName: "image"
+            color: "#ffffff"
+            Layout.fillWidth: true
+            text: "VIDEO " + idString
+            horizontalAlignment: Text.AlignHCenter
+            font.pointSize: 100
+            minimumPointSize: 10
+            rightPadding: 0
+            fontSizeMode: Text.Fit
+            Layout.maximumHeight: 0.1*parent.height
+        }
+
+        Image {
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            Layout.margins: 15
             source: imagePath
             fillMode: Image.PreserveAspectFit
         }
 
-        RowLayout {
-            Layout.margins: 15
-            Layout.fillWidth: true
+        Text {
+            Layout.bottomMargin: 30
             Layout.fillHeight: true
-
-            Text {
-                id: videoDate
-                color: "#ffffff"
-                Layout.fillWidth: true
-                objectName: "date"
-                text: recorded
-                font.family: "Helvetica"
-                font.pointSize: 15
-                fontSizeMode: Text.Fit
-                horizontalAlignment: Text.AlignLeft
-                leftPadding: 0
-            }
-
-            Text {
-                id: videoName
-                color: "#ffffff"
-                Layout.fillWidth: true
-                objectName: "name"
-                text: idString
-                horizontalAlignment: Text.AlignRight
-                font.family: "Helvetica"
-                font.pointSize: 15
-                fontSizeMode: Text.Fit
-                rightPadding: 0
-            }
+            color: "#ffffff"
+            text: "DD/MM/YYYY"
+            Layout.fillWidth: true
+            horizontalAlignment: Text.AlignHCenter
+            font.pointSize: 100
+            minimumPointSize: 10
+            fontSizeMode: Text.Fit
+            Layout.maximumHeight: 0.1*parent.height
         }
     }
 }

@@ -28,5 +28,6 @@ void Dialogs::critical(QString userMsg, QString logMsg)
     box->setIcon(QMessageBox::Critical);
     box->setText(userMsg);
     box->exec();
+    QCoreApplication::exit(ERROR_CRITICAL);
     exit(ERROR_CRITICAL);
 }

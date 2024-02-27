@@ -4,20 +4,15 @@ import QtQuick.Layouts
 import QtMultimedia
 
 Rectangle {
-    width: 400
-    height: 200
+    color: "#2e2e2e"
 
     RowLayout {
-        anchors.centerIn: parent
-        height: 50
-        width: parent.width
-
-        Item {
-            Layout.fillWidth: true
-        }
+        anchors.fill: parent
 
         Text {
             text: "Full video"
+            color: "#fefefe"
+            leftPadding: 20
         }
 
         Switch {
@@ -26,6 +21,7 @@ Rectangle {
 
         Text {
             text: "Video segment"
+            color: "#fefefe"
         }
 
         Item {

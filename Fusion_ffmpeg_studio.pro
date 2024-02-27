@@ -1,6 +1,6 @@
-QT       += core gui xml multimedia multimediawidgets quick quickwidgets quickcontrols2
+QT += core gui xml multimedia multimediawidgets quick quickwidgets quickcontrols2
 
-greaterThan(QT_MAJOR_VERSION, 6): QT += widgets
+greaterThan(QT_MAJOR_VERSION, 5): QT += widgets
 
 CONFIG += c++17
 

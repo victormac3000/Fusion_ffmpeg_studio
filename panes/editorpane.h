@@ -17,6 +17,10 @@
 #include "utils/ffmpeg.h"
 #include "utils/renderer.h"
 
+#define PLAYER_DEFAULT 0
+#define PLAYER_EQUIRECTANGULAR 1
+#define PLAYER_OVERCAPTURE 2
+
 namespace Ui {
 class EditorPane;
 }
@@ -33,6 +37,8 @@ signals:
     void changePane(QWidget *pane);
     void rendererAdd(RenderWork *renderWork);
 
+public slots:
+
 
 private slots:
     void renderPreviewClicked();
@@ -41,10 +47,13 @@ private slots:
 private:
     Ui::EditorPane *ui;
     Project *project;
-    QQuickItem *videosGridLayout, *videoPlayer;
+    QQuickItem *videosGridLayout, *videoPlayer, *queueGridLayout, *activeVideo;
+    QList<QPair<FVideo*, QObject*>> videos;
     int selected = 0;
     Renderer *renderer;
     QThread *rendererThread;
+
+    void setPlayerSource(FVideo* video, int mode = PLAYER_DEFAULT);
 };
 
 #endif // EDITORPANE_H

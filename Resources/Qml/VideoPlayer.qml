@@ -4,8 +4,7 @@ import QtQuick.Layouts
 import QtMultimedia
 
 Rectangle {
-    width: 800
-    height: 600
+    color: "#2e2e2e"
 
     function setSource(source) {
         mediaPlayer.source = "file://" + source
@@ -27,29 +26,29 @@ Rectangle {
         Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            color: "green"
-
+            color: "black"
 
             VideoOutput {
+                width: parent.width
+                height: parent.height
                 id: videoOutput
-                anchors.fill: parent
                 fillMode: VideoOutput.PreserveAspectFit
             }
         }
 
         VideoPlayerSeeker {
             Layout.fillWidth: true
+            Layout.fillHeight: true
             Layout.maximumHeight: 40
+            Layout.minimumHeight: 40
         }
 
         VideoPlayerControls {
             Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.minimumHeight: 60
             Layout.maximumHeight: 60
-        }
-
-        VideoPlayerActions {
-            Layout.fillWidth: true
-            Layout.maximumHeight: 120
+            Layout.minimumWidth: 750
         }
 
     }

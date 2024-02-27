@@ -47,19 +47,13 @@ QFile* Logger::getLogFile()
 void Logger::messageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
     QFile *logFile = Logger::getLogFile();
-    bool isLogOpen = true;
-
-    for (int i=0; i<5; i++) {
-        isLogOpen = logFile->isOpen();
-        QThread::msleep(100);
-    }
+    bool isLogOpen = logFile->isOpen();
 
     if (isLogOpen) {
-        std::cerr << "Debug handler could not open logFile, file in use. The log file is: " << logFile->fileName().toStdString() << std::endl;
-        exit(ERROR_LOG_IN_USE);
+        std::cout << "Log file in use. The log file is: " << logFile->fileName().toStdString() << std::endl;
     }
 
-    if (!logFile->open(QFile::ReadWrite | QFile::Append)) {
+    if (!isLogOpen && !logFile->open(QFile::ReadWrite | QFile::Append)) {
         std::cerr << "Debug handler could not open logFile. Error number " << logFile->error()
                   << " and error string " << logFile->errorString().toStdString()
                   <<  ". The log file trying to open is: " << logFile->fileName().toStdString() << std::endl;

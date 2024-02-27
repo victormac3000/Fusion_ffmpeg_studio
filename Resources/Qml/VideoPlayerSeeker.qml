@@ -4,12 +4,10 @@ import QtQuick.Layouts
 import QtMultimedia
 
 Rectangle {
-    height: 40
-    width: 300
+    color: "#2e2e2e"
 
     RowLayout {
-        anchors.centerIn: parent
-        width: parent.width
+        anchors.fill: parent
 
         Text {
             Layout.minimumWidth: 50

@@ -8,12 +8,15 @@
         <file>Qml/EditorPane.qml</file>
         <file>Qml/QueueItem.qml</file>
         <file>Qml/VideoItem.qml</file>
-        <file>Qml/VideoPlayerMain.qml</file>
+        <file>Qml/VideoPlayer.qml</file>
         <file>Qml/VideoPlayerControls.qml</file>
         <file>Qml/VideoPlayerCutMode.qml</file>
         <file>Qml/VideoPlayerViewMode.qml</file>
         <file>Qml/VideoPlayerSeeker.qml</file>
-        <file>Qml/VideoPlayerActions.qml</file>
+        <file>Qml/NiceProgressBar.qml</file>
+        <file>Qml/RenderOptions.qml</file>
+        <file>Qml/VideosGrid.qml</file>
+        <file>Qml/QueueGrid.qml</file>
     </qresource>
     <qresource prefix="/Qml">
         <file>Icons/VideoPlayer/Left.png</file>
@@ -21,5 +24,7 @@
         <file>Icons/VideoPlayer/Pause.png</file>
         <file>Icons/VideoPlayer/Play.png</file>
         <file>Icons/VideoPlayer/Right.png</file>
+        <file>Icons/Queue/cross.png</file>
+        <file>Icons/Queue/dropdown.png</file>
     </qresource>
 </RCC>

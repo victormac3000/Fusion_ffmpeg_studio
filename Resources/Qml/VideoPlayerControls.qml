@@ -4,28 +4,20 @@ import QtQuick.Layouts
 import QtMultimedia
 
 Rectangle {
-    height: 400
-    width: 600
+    color: "#2e2e2e"
 
     RowLayout {
-        anchors.centerIn: parent
-        width: parent.width
-        height: 40
+        anchors.fill: parent
 
         VideoPlayerCutMode {
-            height: parent.height
             Layout.fillWidth: true
-            Layout.maximumWidth: 280
-        }
-
-        Item {
-            Layout.fillWidth: true
+            Layout.minimumHeight: 50
         }
 
         RowLayout {
             id: controlButtons
-            height: parent.height
             Layout.fillWidth: true
+            Layout.minimumHeight: 50
 
             RoundButton {
                 id: frameBackButton
@@ -66,14 +58,9 @@ Rectangle {
             }
         }
 
-        Item {
-            Layout.fillWidth: true
-        }
-
         VideoPlayerViewMode {
-            height: parent.height
             Layout.fillWidth: true
-            Layout.maximumWidth: 280
+            Layout.minimumHeight: 50
         }
     }
 }

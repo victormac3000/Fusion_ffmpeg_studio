@@ -3,14 +3,11 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtMultimedia
 
-Rectangle {
-    width: 300
-    height: 200
+Rectangle {    
+    color: "#2e2e2e"
 
     RowLayout {
-        anchors.centerIn: parent
-        height: 50
-        width: parent.width
+        anchors.fill: parent
 
         Item {
             Layout.fillWidth: true
@@ -18,6 +15,7 @@ Rectangle {
 
         Text {
             text: "Equirectangular"
+            color: "#fefefe"
         }
 
         Switch {
@@ -26,11 +24,8 @@ Rectangle {
 
         Text {
             text: "Interactive 360"
+            color: "#fefefe"
+            rightPadding: 20
         }
-
-        Item {
-            Layout.fillWidth: true
-        }
-
     }
 }

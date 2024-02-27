@@ -7,15 +7,6 @@ EditorPane::EditorPane(QWidget *parent, Project *project) :
 {
     ui->setupUi(this);
 
-    QVBoxLayout *mainLayout = new QVBoxLayout(this);
-    this->setLayout(mainLayout);
-
-    QQuickWidget *qmlWidget = new QQuickWidget;
-    qmlWidget->setResizeMode(QQuickWidget::SizeRootObjectToView);
-    qmlWidget->setSource(QUrl("qrc:/Qml/EditorPane.qml"));
-    mainLayout->addWidget(qmlWidget);
-
-
     this->project = project;
 
     // On load
@@ -24,9 +15,21 @@ EditorPane::EditorPane(QWidget *parent, Project *project) :
     this->renderer = new Renderer;
     this->rendererThread = new QThread;
 
-    QQuickItem* rootObject = qmlWidget->rootObject();
+    QQuickItem* rootObject = ui->qmlWidget->rootObject();
+
     this->videosGridLayout = rootObject->findChild<QQuickItem*>("videosGridLayout");
     this->videoPlayer = rootObject->findChild<QQuickItem*>("videoPlayerRoot");
+    this->queueGridLayout = rootObject->findChild<QQuickItem*>("queueColumnLayout");
+
+    if (videosGridLayout == nullptr || videoPlayer == nullptr || queueGridLayout == nullptr) {
+        Dialogs::critical(
+            "Error loading the editor pane",
+            "Could not found videosGridLayout, videoPlayerRoot or queueColumnLayout QML elements"
+        );
+    }
+
+    QQuickItem* renderPreviewButton = rootObject->findChild<QQuickItem*>("renderPreviewButton");
+    connect(renderPreviewButton, SIGNAL(clicked()), this, SLOT(renderPreviewClicked()), Qt::DirectConnection);
 
     // Connect signals
     connect(this, SIGNAL(rendererAdd(RenderWork*)), renderer, SLOT(add(RenderWork*)));
@@ -37,30 +40,52 @@ EditorPane::EditorPane(QWidget *parent, Project *project) :
 
 
     // GUI LOAD VIDEOS
+    QList<FVideo*> videosList = project->getVideos();
+    int i = 0;
 
-    QList<FVideo*> videos = project->getVideos();
+    for (FVideo* video: videosList) {
+        QVariant returnedValue;
 
-    for (FVideo* video: videos) {
-        bool sucess = QMetaObject::invokeMethod(
+        bool addVideo = QMetaObject::invokeMethod(
             videosGridLayout, "addVideo",
+            Q_RETURN_ARG(QVariant, returnedValue),
+            Q_ARG(QVariant, video->getId()),
             Q_ARG(QVariant, video->getIdString()),
             Q_ARG(QVariant, video->getThumnail()->fileName()),
             Q_ARG(QVariant, video->getDate().toString("dd/MM/yyyy"))
         );
 
-        if (!sucess) {
-            qWarning() << "Could add the video " << video->getIdString();
+        if (!addVideo) {
+            qWarning() << "Could add the video " << video->getIdString() << " to the preview pane";
         }
 
-        bool sucess2 = QMetaObject::invokeMethod(
-            videoPlayer, "setSource", Q_ARG(QVariant, video->getEquirectangularLow()->fileName())
-        );
+        if (!returnedValue.canConvert<QQuickItem*>()) {
+            qWarning() << "Could not convert the QML object to a video QQuickItem";
 
-        if (!sucess2) {
-            qWarning() << "Could not set the video preview path";
         }
+
+        QQuickItem *videoItem = qvariant_cast<QQuickItem*>(returnedValue);
+        QObject *videoItemObject = dynamic_cast<QObject*>(videoItem);
+
+        if (!videoItemObject) {
+            qWarning() << "Could not convert the video QQuickItem to a video QObject";
+
+        }
+
+        videos.append(QPair<FVideo*, QObject*>(video, videoItemObject));
+
+        QVariant selected = videoItemObject->property("selected");
+
+        if (selected.isValid() && selected.toBool()) {
+            this->selected = i;
+        }
+
+        i++;
     }
 
+    if (videos.length() > 0) {
+        setPlayerSource(videos.first().first);
+    }
 }
 
 EditorPane::~EditorPane()
@@ -72,17 +97,41 @@ EditorPane::~EditorPane()
     delete ui;
 }
 
+void EditorPane::setPlayerSource(FVideo* video, int mode)
+{
+    bool setSource = false;
+
+    if (mode == PLAYER_DEFAULT) {
+        setSource = QMetaObject::invokeMethod(
+            videoPlayer, "setSource", Q_ARG(QVariant, video->getEquirectangularLow()->fileName())
+        );
+    }
+
+    if (!setSource) {
+        qWarning() << "Could add the video " << video->getIdString() << " to the player";
+    }
+}
+
 void EditorPane::renderPreviewClicked()
 {
+    qDebug() << "THE VIDEO TO RENDER IS ID " << videos.at(selected).first->getIdString();
+
     /*
     RenderWork *renderWork = new RenderWork(nullptr, project, videos.at(selected)->getVideo(), RENDER_PREVIEW);
 
-    emit rendererAdd(renderWork);
+    bool sucess = QMetaObject::invokeMethod(
+        queueGridLayout, "addQueueItem",
+        Q_ARG(QVariant, "RENDERING PREVIEW"),
+        Q_ARG(QVariant, "x"),
+        Q_ARG(QVariant, "x")
+        );
 
-    FQueueItem *item = new FQueueItem(queueLayout->parentWidget(), renderWork);
-    queueLayout->addWidget(item);
-    queueItems.append(item);
-*/
+    if (!sucess) {
+        qWarning() << "Could add the queue ";
+    }
+
+    emit rendererAdd(renderWork);
+    */
 }
 
 /*
