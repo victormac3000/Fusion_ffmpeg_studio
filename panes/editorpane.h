@@ -36,21 +36,23 @@ public:
 signals:
     void changePane(QWidget *pane);
     void rendererAdd(RenderWork *renderWork);
+    void rendererStart();
 
 public slots:
 
 
 private slots:
-    void selectedVideoChanged(int position);
+    void selectedVideoChanged(int id);
     void renderPreviewClicked();
-    //void renderWorkFinished(RenderWork *renderWork, bool error);
+    void renderWorkFinished(RenderWork *renderWork, bool error);
 
 private:
     Ui::EditorPane *ui;
     Project *project;
-    QQuickItem *videosGridLayout, *videoPlayer, *queueGridLayout, *activeVideo;
+    QQuickItem *videosGridLayout, *videoPlayer, *queueGridLayout;
     QList<FVideo*> videos;
-    int selected = 0;
+    int selectedVideo = 0;
+    int activeQueueItem = 0;
     Renderer *renderer;
     QThread *rendererThread;
 

@@ -32,9 +32,11 @@ EditorPane::EditorPane(QWidget *parent, Project *project) :
     connect(renderPreviewButton, SIGNAL(clicked()), this, SLOT(renderPreviewClicked()), Qt::DirectConnection);
 
     // Connect signals
-    connect(this, SIGNAL(rendererAdd(RenderWork*)), renderer, SLOT(add(RenderWork*)));
     connect(videosGridLayout, SIGNAL(activeVideoChanged(int)), this, SLOT(selectedVideoChanged(int)));
-    //connect(renderer, SIGNAL(renderWorkFinished(RenderWork*,bool)), this, SLOT(renderWorkFinished(RenderWork*,bool)));
+
+    connect(this, SIGNAL(rendererStart()), renderer, SLOT(run()));
+    connect(this, SIGNAL(rendererAdd(RenderWork*)), renderer, SLOT(add(RenderWork*)));
+    connect(renderer, SIGNAL(renderWorkFinished(RenderWork*,bool)), this, SLOT(renderWorkFinished(RenderWork*,bool)));
 
     this->renderer->moveToThread(rendererThread);
     this->rendererThread->start();
@@ -42,7 +44,6 @@ EditorPane::EditorPane(QWidget *parent, Project *project) :
 
     // GUI LOAD VIDEOS
     this->videos = project->getVideos();
-    int i = 0;
 
     for (FVideo* video: videos) {
         QVariant returnedValue;
@@ -59,41 +60,7 @@ EditorPane::EditorPane(QWidget *parent, Project *project) :
         if (!addVideo) {
             qWarning() << "Could add the video " << video->getIdString() << " to the preview pane";
         }
-
-/*
-
-
-        if (!returnedValue.canConvert<QQuickItem*>()) {
-            qWarning() << "Could not convert the QML object to a video QQuickItem";
-
-        }
-
-        QQuickItem *videoItem = qvariant_cast<QQuickItem*>(returnedValue);
-        QObject *videoItemObject = dynamic_cast<QObject*>(videoItem);
-
-        if (!videoItemObject) {
-            qWarning() << "Could not convert the video QQuickItem to a video QObject";
-
-        }
-
-        videos.append(QPair<FVideo*, QObject*>(video, videoItemObject));
-
-        QVariant selected = videoItemObject->property("selected");
-
-        if (selected.isValid() && selected.toBool()) {
-            this->selected = i;
-        }
-*/
-
-        i++;
     }
-
-
-    if (videos.length() > 0) {
-        setPlayerSource(videos.first());
-    }
-
-    qDebug() << "Videos added";
 }
 
 EditorPane::~EditorPane()
@@ -105,9 +72,15 @@ EditorPane::~EditorPane()
     delete ui;
 }
 
-void EditorPane::selectedVideoChanged(int position)
+void EditorPane::selectedVideoChanged(int id)
 {
-    qDebug() << "Video changed to " << position;
+    qDebug() << "Video changed to " << id;
+    for (int i=0; i<videos.length(); i++) {
+        if (videos.at(i)->getId() == id) {
+            selectedVideo = i;
+        }
+    }
+    setPlayerSource(videos.at(selectedVideo));
 }
 
 void EditorPane::setPlayerSource(FVideo* video, int mode)
@@ -135,30 +108,40 @@ void EditorPane::setPlayerSource(FVideo* video, int mode)
 
 void EditorPane::renderPreviewClicked()
 {
-    qDebug() << "THE VIDEO TO RENDER IS ID " << videos.at(selected)->getIdString();
+    qDebug() << "THE VIDEO TO RENDER IS ID " << videos.at(selectedVideo)->getIdString();
 
-    /*
-    RenderWork *renderWork = new RenderWork(nullptr, project, videos.at(selected)->getVideo(), RENDER_PREVIEW);
+    FVideo* video = videos.at(selectedVideo);
+    RenderWork *renderWork = new RenderWork(nullptr, project, video, RENDER_PREVIEW);
 
     bool sucess = QMetaObject::invokeMethod(
         queueGridLayout, "addQueueItem",
-        Q_ARG(QVariant, "RENDERING PREVIEW"),
-        Q_ARG(QVariant, "x"),
-        Q_ARG(QVariant, "x")
-        );
+        Q_ARG(QVariant, video->getIdString()),
+        Q_ARG(QVariant, "RENDERING PREVIEW")
+    );
 
     if (!sucess) {
         qWarning() << "Could add the queue ";
     }
 
-    emit rendererAdd(renderWork);
+    /*
+        property int currentFrame: 0
+        property int totalFrames: 0
+        property double fps: 0
+        property double quality: 0
+        property double size: 0
+        property string elapsedTime: "00:00:00"
+        property string remainingTime: "00:00:00"
+        property int bitrate: 0
+        property int speed: 0
     */
+
+    emit rendererAdd(renderWork);
+    emit rendererStart();
 }
 
-/*
+
 void EditorPane::renderWorkFinished(RenderWork *renderWork, bool error)
 {
-
     if (error) {
         if (renderWork == nullptr) {
             qWarning() << "The render queue is empty";
@@ -168,17 +151,6 @@ void EditorPane::renderWorkFinished(RenderWork *renderWork, bool error)
         Dialogs::warning("Could not " + renderWork->getTypeString() + " for video " + renderWork->getVideo()->getIdString());
         return;
     }
-
     project->save();
-
-    for (FQueueItem *item: queueItems) {
-        if (item->getRenderWork() == renderWork) {
-            queueItems.removeOne(item);
-            queueLayout->removeWidget(item);
-            delete item;
-        }
-    }
-
+    Dialogs::ok("Render was ok");
 }
-
-*/

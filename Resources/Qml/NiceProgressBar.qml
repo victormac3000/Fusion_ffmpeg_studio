@@ -4,7 +4,7 @@ import QtQuick.Layouts
 
 ProgressBar {
     Layout.fillWidth: true
-    value: 0.5
+    value: 0.0
     property string insideText: "Henlo"
 
     function setParam(key, valueToSet) {
@@ -20,6 +20,7 @@ ProgressBar {
         if (key === "text") {
             insideText = valueToSet
         }
+        console.log(value)
     }
 
     Label {

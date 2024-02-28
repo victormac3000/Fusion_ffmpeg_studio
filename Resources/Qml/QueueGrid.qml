@@ -33,12 +33,26 @@ Rectangle {
                 */
                 }
 
-                function addQueueItem(idstring, imagePath, recorded) {
+                function addQueueItem(idstring, operation) {
                     var queueComponent = Qt.createComponent("QueueItem.qml")
                     var queueElement = queueComponent.createObject(queueColumnLayout)
+                    queueElement.videoIdString = idstring
+                    queueElement.operation = operation
                     if (activeJob == null) {
                         activeJob = queueElement
                     }
+                }
+
+                function updateQueueItemProgress(currentFrame, totalFrames, fps, quality, size, eTime, rTime, bitrate, speed) {
+                    activeJob.currentFrame = currentFrame
+                    activeJob.totalFrames = totalFrames
+                    activeJob.fps = fps
+                    activeJob.quality = quality
+                    activeJob.size = size
+                    activeJob.elapsedTime = eTime
+                    activeJob.remainingTime = rTime
+                    activeJob.bitrate = bitrate
+                    activeJob.speed = speed
                 }
 
                 function queueItemClicked(queueItem, action) {

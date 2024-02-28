@@ -18,8 +18,14 @@ Rectangle {
     property string elapsedTime: "00:00:00"
     property string remainingTime: "00:00:00"
     property int bitrate: 0
-    property int speed: 0
-    property double percent: 0
+    property double speed: 0
+    property double percent: {
+        if (totalFrames == 0) {
+            return 0
+        }
+        return (currentFrame / totalFrames) * 100
+    }
+
     property bool extended: false
 
     border.color: "green"
@@ -109,8 +115,8 @@ Rectangle {
                 Layout.fillWidth: true
                 Component.onCompleted: {
                     setParam("from", 0)
-                    setParam("to", 1000)
-                    setParam("value", 150)
+                    setParam("to", 100)
+                    setParam("value", percent)
                     setParam("text", "")
                 }
             }
@@ -128,15 +134,15 @@ Rectangle {
                 font.pixelSize: 18
                 horizontalAlignment: Text.AlignHCenter
                 color: "white"
-                text: "0x"
+                text: speed + "x"
             }
 
             NiceProgressBar {
                 Layout.fillWidth: true
                 Component.onCompleted: {
                     setParam("from", 0)
-                    setParam("to", 1000)
-                    setParam("value", 0)
+                    setParam("to", 5)
+                    setParam("value", speed > 5.0 ? 5.0 : speed)
                     setParam("text", "vs realtime")
                 }
             }
@@ -147,7 +153,7 @@ Rectangle {
                 font.pixelSize: 18
                 horizontalAlignment: Text.AlignHCenter
                 color: "white"
-                text: speed + "x"
+                text: "5x"
             }
 
         }
