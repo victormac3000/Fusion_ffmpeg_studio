@@ -23,7 +23,7 @@ public:
     bool getOverwrite();
 
 signals:
-    void updateRenderStatus(FFmpegStatus *status);
+    void updateRenderStatus(FFmpegStatus* status);
     void updateRenderStatusString(QString statusString);
 
 public slots:

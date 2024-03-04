@@ -113,6 +113,8 @@ void EditorPane::renderPreviewClicked()
     FVideo* video = videos.at(selectedVideo);
     RenderWork *renderWork = new RenderWork(nullptr, project, video, RENDER_PREVIEW);
 
+    connect(renderWork, SIGNAL(updateRenderStatus(FFmpegStatus*)), this, SLOT(renderWorkUpdated(FFmpegStatus*)));
+
     bool sucess = QMetaObject::invokeMethod(
         queueGridLayout, "addQueueItem",
         Q_ARG(QVariant, video->getIdString()),
@@ -123,20 +125,28 @@ void EditorPane::renderPreviewClicked()
         qWarning() << "Could add the queue ";
     }
 
-    /*
-        property int currentFrame: 0
-        property int totalFrames: 0
-        property double fps: 0
-        property double quality: 0
-        property double size: 0
-        property string elapsedTime: "00:00:00"
-        property string remainingTime: "00:00:00"
-        property int bitrate: 0
-        property int speed: 0
-    */
-
     emit rendererAdd(renderWork);
     emit rendererStart();
+}
+
+void EditorPane::renderWorkUpdated(FFmpegStatus *status)
+{
+    bool sucess = QMetaObject::invokeMethod(
+        queueGridLayout, "updateQueueItemProgress",
+        Q_ARG(QVariant, status->frame),
+        Q_ARG(QVariant, "0"),
+        Q_ARG(QVariant, status->fps),
+        Q_ARG(QVariant, status->quality),
+        Q_ARG(QVariant, status->size),
+        Q_ARG(QVariant, status->elapsedTime),
+        Q_ARG(QVariant, "00:00:00"),
+        Q_ARG(QVariant, status->bitrate),
+        Q_ARG(QVariant, status->speed)
+    );
+
+    if (!sucess) {
+        qWarning() << "Could update the active job progress";
+    }
 }
 
 

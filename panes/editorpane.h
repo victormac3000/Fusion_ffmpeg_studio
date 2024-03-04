@@ -44,6 +44,7 @@ public slots:
 private slots:
     void selectedVideoChanged(int id);
     void renderPreviewClicked();
+    void renderWorkUpdated(FFmpegStatus* status);
     void renderWorkFinished(RenderWork *renderWork, bool error);
 
 private:

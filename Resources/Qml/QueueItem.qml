@@ -134,7 +134,7 @@ Rectangle {
                 font.pixelSize: 18
                 horizontalAlignment: Text.AlignHCenter
                 color: "white"
-                text: speed + "x"
+                text: speed.toPrecision(2) + "x"
             }
 
             NiceProgressBar {
