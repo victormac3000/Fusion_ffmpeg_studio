@@ -8,10 +8,14 @@ ProjectCreator::ProjectCreator(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    this->mainWindowWidget = parent;
-    MainWindow *mainWindow = (MainWindow*) parent;
-    mainWindow->clearMenuBar();
-    mainWindow->setWindowTitle(QCoreApplication::applicationName() + " - New project");
+    this->mainWindow = (MainWindow*) parent;
+
+    if (mainWindow != nullptr) {
+        mainWindow->setWindowTitle(QCoreApplication::applicationName() + " - New project");
+        //mainWindow->clearMenuBar();
+    } else {
+        qWarning() << "MainWindow not found";
+    }
 
     ui->project_location->setText(settings.value("defaultProjectPath").toString());
 
@@ -51,7 +55,7 @@ void ProjectCreator::browseProjectLocationClicked()
 
 void ProjectCreator::cancelButtonClicked()
 {
-    emit changePane(new WelcomePane(mainWindowWidget));
+    emit changePane(new WelcomePane(mainWindow));
 }
 
 void ProjectCreator::createButtonClicked()
@@ -76,6 +80,6 @@ void ProjectCreator::createButtonClicked()
         Dialogs::warning("The project folder cannot be empty");
         return;
     }
-    LoadingPane *loader = new LoadingPane(mainWindowWidget, projectFolder, DCIMFolder, projectName);
+    LoadingPane *loader = new LoadingPane(mainWindow, projectFolder, DCIMFolder, projectName);
     emit changePane(loader);
 }

@@ -20,6 +20,8 @@
 #include "panes/loadingpane.h"
 #include "windows/mainwindow.h"
 
+class MainWindow;
+
 namespace Ui {
 class WelcomePane;
 }
@@ -48,7 +50,7 @@ private slots:
 
 private:
     Ui::WelcomePane *ui;
-    QWidget *mainWindowWidget;
+    MainWindow* mainWindow;
     QSettings settings;
     QList<QPair<RecentProject,QFrame*>> recentProjectsList;
 

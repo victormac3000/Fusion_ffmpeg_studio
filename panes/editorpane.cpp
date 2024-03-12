@@ -1,13 +1,25 @@
 #include "editorpane.h"
 #include "ui_editorpane.h"
+#include "windows/mainwindow.h"
 
-EditorPane::EditorPane(QWidget *parent, Project *project) :
+EditorPane::EditorPane(QWidget* parent, Project* project) :
     QWidget(parent),
     ui(new Ui::EditorPane)
 {
     ui->setupUi(this);
 
     this->project = project;
+
+    MainWindow* mainWindow = (MainWindow*) parent;
+
+    if (mainWindow != nullptr) {
+        mainWindow->setWindowTitle("Editing studio");
+        QMenuBar* menuBar = mainWindow->getMenuBar();
+        QMenu* testMenu = new QMenu("Test");
+        menuBar->addMenu(testMenu);
+    } else {
+        qWarning() << "MainWindow not found";
+    }
 
     // On load
     // If previews are not available -> Add work to queue and start it

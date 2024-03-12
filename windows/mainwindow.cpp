@@ -38,7 +38,7 @@ void MainWindow::clearMenuBar()
     */
 }
 
-bool MainWindow::changePane(QWidget *pane)
+bool MainWindow::changePane(QWidget* pane)
 {
     if (pane == nullptr) {
         qWarning() << "Tried to change to a nullptr pane";

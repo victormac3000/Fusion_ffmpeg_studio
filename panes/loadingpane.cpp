@@ -8,10 +8,14 @@ LoadingPane::LoadingPane(QWidget *parent, QString projectPath, QString dcimPath,
 {
     ui->setupUi(this);
 
-    this->mainWindowWidget = parent;
-    MainWindow *mainWindow = (MainWindow*) parent;
-    mainWindow->clearMenuBar();
-    mainWindow->setWindowTitle(QCoreApplication::applicationName() + " - Loading project");
+    this->mainWindow = (MainWindow*) parent;
+
+    if (mainWindow != nullptr) {
+        mainWindow->setWindowTitle(QCoreApplication::applicationName() + " - Loading project");
+        //mainWindow->clearMenuBar();
+    } else {
+        qWarning() << "MainWindow not found";
+    }
 
     this->workerThread = new QThread;
     worker.moveToThread(workerThread);
@@ -40,7 +44,7 @@ void LoadingPane::loadProjectFinished(Project* project)
 {
     workerThread->quit();
     workerThread->wait();
-    emit changePane(new EditorPane(mainWindowWidget, project));
+    emit changePane(new EditorPane(mainWindow, project));
 }
 
 void LoadingPane::loadProjectError(QString error)
@@ -48,7 +52,7 @@ void LoadingPane::loadProjectError(QString error)
     workerThread->quit();
     workerThread->wait();
     Dialogs::warning("Could not load the project, see the logs for more information", "loadProjectError: " + error);
-    emit changePane(new WelcomePane(mainWindowWidget));
+    emit changePane(new WelcomePane(mainWindow));
 }
 
 void LoadingPane::loadProjectUpdate(int percent, QString message)

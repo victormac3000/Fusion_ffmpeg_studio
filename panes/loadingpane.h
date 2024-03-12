@@ -9,6 +9,8 @@
 #include "utils/dialogs.h"
 #include "worker.h"
 
+class MainWindow;
+
 namespace Ui {
 class LoadingPane;
 }
@@ -31,7 +33,7 @@ private slots:
 
 private:
     Ui::LoadingPane *ui;
-    QWidget *mainWindowWidget;
+    MainWindow* mainWindow;
     Worker worker;
     QThread *workerThread;
 

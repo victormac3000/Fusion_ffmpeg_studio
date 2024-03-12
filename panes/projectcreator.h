@@ -7,6 +7,8 @@
 #include <QSettings>
 #include <QStandardPaths>
 
+class MainWindow;
+
 namespace Ui {
 class ProjectCreator;
 }
@@ -31,7 +33,7 @@ private slots:
 
 private:
     Ui::ProjectCreator *ui;
-    QWidget *mainWindowWidget;
+    MainWindow* mainWindow;
     QSettings settings;
 
 };
