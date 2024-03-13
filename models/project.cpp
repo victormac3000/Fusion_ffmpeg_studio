@@ -62,6 +62,8 @@ void Project::save()
 {
     qDebug() << "Trying to save to project file" << file->fileName();
 
+    file->close();
+
     if (!file->open(QFile::ReadWrite)) {
         qWarning() << "Could not open project file" << file->fileName();
         return;
@@ -229,6 +231,8 @@ void Project::loadProject(QString projectPath)
                 qDebug() << "Equirectangular preview exists for video" << vid << "but not found in fs" << equirectangularLowPath;
             }
         }
+        video->setFrontThumbnail(new QFile(dcim.absolutePath() + "/GPFR" + video->getIdString() + ".THM"));
+        video->setBackThumbnail(new QFile(dcim.absolutePath() + "/GPBK" + video->getIdString() + ".THM"));
         for (const QJsonValue &segmentArray: segmentsArray) {
             if (!segmentArray.isObject()) continue;
             QJsonObject segmentObject = segmentArray.toObject();
@@ -398,6 +402,9 @@ bool Project::indexVideos()
 
         FVideo *video = new FVideo(vid);
         connect(video, SIGNAL(verifyError(QString)), this, SIGNAL(loadProjectError(QString)));
+
+        video->setFrontThumbnail(new QFile(front.path() + "/GPFR" + video->getIdString() + ".THM"));
+        video->setBackThumbnail(new QFile(front.path() + "/GPBK" + video->getIdString() + ".THM"));
 
         // Add main segment
         FSegment *mainSegment = new FSegment(

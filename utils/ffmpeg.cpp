@@ -17,6 +17,11 @@ FFmpeg::FFmpeg(QObject *parent)
         qWarning() << "FFMpeg binary path not found:" << ffmpegPath;
     }
 
+    this->encoder = "hevc_nvenc";
+    #ifdef Q_OS_MAC
+        this->encoder = "hevc_videotoolbox";
+    #endif
+
     this->process->setProgram(ffmpegPath);
 
     qDebug() << "FFMpeg created";
@@ -121,7 +126,7 @@ void FFmpeg::processReadyReadError()
                 << "SPEED (" << speed << ") ";
 
     } else {
-        qWarning() << "FFmpeg has given an stdout error:" << stderr;
+        qWarning() << "FFmpeg has given an unknown stdout:" << standardError;
     }
 }
 
@@ -185,7 +190,7 @@ bool FFmpeg::renderPreviewStep1()
         params.append("-filter_complex");
         params.append("hstack");
         params.append("-c:v");
-        params.append("hevc_videotoolbox");
+        params.append(encoder);
         params.append(QDir::toNativeSeparators(outPath));
 
 
@@ -337,7 +342,7 @@ bool FFmpeg::renderPreviewStep3()
     params.append("-vf");
     params.append("v360=dfisheye:equirect:ih_fov=190:iv_fov=190");
     params.append("-c:v");
-    params.append("hevc_videotoolbox");
+    params.append(encoder);
     params.append(QDir::toNativeSeparators(outPath));
 
 

@@ -67,14 +67,26 @@ QDateTime FVideo::getDate()
     return this->segments.at(0)->getDate();
 }
 
-QFile* FVideo::getThumnail()
+QFile* FVideo::getFrontThumbnail()
 {
-    if (this->segments.length() < 1) {
-        qWarning() << "Could not get the thumnail from video " << id;
-        return new QFile("qrc:/Qml/Icons/VideoPlayer/no_video.png");
+    // TODO Fix image format
+    frontThumbnail = nullptr;
+    if (frontThumbnail == nullptr) {
+        qWarning() << "Could not get the front thumnail from video " << id;
+        return new QFile(DEFAULT_THUMBNAIL_PATH);
     }
-    // TODO Parse thumnail into fvideo model
-    return new QFile("qrc:/Qml/Icons/VideoPlayer/no_video.png");
+    return frontThumbnail;
+}
+
+QFile* FVideo::getBackThumbnail()
+{
+    // TODO Fix image format
+    backThumbnail = nullptr;
+    if (backThumbnail == nullptr) {
+        qWarning() << "Could not get the back thumnail from video " << id;
+        return new QFile(DEFAULT_THUMBNAIL_PATH);
+    }
+    return backThumbnail;
 }
 
 QString FVideo::getIdString()
@@ -97,6 +109,16 @@ QTime FVideo::getLength()
         totalMs += totalLength.msecsTo(segment->getLength());
     }
     return totalLength.addMSecs(totalMs);
+}
+
+void FVideo::setFrontThumbnail(QFile *thumbnail)
+{
+    this->frontThumbnail = thumbnail;
+}
+
+void FVideo::setBackThumbnail(QFile *thumbnail)
+{
+    this->backThumbnail = thumbnail;
 }
 
 void FVideo::setDualFisheye(QFile *dualFisheye)

@@ -71,9 +71,17 @@ void Logger::messageHandler(QtMsgType type, const QMessageLogContext &context, c
 
     logFile->write(logLine.toUtf8());
 
+    bool debug = false;
+
     #ifdef QT_DEBUG
-    std::cout << logLine.toStdString() << std::endl;
+    debug = true;
     #endif
+
+    debug = debug || QCoreApplication::arguments().contains("-v");
+
+    if (debug) {
+        std::cout << logLine.toStdString() << std::endl;
+    }
 
     logFile->close();
     delete logFile;

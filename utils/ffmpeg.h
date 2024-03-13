@@ -33,6 +33,7 @@ private slots:
     void processErrorOccurred(QProcess::ProcessError error);
 
 private:
+    QString encoder;
     QProcess *process;
     QSettings settings;
     RenderWork *work;

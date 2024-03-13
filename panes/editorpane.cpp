@@ -65,7 +65,7 @@ EditorPane::EditorPane(QWidget* parent, Project* project) :
             Q_RETURN_ARG(QVariant, returnedValue),
             Q_ARG(QVariant, video->getId()),
             Q_ARG(QVariant, video->getIdString()),
-            Q_ARG(QVariant, video->getThumnail()->fileName()),
+            Q_ARG(QVariant, video->getFrontThumbnail()->fileName()),
             Q_ARG(QVariant, video->getDate().toString("dd/MM/yyyy"))
         );
 

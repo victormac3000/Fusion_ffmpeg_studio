@@ -146,7 +146,7 @@ bool FSegment::isDualFisheyeValid()
     QTime a = MediaInfo::getLength(dualFisheye);
     QTime b = getLength();
     return a.minute() == b.minute()
-           && abs(a.second()-b.second()) < 3;
+           && (abs(a.second()-b.second()) < 3);
 }
 
 bool FSegment::isDualFisheyeLowValid()
@@ -155,7 +155,7 @@ bool FSegment::isDualFisheyeLowValid()
     QTime a = MediaInfo::getLength(dualFisheyeLow);
     QTime b = getLength();
     return a.minute() == b.minute()
-           && abs(a.second()-b.second()) < 3;
+           && (abs(a.second()-b.second()) < 3);
 }
 
 FFormat FSegment::getFormat()
