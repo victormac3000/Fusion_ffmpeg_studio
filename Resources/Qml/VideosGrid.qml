@@ -41,10 +41,10 @@ Rectangle {
                     */
                 }
 
-                function addVideo(id, idstring, imagePath, recorded) {
+                function addVideo(id, idstring, b64image, recorded) {
                     var videoComponent = Qt.createComponent("VideoItem.qml")
                     var videoElement = videoComponent.createObject(videosGridLayout)
-                    videoElement.setData(id, idstring, imagePath, recorded)
+                    videoElement.setData(id, idstring, b64image, recorded)
                     if (selectedVideo == null) {
                         videoItemClicked(videoElement)
                     }

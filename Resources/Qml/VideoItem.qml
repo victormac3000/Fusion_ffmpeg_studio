@@ -10,7 +10,7 @@ Rectangle {
     property bool selected: false
     property int id: -1
     property string idString: "000"
-    property string imagePath: "Icons/VideoPlayer/no_video.png"
+    property string b64image
     property string recorded: "DD/MM/YYYY"
 
     Layout.minimumHeight: 125
@@ -26,11 +26,11 @@ Rectangle {
        this.selected = selected
     }
 
-    function setData(id, idString, path, rec) {
-        if (id >= 0 && idString !== "" && path !== "" && rec !== "") {
+    function setData(id, idString, b64image, rec) {
+        if (id >= 0 && idString !== "" && rec !== "") {
             this.id = id
             this.idString = idString
-            this.imagePath = path
+            this.b64image = b64image
             this.recorded = rec
         }
     }
@@ -64,8 +64,8 @@ Rectangle {
         Image {
             Layout.fillHeight: true
             Layout.fillWidth: true
-            Layout.margins: 15
-            source: imagePath
+            Layout.margins: 5
+            source: "data:image/jpeg;base64," + b64image
             fillMode: Image.PreserveAspectFit
         }
 

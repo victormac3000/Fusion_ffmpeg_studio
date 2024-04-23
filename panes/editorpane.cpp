@@ -55,17 +55,41 @@ EditorPane::EditorPane(QWidget* parent, Project* project) :
 
 
     // GUI LOAD VIDEOS
+    QElapsedTimer timer;
+    timer.start();
+
     this->videos = project->getVideos();
 
     for (FVideo* video: videos) {
         QVariant returnedValue;
+
+
+        QFile* fThumb = video->getFrontThumbnail();
+        QString fThumbPath = fThumb->fileName();
+
+        QImageReader thumbnailReader(fThumbPath);
+        thumbnailReader.setDecideFormatFromContent(true);
+        QImage thumbnail = thumbnailReader.read();
+
+        if (thumbnail.isNull()) {
+            qDebug() << "Error reading thumbnail:" << thumbnailReader.errorString();
+            // Handle the error accordingly
+        }
+
+        QByteArray byteArray;
+        QBuffer buffer(&byteArray);
+        buffer.open(QIODevice::WriteOnly);
+        thumbnail.save(&buffer, "JPEG");
+        buffer.seek(0);
+
+        QString thumnailBase64 = byteArray.toBase64();
 
         bool addVideo = QMetaObject::invokeMethod(
             videosGridLayout, "addVideo",
             Q_RETURN_ARG(QVariant, returnedValue),
             Q_ARG(QVariant, video->getId()),
             Q_ARG(QVariant, video->getIdString()),
-            Q_ARG(QVariant, video->getFrontThumbnail()->fileName()),
+            Q_ARG(QVariant, thumnailBase64),
             Q_ARG(QVariant, video->getDate().toString("dd/MM/yyyy"))
         );
 
@@ -73,6 +97,8 @@ EditorPane::EditorPane(QWidget* parent, Project* project) :
             qWarning() << "Could add the video " << video->getIdString() << " to the preview pane";
         }
     }
+
+    qDebug() << "Load videos took " << timer.elapsed() << "ms";
 }
 
 EditorPane::~EditorPane()

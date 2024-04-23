@@ -43,6 +43,7 @@ private:
 
     void loadProject(QString projectPath);
     void createProject(QString projectPath, QString dcimPath, QString projectName);
+    void addToRecent();
     bool indexVideos();
     void indexSegmentComplete(int doneSegments, int totalSegments);
     void indexVideoComplete(int doneVideos, int totalVideos);

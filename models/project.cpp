@@ -10,6 +10,7 @@ Project::Project(QObject *parent, bool create, QString projectPath, QString dcim
     } else {
         loadProject(projectPath);
     }
+    save();
 }
 
 Project::~Project()
@@ -115,6 +116,8 @@ void Project::save()
     file->close();
 
     lastSaved = QDateTime::currentDateTime();
+
+    addToRecent();
 }
 
 void Project::loadProject(QString projectPath)
@@ -231,8 +234,8 @@ void Project::loadProject(QString projectPath)
                 qDebug() << "Equirectangular preview exists for video" << vid << "but not found in fs" << equirectangularLowPath;
             }
         }
-        video->setFrontThumbnail(new QFile(dcim.absolutePath() + "/GPFR" + video->getIdString() + ".THM"));
-        video->setBackThumbnail(new QFile(dcim.absolutePath() + "/GPBK" + video->getIdString() + ".THM"));
+        video->setFrontThumbnail(new QFile(dcim.absolutePath() + "/100GFRNT/GPFR" + video->getIdString() + ".THM"));
+        video->setBackThumbnail(new QFile(dcim.absolutePath() + "/100GBACK/GPBK" + video->getIdString() + ".THM"));
         for (const QJsonValue &segmentArray: segmentsArray) {
             if (!segmentArray.isObject()) continue;
             QJsonObject segmentObject = segmentArray.toObject();
@@ -353,6 +356,75 @@ void Project::createProject(QString projectPath, QString dcimPath, QString proje
     this->save();
 
     this->valid = true;
+}
+
+void Project::addToRecent()
+{
+    QSettings settings;
+    QFile recentProjectsFile = QFile(settings.value("appData").toString() + "/recent_projects.json");
+
+    bool fileExists = recentProjectsFile.exists();
+
+    if (!recentProjectsFile.open(QFile::ReadWrite)) {
+        qWarning() << "Could not open recent projects file";
+        return;
+    }
+
+    QJsonDocument doc;
+    QJsonArray docArray;
+    QJsonObject obj;
+
+    obj.insert("name", this->name);
+    obj.insert("path", this->path);
+    obj.insert("last_opened", this->lastSaved.toString(Qt::RFC2822Date));
+
+    if (fileExists) {
+        QJsonParseError parseError;
+        doc = QJsonDocument::fromJson(recentProjectsFile.readAll(), &parseError);
+
+        if (parseError.error != QJsonParseError::NoError) {
+            qWarning() << "Could not parse the recent projects file";
+            return;
+        }
+
+        if (!doc.isArray()) {
+            qWarning() << "Could not parse the recent projects file. The main object is not an array";
+            return;
+        }
+
+        docArray = doc.array();
+
+        recentProjectsFile.close();
+
+        if (!recentProjectsFile.open(QFile::ReadWrite | QFile::Truncate)) {
+            qWarning() << "Could not truncate the recent projects file";
+            return;
+        }
+    }
+
+
+    bool projectExists = false;
+    for (int i=0; i<docArray.size(); i++) {
+        QJsonObject obj = docArray.at(i).toObject();
+
+        if (obj.value("path").toString() == this->path) {
+            projectExists = true;
+            obj["name"] = this->name;
+            obj["path"] = this->path;
+            obj["last_opened"] = this->lastSaved.toString(Qt::RFC2822Date);
+        }
+    }
+    if (!projectExists) docArray.append(obj);
+
+    doc.setArray(docArray);
+
+    int written = recentProjectsFile.write(doc.toJson());
+
+    if (written < 0) {
+        qWarning() << "Recent projects could not be written";
+    }
+
+    recentProjectsFile.close();
 }
 
 bool Project::indexVideos()

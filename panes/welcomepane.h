@@ -13,6 +13,7 @@
 #include <QMainWindow>
 #include <QFrame>
 #include <QMenuBar>
+#include <QQuickItem>
 
 #include "worker.h"
 #include "utils/dialogs.h"
@@ -47,12 +48,14 @@ private slots:
     void searchRecentProjects(QString text);
     void openProjectButtonClicked();
     void newProjectButtonClicked();
+    void recentProjectClicked(QVariant rectangle);
 
 private:
     Ui::WelcomePane *ui;
     MainWindow* mainWindow;
     QSettings settings;
     QList<QPair<RecentProject,QFrame*>> recentProjectsList;
+    QQuickItem* recentProjectsLayout;
 
     void loadRecentProjects();
 

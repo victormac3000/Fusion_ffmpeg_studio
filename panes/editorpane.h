@@ -8,6 +8,11 @@
 #include <QVBoxLayout>
 #include <QSpacerItem>
 #include <QQuickItem>
+#include <QImageReader>
+#include <QByteArray>
+#include <QBuffer>
+#include <QPixmap>
+#include <QImage>
 
 #include "models/fvideo.h"
 #include "models/fsegment.h"

@@ -34,15 +34,17 @@ Rectangle {
 
             ComboBox {
                 Layout.fillWidth: true
+                model: ["1080s", "1440s", "2160s"]
             }
 
             Text {
                 color: "#fefefe"
-                text: "VIDEO QUALITY"
+                text: "VIDEO CODEC"
             }
 
             ComboBox {
                 Layout.fillWidth: true
+                model: ["H264 (MP4)", "H265 (MP4)"]
             }
         }
     }

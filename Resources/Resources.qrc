@@ -1,6 +1,6 @@
 <RCC>
     <qresource prefix="/">
-        <file>Images/GoProPlayerAppIcon.png</file>
+        <file>Images/AppIcon.png</file>
         <file>Images/Snow.jpg</file>
         <file>Documents/Json/FusionFormats.json</file>
         <file>Documents/Txt/Attributions.txt</file>
@@ -17,6 +17,8 @@
         <file>Qml/RenderOptions.qml</file>
         <file>Qml/VideosGrid.qml</file>
         <file>Qml/QueueGrid.qml</file>
+        <file>Qml/RecentProject.qml</file>
+        <file>Qml/WelcomePane.qml</file>
     </qresource>
     <qresource prefix="/Qml">
         <file>Icons/VideoPlayer/Left.png</file>
@@ -26,5 +28,6 @@
         <file>Icons/VideoPlayer/Right.png</file>
         <file>Icons/Queue/cross.png</file>
         <file>Icons/Queue/dropdown.png</file>
+        <file>Images/AppIcon.png</file>
     </qresource>
 </RCC>

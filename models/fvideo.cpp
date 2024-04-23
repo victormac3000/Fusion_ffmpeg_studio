@@ -69,8 +69,6 @@ QDateTime FVideo::getDate()
 
 QFile* FVideo::getFrontThumbnail()
 {
-    // TODO Fix image format
-    frontThumbnail = nullptr;
     if (frontThumbnail == nullptr) {
         qWarning() << "Could not get the front thumnail from video " << id;
         return new QFile(DEFAULT_THUMBNAIL_PATH);
@@ -80,8 +78,6 @@ QFile* FVideo::getFrontThumbnail()
 
 QFile* FVideo::getBackThumbnail()
 {
-    // TODO Fix image format
-    backThumbnail = nullptr;
     if (backThumbnail == nullptr) {
         qWarning() << "Could not get the back thumnail from video " << id;
         return new QFile(DEFAULT_THUMBNAIL_PATH);

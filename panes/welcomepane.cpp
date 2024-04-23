@@ -4,27 +4,61 @@
 WelcomePane::WelcomePane(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::WelcomePane)
-{ 
+{
     ui->setupUi(this);
 
     this->mainWindow = (MainWindow*) parent;
 
-    if (mainWindow != nullptr) {
-        mainWindow->setWindowTitle("Welcome to Fusion FFmpeg Studio");
-        //mainWindow->getMenuBar()->clear();
-    } else {
-        qWarning() << "MainWindow not found";
+    if (mainWindow == nullptr) {
+        Dialogs::critical(
+            "Error loading the application",
+            "MainWindow pointer is null"
+        );
+        return;
     }
+
+    mainWindow->setWindowTitle("Welcome to Fusion FFmpeg Studio");
+    //mainWindow->getMenuBar()->clear();
+
+
+
+    QQuickItem* rootObject = ui->qmlWidget->rootObject();
+
+    if (rootObject == nullptr) {
+        Dialogs::critical(
+            "Error loading the application",
+            "The rootObject of welcomepane is null"
+        );
+        return;
+    }
+
+    QQuickItem* appTitleLabel = rootObject->findChild<QQuickItem*>("appTitleLabel");
+    QQuickItem* appVersionLabel = rootObject->findChild<QQuickItem*>("appVersionLabel");
+    QQuickItem* settingsButton = rootObject->findChild<QQuickItem*>("settingsButton");
+    QQuickItem* loadProjectButton = rootObject->findChild<QQuickItem*>("loadProjectButton");
+    QQuickItem* newProjectButton = rootObject->findChild<QQuickItem*>("newProjectButton");
+    this->recentProjectsLayout = rootObject->findChild<QQuickItem*>("recentProjectsLayout");
+
+    if (appTitleLabel == nullptr || appVersionLabel == nullptr || settingsButton == nullptr ||
+        loadProjectButton == nullptr || newProjectButton == nullptr || recentProjectsLayout == nullptr) {
+        Dialogs::critical(
+            "Error loading the application",
+            "Any of the required QML objects are null"
+        );
+        return;
+    }
+
+
+    appTitleLabel->setProperty("text", QCoreApplication::applicationName());
+    appVersionLabel->setProperty("text", QCoreApplication::applicationVersion());
 
     this->loadRecentProjects();
 
-    ui->app_name->setText(QCoreApplication::applicationName());
-    ui->app_version->setText(QCoreApplication::applicationVersion());
 
     // Buttons connections
-    connect(ui->search_box_projects, SIGNAL(textChanged(QString)), this, SLOT(searchRecentProjects(QString)));
-    connect(ui->open_folder_button, SIGNAL(clicked()), this, SLOT(openProjectButtonClicked()));
-    connect(ui->new_project_button, SIGNAL(clicked(bool)), this, SLOT(newProjectButtonClicked()));
+    connect(loadProjectButton, SIGNAL(clicked()), this, SLOT(openProjectButtonClicked()));
+    connect(newProjectButton, SIGNAL(clicked()), this, SLOT(newProjectButtonClicked()));
+    connect(recentProjectsLayout, SIGNAL(recentProjectClicked(QVariant)), this, SLOT(recentProjectClicked(QVariant)));
 }
 
 WelcomePane::~WelcomePane()
@@ -48,6 +82,22 @@ void WelcomePane::newProjectButtonClicked()
     emit changePane(creator);
 }
 
+void WelcomePane::recentProjectClicked(QVariant rectangle)
+{
+    QObject *object = qvariant_cast<QObject*>(rectangle);
+    if (object == nullptr) {
+        qWarning() << "Could not cast the recent project clicked to a QObject";
+        return;
+    }
+    QString path = object->property("path").toString();
+    if (path.isEmpty()) {
+        qWarning() << "The recent project clicked path is empty";
+        return;
+    }
+    LoadingPane *loader = new LoadingPane(mainWindow, path);
+    emit changePane(loader);
+}
+
 void WelcomePane::searchRecentProjects(QString text)
 {
     for (const QPair<RecentProject, QFrame*> &pair: recentProjectsList) {
@@ -58,15 +108,11 @@ void WelcomePane::searchRecentProjects(QString text)
 
 void WelcomePane::loadRecentProjects()
 {
-    QWidget *recentProjectsWidget = new QWidget(this);
-    QVBoxLayout *recentProjectsLayout = new QVBoxLayout(recentProjectsWidget);
-    ui->recent_projects->setWidget(recentProjectsWidget);
-    ui->recent_projects->setWidgetResizable(true);
+    qDebug() << settings.value("appData").toString() + "/recent_projects.json";
 
-
-    // Check if recent projects exists
     QFile recentProjectsFile = QFile(settings.value("appData").toString() + "/recent_projects.json");
     QList<RecentProject> recentProjects;
+
 
     if (recentProjectsFile.exists() && recentProjectsFile.open(QFile::ReadOnly)) {
         QJsonParseError error;
@@ -79,7 +125,7 @@ void WelcomePane::loadRecentProjects()
                     if (obj.contains("name") && obj.contains("path") && obj.contains("last_opened")) {
                         QString name = obj.value("name").toString();
                         QString path = obj.value("path").toString();
-                        QDateTime lastOpened = QDateTime::fromString(obj.value("last_opened").toString(), Qt::ISODate);
+                        QDateTime lastOpened = QDateTime::fromString(obj.value("last_opened").toString(), Qt::RFC2822Date);
                         if (QFile::exists(path)) {
                             RecentProject rp;
                             rp.name = name;
@@ -107,21 +153,14 @@ void WelcomePane::loadRecentProjects()
     }
 
     for (const RecentProject &rp: recentProjects) {
-        QFrame *frame = new QFrame;
-        frame->setLayout(new QVBoxLayout(frame));
-        QLabel *projectName = new QLabel(rp.name);
-        QFont projectNameFont;
-        projectNameFont.setBold(true);
-        projectName->setFont(projectNameFont);
-        QLabel *projectPath = new QLabel(rp.path);
-        frame->layout()->addWidget(projectName);
-        frame->layout()->addWidget(projectPath);
-        frame->setStyleSheet("QFrame { background-color: rgb(43,45,46) } QFrame::hover,QLabel::hover { background-color: rgb(61,65,67) }");
-        frame->setMaximumHeight(60);
-        recentProjectsLayout->addWidget(frame);
-        recentProjectsList.append(QPair<RecentProject,QFrame*>(rp, frame));
+        bool addRecentProject = QMetaObject::invokeMethod(
+            recentProjectsLayout, "addRecentProject",
+            Q_ARG(QVariant, rp.name),
+            Q_ARG(QVariant, rp.path)
+        );
+
+        if (!addRecentProject) {
+            qWarning() << "Could add the recent project " << rp.name << " to the preview pane";
+        }
     }
-
-    recentProjectsLayout->addSpacerItem(new QSpacerItem(recentProjectsWidget->width(), 200, QSizePolicy::Maximum, QSizePolicy::Maximum));
-
 }
