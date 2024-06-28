@@ -12,8 +12,11 @@ class Project : public QObject
 {
     Q_OBJECT
 public:
-    explicit Project(QObject *parent = nullptr, bool create = false, QString projectPath = "", QString dcimPath = "", QString projectName = "");
+    explicit Project(QObject *parent = nullptr);
     ~Project();
+
+    void load(QString projectPath);
+    void create(QString projectPath, QString dcimPath, QString projectName);
 
     bool isValid();
     QDir getDcim();
@@ -41,8 +44,6 @@ private:
     QList<FVideo*> videos;
     QDateTime lastSaved;
 
-    void loadProject(QString projectPath);
-    void createProject(QString projectPath, QString dcimPath, QString projectName);
     void addToRecent();
     bool indexVideos();
     void indexSegmentComplete(int doneSegments, int totalSegments);

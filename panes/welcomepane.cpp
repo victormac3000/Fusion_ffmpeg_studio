@@ -20,8 +20,6 @@ WelcomePane::WelcomePane(QWidget *parent) :
     mainWindow->setWindowTitle("Welcome to Fusion FFmpeg Studio");
     //mainWindow->getMenuBar()->clear();
 
-
-
     QQuickItem* rootObject = ui->qmlWidget->rootObject();
 
     if (rootObject == nullptr) {

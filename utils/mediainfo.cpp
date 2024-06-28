@@ -8,6 +8,9 @@ bool MediaInfo::isVideo(QFile *media)
 
 VideoInfo MediaInfo::getVideoInfo(QFile *video)
 {
+    QElapsedTimer tmr;
+    tmr.start();
+
     QProcess *process = new QProcess;
 
     QString ffprobePath = QSettings().value("ffprobe").toString();
@@ -84,6 +87,8 @@ VideoInfo MediaInfo::getVideoInfo(QFile *video)
     QTime length = QTime::fromMSecsSinceStartOfDay(ms);
     videoInfo.length = length;
 
+    qDebug() << "Video info for" << video->fileName() << "took" << tmr.elapsed() << "ms";
+
     return videoInfo;
 }
 
@@ -150,8 +155,15 @@ bool MediaInfo::isImage(QFile *media)
 
 QMimeType MediaInfo::getMimeType(QFile *media)
 {
+    QElapsedTimer tmr;
+    tmr.start();
+
     QMimeDatabase db;
-    return db.mimeTypeForFile(media->fileName(), QMimeDatabase::MatchContent);
+    QMimeType type = db.mimeTypeForFile(media->fileName(), QMimeDatabase::MatchContent);
+
+    qDebug() << "Get mime type took" << tmr.elapsed() << "ms";
+
+    return type;
 }
 
 QMediaMetaData MediaInfo::getMetadata(QFile *media)

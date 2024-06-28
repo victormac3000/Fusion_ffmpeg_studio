@@ -72,7 +72,6 @@ private:
     FFormat format;
     float fps;
     QSize resolution;
-    QDateTime date;
     QTime length;
 
 

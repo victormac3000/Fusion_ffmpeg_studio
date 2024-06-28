@@ -60,11 +60,12 @@ int FVideo::getNumSegments()
 
 QDateTime FVideo::getDate()
 {
-    if (this->segments.length() < 1) {
-        qWarning() << "Could not get the date from video " << id;
-        return QDateTime();
+    if (!date.isValid()) {
+        if (!segments.empty()) {
+            date = MediaInfo::getDate(segments.at(0)->getFrontMP4());
+        }
     }
-    return this->segments.at(0)->getDate();
+    return date;
 }
 
 QFile* FVideo::getFrontThumbnail()

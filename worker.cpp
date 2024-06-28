@@ -4,6 +4,9 @@ Worker::Worker(QObject *parent)
     : QObject{parent}
 {
     qDebug() << "Worker thread started";
+    project = new Project();
+    connect(project, SIGNAL(loadProjectUpdate(int,QString)), this, SIGNAL(loadProjectUpdate(int,QString)));
+    connect(project, SIGNAL(loadProjectError(QString)), this, SIGNAL(loadProjectError(QString)));
 }
 
 Worker::~Worker()
@@ -13,7 +16,7 @@ Worker::~Worker()
 
 void Worker::createProject(QString dcimPath, QString projectName, QString projectPath)
 {
-    Project *project = new Project(this, true, projectPath, dcimPath, projectName);
+    project->create(projectPath, dcimPath, projectName);
 
     if (project->isValid()) {
         emit loadProjectFinished(project);
@@ -24,7 +27,7 @@ void Worker::createProject(QString dcimPath, QString projectName, QString projec
 
 void Worker::loadProject(QString projectPath)
 {
-    Project *project = new Project(this, false, projectPath);
+    project->load(projectPath);
 
     if (project->isValid()) {
         emit loadProjectFinished(project);

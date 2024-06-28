@@ -2,7 +2,6 @@
     <qresource prefix="/">
         <file>Images/AppIcon.png</file>
         <file>Images/Snow.jpg</file>
-        <file>Documents/Json/FusionFormats.json</file>
         <file>Documents/Txt/Attributions.txt</file>
         <file>Icons/General/settings-icon.png</file>
         <file>Qml/EditorPane.qml</file>

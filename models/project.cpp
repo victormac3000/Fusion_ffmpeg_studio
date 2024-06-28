@@ -1,16 +1,9 @@
 #include "project.h"
 
-Project::Project(QObject *parent, bool create, QString projectPath, QString dcimPath, QString projectName)
+Project::Project(QObject *parent)
     : QObject{nullptr}
 {
-    connect(this, SIGNAL(loadProjectUpdate(int, QString)), parent, SIGNAL(loadProjectUpdate(int,QString)));
-    connect(this, SIGNAL(loadProjectError(QString)), parent, SIGNAL(loadProjectError(QString)));
-    if (create) {
-        createProject(projectPath, dcimPath, projectName);
-    } else {
-        loadProject(projectPath);
-    }
-    save();
+
 }
 
 Project::~Project()
@@ -120,10 +113,9 @@ void Project::save()
     addToRecent();
 }
 
-void Project::loadProject(QString projectPath)
+void Project::load(QString projectPath)
 {
     this->path = projectPath;
-
     this->file = new QFile(projectPath + "/project.ffs");
 
     if (!file->exists()) {
@@ -170,8 +162,29 @@ void Project::loadProject(QString projectPath)
     this->name = mainObj.value("info").toObject().value("name").toString();
     this->dcim = mainObj.value("info").toObject().value("dcim").toString();
 
-    // TODO check if version is compatible
+
+    // Check if the project version is compatible
+
     this->version = mainObj.value("info").toObject().value("version").toString();
+
+    QStringList appVersionParts = QCoreApplication::applicationVersion().split(".");
+    QStringList versionParts = version.split(".");
+
+    if (appVersionParts.length() != versionParts.length()) {
+        qWarning() << "The application version parts length is not the same as the project version parts";
+    }
+
+    bool compatibleVersion = true;
+    for (int i=0; i<versionParts.length(); i++) {
+        if (appVersionParts.at(i).toInt() < versionParts.at(i).toInt()) {
+            compatibleVersion = false;
+        }
+    }
+    if (!compatibleVersion) {
+        qWarning() << "The project version" << version
+                   << "is not compatible with the application version"
+                   << QCoreApplication::applicationVersion();
+    }
 
     if (!QDir(path).exists("DFSegments") || !QDir(path).exists("DFLowSegments") ||
         !QDir(path).exists("DFVideos") || !QDir(path).exists("DFLowVideos") ||
@@ -299,7 +312,7 @@ void Project::loadProject(QString projectPath)
     this->valid = true;
 }
 
-void Project::createProject(QString projectPath, QString dcimPath, QString projectName)
+void Project::create(QString projectPath, QString dcimPath, QString projectName)
 {
     // Phase 0: Create the project directories
     emit loadProjectUpdate(0, "Creating the project files");

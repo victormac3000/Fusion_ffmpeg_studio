@@ -34,6 +34,8 @@ private:
 
     void segmentComplete();
 
+    Project* project = nullptr;
+
 };
 
 #endif // WORKER_H

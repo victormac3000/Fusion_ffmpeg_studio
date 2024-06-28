@@ -74,6 +74,7 @@ private:
     QFile *equirectangularLow = nullptr;
     QFile *frontThumbnail = nullptr;
     QFile *backThumbnail = nullptr;
+    QDateTime date;
 
 
 };

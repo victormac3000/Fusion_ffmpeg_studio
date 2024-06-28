@@ -22,10 +22,28 @@ Rectangle {
 
         Slider {
             Layout.fillWidth: true
-            id: slider
+            id: videoPreviewSlider
             value: mediaPlayer.position / mediaPlayer.duration
             onMoved: {
                 mediaPlayer.setPosition(value * mediaPlayer.duration)
+            }
+            RangeSlider {
+                anchors.fill: parent
+                first.value: 0.5
+                second.value: 0.8
+                z: -1
+                first.handle: Rectangle {
+                    color: "red"
+                    anchors.centerIn: parent
+                    width: 10
+                    height: 20
+                }
+                second.handle: Rectangle {
+                    color: "red"
+                    anchors.centerIn: parent
+                    width: 10
+                    height: 20
+                }
             }
         }
 

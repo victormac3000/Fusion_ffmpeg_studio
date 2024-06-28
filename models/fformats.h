@@ -32,6 +32,8 @@ signals:
 
 private:
     QList<FFormat> formats;
+    int thumbHeight = 120, thumbWidth = 160;
+    int lowVideoHeight = 720, lowVideoWidth = 736, lowVideoFps = 25;
 
 };
 
