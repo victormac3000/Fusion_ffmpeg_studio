@@ -45,7 +45,6 @@ public:
     FFormat getFormat();
     float getFPS();
     QSize getResolution();
-    QDateTime getDate();
     QTime getLength();
 
 signals:

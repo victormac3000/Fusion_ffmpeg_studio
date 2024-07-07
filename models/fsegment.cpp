@@ -179,14 +179,6 @@ QSize FSegment::getResolution()
     return resolution;
 }
 
-QDateTime FSegment::getDate()
-{
-    if (!date.isValid()) {
-        date = MediaInfo::getDate(frontMP4);
-    }
-    return date;
-}
-
 QTime FSegment::getLength()
 {
     if (!length.isValid()) {
