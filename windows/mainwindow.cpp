@@ -6,14 +6,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-
     this->changePane(new WelcomePane(this));
-
-    setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
-
-    // Signals for menu bar
-    connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(displayAbout()));
-    connect(ui->actionPreferences, SIGNAL(triggered()), this, SLOT(displayPreferences()));
 }
 
 MainWindow::~MainWindow()
@@ -51,6 +44,16 @@ bool MainWindow::changePane(QWidget* pane)
     connect(pane, SIGNAL(changePane(QWidget*)), this, SLOT(changePane(QWidget*)));
     ui->paneHolder->addWidget(pane);
     return true;
+}
+
+void MainWindow::menuBarStartDrag()
+{
+    dragging = true;
+}
+
+void MainWindow::menuBarEndDrag()
+{
+
 }
 
 void MainWindow::clearLayout(QLayout* layout)

@@ -6,6 +6,7 @@
 #include <QDir>
 #include <QFile>
 #include <QMetaObject>
+#include <QMouseEvent>
 
 #include "panes/welcomepane.h"
 #include "preferences.h"
@@ -38,11 +39,14 @@ private slots:
     void displayAbout();
     void displayPreferences();
     bool changePane(QWidget *pane);
+    void menuBarStartDrag();
+    void menuBarEndDrag();
 
 private:
     Ui::MainWindow *ui;
     About *aboutWindow = nullptr;
     Preferences *preferencesWindow = nullptr;
+    bool dragging = false;
 
     void clearLayout(QLayout* layout);
 };

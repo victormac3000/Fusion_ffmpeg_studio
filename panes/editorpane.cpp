@@ -14,9 +14,12 @@ EditorPane::EditorPane(QWidget* parent, Project* project) :
 
     if (mainWindow != nullptr) {
         mainWindow->setWindowTitle("Editing studio");
+        /*
+
         QMenuBar* menuBar = mainWindow->getMenuBar();
         QMenu* testMenu = new QMenu("Test");
         menuBar->addMenu(testMenu);
+        */
     } else {
         qWarning() << "MainWindow not found";
     }
