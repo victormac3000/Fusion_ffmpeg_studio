@@ -9,6 +9,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     this->changePane(new WelcomePane(this));
 
+    setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
+
     // Signals for menu bar
     connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(displayAbout()));
     connect(ui->actionPreferences, SIGNAL(triggered()), this, SLOT(displayPreferences()));
@@ -23,12 +25,13 @@ MainWindow::~MainWindow()
 
 QMenuBar *MainWindow::getMenuBar()
 {
-    return ui->menubar;
+    return nullptr;
 }
 
 void MainWindow::clearMenuBar()
 {
-    ui->menubar->clear();
+    // TODO Implement menuBar
+    //ui->menubar->clear();
 
     /*
     if (ui->menubar->isNativeMenuBar()) {

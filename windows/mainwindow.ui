@@ -19,58 +19,32 @@ background-color: #246EE9;
 }</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout_2" stretch="10">
-    <property name="spacing">
-     <number>0</number>
-    </property>
-    <property name="leftMargin">
-     <number>0</number>
-    </property>
-    <property name="topMargin">
-     <number>0</number>
-    </property>
-    <property name="rightMargin">
-     <number>0</number>
-    </property>
-    <property name="bottomMargin">
-     <number>0</number>
-    </property>
+   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,10">
     <item>
-     <layout class="QVBoxLayout" name="paneHolder"/>
+     <layout class="QHBoxLayout" name="titleBarHolder">
+      <item>
+       <widget class="QQuickWidget" name="titleBarRoot">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>40</height>
+         </size>
+        </property>
+        <property name="resizeMode">
+         <enum>QQuickWidget::SizeRootObjectToView</enum>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QVBoxLayout" name="paneHolder">
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+     </layout>
     </item>
    </layout>
-  </widget>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>706</width>
-     <height>24</height>
-    </rect>
-   </property>
-   <widget class="QMenu" name="menuFusion_ffmpeg_studio">
-    <property name="title">
-     <string>Fusion ffmpeg studio</string>
-    </property>
-    <addaction name="actionPreferences"/>
-    <addaction name="actionAbout"/>
-   </widget>
-   <widget class="QMenu" name="menuFile">
-    <property name="title">
-     <string>File</string>
-    </property>
-    <addaction name="save_project"/>
-   </widget>
-   <widget class="QMenu" name="menuVideos">
-    <property name="title">
-     <string>Videos</string>
-    </property>
-    <addaction name="actionReload_DCIM"/>
-   </widget>
-   <addaction name="menuFusion_ffmpeg_studio"/>
-   <addaction name="menuFile"/>
-   <addaction name="menuVideos"/>
   </widget>
   <action name="actionss">
    <property name="text">
@@ -103,6 +77,13 @@ background-color: #246EE9;
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QQuickWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">QtQuickWidgets/QQuickWidget</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
