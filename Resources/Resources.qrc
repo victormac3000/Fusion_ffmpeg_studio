@@ -18,6 +18,7 @@
         <file>Qml/QueueGrid.qml</file>
         <file>Qml/RecentProject.qml</file>
         <file>Qml/WelcomePane.qml</file>
+        <file>Qml/MyButton.qml</file>
     </qresource>
     <qresource prefix="/Qml">
         <file>Icons/VideoPlayer/Left.png</file>

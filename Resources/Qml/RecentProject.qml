@@ -3,26 +3,26 @@ import QtQuick.Controls 2.15
 import QtQuick.Layouts
 
 Rectangle {
-    property string name: "Project name"
-    property string path: "/Users/Victor/x/y/z/sjskdjhd/s.pro"
-    property string rectColor: "grey"
+    property string name: "Sample project"
+    property string path: "/Users/username/randomfolder/sproj.pro"
+    property string rectColor: "#00C0FF"
+    property string rectColorHover: "#8AE2FF"
 
 
     id: rectangle
-    color: rectColor
-
     Layout.minimumHeight: 100
     Layout.maximumHeight: 100
     Layout.fillWidth: true
+    color: rectColor
 
     MouseArea {
         hoverEnabled: true
         anchors.fill: parent
         onEntered: {
-            parent.color = "green"
+            parent.color = rectColorHover
         }
         onExited: {
-            parent.color = "grey"
+            parent.color = rectColor
         }
         onClicked: {
             parent.parent.recentProjectClicked(parent)
@@ -38,7 +38,7 @@ Rectangle {
             Layout.fillHeight: true
             Layout.margins: 10
             Layout.maximumWidth: parent.width * 0.2
-            text: "AE"
+            text: getText()
             font.bold: true
             font.family: "Arial"
             font.pointSize: 600
@@ -53,6 +53,14 @@ Rectangle {
                 border.width: 5
                 color: "#eb7762"
                 z: -1
+            }
+
+            function getText() {
+                let parts = rectangle.name.toUpperCase().trim().split(" ")
+                if (parts.length < 2) {
+                    return "EX"
+                }
+                return parts[0].charAt(0) + parts[1].charAt(0)
             }
         }
 

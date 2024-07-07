@@ -15,32 +15,36 @@ Rectangle {
             Layout.maximumHeight: 60
             Layout.margins: 10
 
-            Image {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                Layout.maximumWidth: 60
-                source: "Images/AppIcon.png"
-            }
-
-            ColumnLayout {
+            RowLayout {
                 Layout.fillHeight: true
 
-                Text {
-                    objectName: "appTitleLabel"
+                Image {
+                    Layout.fillWidth: true
                     Layout.fillHeight: true
-                    text: "Fusion FFmpeg Studio"
-                    font.pointSize: 20
-                    minimumPointSize: 10
-                    fontSizeMode: Text.Fit
-                    font.family: "Arial"
+                    Layout.maximumWidth: 60
+                    source: "Images/AppIcon.png"
                 }
-                Text {
-                    objectName: "appVersionLabel"
+
+                ColumnLayout {
                     Layout.fillHeight: true
-                    text: "0.0.1"
-                    font.pointSize: 20
-                    minimumPointSize: 10
-                    fontSizeMode: Text.Fit
+
+                    Text {
+                        objectName: "appTitleLabel"
+                        Layout.fillHeight: true
+                        text: "Fusion FFmpeg Studio"
+                        font.pointSize: 20
+                        minimumPointSize: 10
+                        fontSizeMode: Text.Fit
+                        font.family: "Arial"
+                    }
+                    Text {
+                        objectName: "appVersionLabel"
+                        Layout.fillHeight: true
+                        text: "0.0.1"
+                        font.pointSize: 20
+                        minimumPointSize: 10
+                        fontSizeMode: Text.Fit
+                    }
                 }
             }
 
@@ -50,56 +54,20 @@ Rectangle {
                 Layout.maximumHeight: 50
                 Layout.margins: 10
 
-
-                Button {
-                    objectName: "settingsButton"
-                    Layout.fillHeight: true
-                    Layout.fillWidth: true
-                    Layout.alignment: Qt.AlignLeft
-                    Text {
-                        anchors.fill: parent
-                        font.pointSize: 600
-                        minimumPointSize: 10
-                        fontSizeMode: Text.Fit
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        text: "Settings"
-                        color: "white"
-                    }
-                }
-
-                Button {
+                MyButton {
                     objectName: "loadProjectButton"
                     Layout.fillHeight: true
                     Layout.fillWidth: true
                     Layout.alignment: Qt.AlignRight
-                    Text {
-                        anchors.fill: parent
-                        font.pointSize: 600
-                        minimumPointSize: 10
-                        fontSizeMode: Text.Fit
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        text: "Load project"
-                        color: "white"
-                    }
+                    text: "Load project"
                 }
 
-                Button {
+                MyButton {
                     objectName: "newProjectButton"
                     Layout.fillHeight: true
                     Layout.fillWidth: true
                     Layout.alignment: Qt.AlignRight
-                    Text {
-                        anchors.fill: parent
-                        font.pointSize: 600
-                        minimumPointSize: 10
-                        fontSizeMode: Text.Fit
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        text: "New project"
-                        color: "white"
-                    }
+                    text: "New project"
                 }
 
             }
@@ -108,7 +76,7 @@ Rectangle {
         Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            Layout.maximumHeight: 4
+            Layout.maximumHeight: 2
             color: "black"
         }
 
@@ -128,7 +96,7 @@ Rectangle {
                 placeholderTextColor: "grey"
 
                 onTextChanged: {
-
+                    recentProjectsLayout.filter(text)
                 }
             }
 
@@ -138,43 +106,110 @@ Rectangle {
                 Layout.maximumHeight: 10
             }
 
-            Flickable {
-                Layout.fillWidth: true
+            ColumnLayout {
                 Layout.fillHeight: true
-                flickableDirection: Flickable.VerticalFlick
-                boundsBehavior: Flickable.DragOverBounds
-                clip: true
-                contentHeight: recentProjectsLayout.height
+                Layout.fillWidth: true
 
+                Rectangle {
+                    id: borderRectangle
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    border.width: 2
+                    border.color: "black"
+                    color: "transparent"
 
-                ColumnLayout {
-                    id: recentProjectsLayout
-                    objectName: "recentProjectsLayout"
-                    width: parent.width
+                    Flickable {
+                        id: flickable
+                        anchors.fill: parent
+                        anchors.margins: borderRectangle.border.width
+                        flickableDirection: Flickable.VerticalFlick
+                        boundsBehavior: Flickable.DragOverBounds
+                        clip: true
+                        contentHeight: recentProjectsLayout.height
 
-                    // TODO: Project search
+                        ColumnLayout {
+                            id: recentProjectsLayout
+                            objectName: "recentProjectsLayout"
+                            width: parent.width
 
-                    Component.onCompleted: {
-                        /*
-                        for (var i=0; i<10; i++) {
-                            addRecentProject("Project", "/test/x.ffs")
-                        }*/
+                            Component.onCompleted: {
+/*
+                                for (var i = 0; i < 10; i++) {
+                                    addRecentProject("Project " + (i + 1), "/test/x" + i + ".ffs")
+                                }
+*/
+                                if (recentProjectsLayout.children.length < 1) {
+                                    borderRectangle.color = "lightgrey"
+                                } else {
+                                    borderRectangle.color = "transparent"
+
+                                }
+                            }
+
+                            function filter(name) {
+                                for (let i=0; i<children.length; i++) {
+                                    let child = children[i]
+                                    children[i].visible = child.name.toLowerCase().includes(name.toLowerCase())
+                                }
+                            }
+
+                            function addRecentProject(name, path) {
+                                var recentProjectComponent = Qt.createComponent("RecentProject.qml")
+                                if (recentProjectComponent.status === Component.Ready) {
+                                    var recentProjectElement = recentProjectComponent.createObject(recentProjectsLayout)
+                                    if (recentProjectElement !== null) {
+                                        recentProjectElement.name = name
+                                        recentProjectElement.path = path
+                                        recentProjectElement.anchors.margins = 5
+                                    } else {
+                                        console.error("Failed to create RecentProject element")
+                                    }
+                                } else {
+                                    console.error("Failed to load RecentProject.qml:", recentProjectComponent.errorString())
+                                }
+                            }
+
+                            signal recentProjectClicked(var recentProject)
+                        }
+
+                        ScrollBar.vertical: ScrollBar {
+                            policy: ScrollBar.AsNeeded
+                        }
                     }
-
-                    function addRecentProject(name, path) {
-                        var recentProjectComponent = Qt.createComponent("RecentProject.qml")
-                        var recentProjectElement = recentProjectComponent.createObject(recentProjectsLayout)
-                        recentProjectElement.name = name
-                        recentProjectElement.path = path
-                    }
-
-                    signal recentProjectClicked(var recentProject)
-                }
-
-                ScrollBar.vertical: ScrollBar {
-                    policy: ScrollBar.AsNeeded
                 }
             }
+        }
+
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.maximumHeight: 2
+            color: "black"
+        }
+
+        RowLayout {
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            Layout.maximumHeight: 40
+            Layout.margins: 10
+
+            MyButton {
+                objectName: "aboutButton"
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignLeft
+                text: "About"
+            }
+
+            MyButton {
+                objectName: "settingsButton"
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignLeft
+                text: "Settings"
+            }
+
+
         }
     }
 }
