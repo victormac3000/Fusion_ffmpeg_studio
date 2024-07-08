@@ -1,13 +1,14 @@
 #ifndef ABOUT_H
 #define ABOUT_H
 
-#include <QWidget>
+#include <QDialog>
+#include <QFile>
 
 namespace Ui {
 class About;
 }
 
-class About : public QWidget
+class About : public QDialog
 {
     Q_OBJECT
 
@@ -17,6 +18,7 @@ public:
 
 private:
     Ui::About *ui;
+    QString getMainLicenseText();
 };
 
 #endif // ABOUT_H

@@ -19,6 +19,8 @@
         <file>Qml/RecentProject.qml</file>
         <file>Qml/WelcomePane.qml</file>
         <file>Qml/MyButton.qml</file>
+        <file>Qml/windows/about/About.qml</file>
+        <file>Documents/Txt/LICENSE</file>
     </qresource>
     <qresource prefix="/Qml">
         <file>Icons/VideoPlayer/Left.png</file>

@@ -32,12 +32,13 @@ WelcomePane::WelcomePane(QWidget *parent) :
 
     QQuickItem* appTitleLabel = rootObject->findChild<QQuickItem*>("appTitleLabel");
     QQuickItem* appVersionLabel = rootObject->findChild<QQuickItem*>("appVersionLabel");
+    QQuickItem* aboutButton = rootObject->findChild<QQuickItem*>("aboutButton");
     QQuickItem* settingsButton = rootObject->findChild<QQuickItem*>("settingsButton");
     QQuickItem* loadProjectButton = rootObject->findChild<QQuickItem*>("loadProjectButton");
     QQuickItem* newProjectButton = rootObject->findChild<QQuickItem*>("newProjectButton");
     this->recentProjectsLayout = rootObject->findChild<QQuickItem*>("recentProjectsLayout");
 
-    if (appTitleLabel == nullptr || appVersionLabel == nullptr || settingsButton == nullptr ||
+    if (appTitleLabel == nullptr || appVersionLabel == nullptr || settingsButton == nullptr || aboutButton == nullptr ||
         loadProjectButton == nullptr || newProjectButton == nullptr || recentProjectsLayout == nullptr) {
         Dialogs::critical(
             "Error loading the application",
@@ -57,6 +58,8 @@ WelcomePane::WelcomePane(QWidget *parent) :
     connect(loadProjectButton, SIGNAL(clicked()), this, SLOT(openProjectButtonClicked()));
     connect(newProjectButton, SIGNAL(clicked()), this, SLOT(newProjectButtonClicked()));
     connect(recentProjectsLayout, SIGNAL(recentProjectClicked(QVariant)), this, SLOT(recentProjectClicked(QVariant)));
+    connect(settingsButton, SIGNAL(clicked()), this, SLOT(settingsButtonClicked()));
+    connect(aboutButton, SIGNAL(clicked()), this, SLOT(aboutButtonClicked()));
 }
 
 WelcomePane::~WelcomePane()
@@ -94,6 +97,18 @@ void WelcomePane::recentProjectClicked(QVariant rectangle)
     }
     LoadingPane *loader = new LoadingPane(mainWindow, path);
     emit changePane(loader);
+}
+
+void WelcomePane::aboutButtonClicked()
+{
+    About* aboutWindow = new About;
+    aboutWindow->exec();
+}
+
+void WelcomePane::settingsButtonClicked()
+{
+    Preferences* preferencesWindow = new Preferences;
+    preferencesWindow->exec();
 }
 
 void WelcomePane::searchRecentProjects(QString text)
