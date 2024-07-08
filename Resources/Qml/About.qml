@@ -14,21 +14,16 @@ Rectangle {
         RowLayout {
             Layout.alignment: Qt.AlignLeft | Qt.AlignTop
             Layout.margins: 5
-            Layout.fillHeight: true
             Layout.fillWidth: true
-            Layout.maximumHeight: 80
-
+            Layout.preferredHeight: 80
 
             Image {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                Layout.maximumWidth: 80
-                Layout.maximumHeight: 80
+                Layout.preferredWidth: 80
+                Layout.preferredHeight: 80
                 source: "Images/AppIcon.png"
             }
 
             ColumnLayout {
-                Layout.fillHeight: true
                 Layout.fillWidth: true
 
                 Text {
@@ -60,30 +55,25 @@ Rectangle {
                     text: "Made by Víctor Martínez"
                 }
             }
-
-
         }
 
         TabBar {
             id: aboutTabBar
-            Layout.fillHeight: true
             Layout.fillWidth: true
-            Layout.maximumHeight: 36
+            Layout.preferredHeight: 36
+            Layout.margins: 5
 
             TabButton {
-                Layout.fillHeight: true
                 Layout.fillWidth: true
                 text: qsTr("License")
             }
 
             TabButton {
-                Layout.fillHeight: true
                 Layout.fillWidth: true
                 text: qsTr("Libraries")
             }
 
             TabButton {
-                Layout.fillHeight: true
                 Layout.fillWidth: true
                 text: qsTr("Build info")
             }
@@ -95,37 +85,23 @@ Rectangle {
             Layout.margins: 5
             currentIndex: aboutTabBar.currentIndex
 
-            Flickable {
+            ScrollableTextArea {
+                id: licenseTextArea
+                objectName: "licenseTextArea"
                 Layout.fillHeight: true
-                Layout.fillWidth: true
-                clip: true
-                contentHeight: height
+            }
 
-                TextEdit {
-                    id: licenseTextEdit
-                    objectName: "licenseTextEdit"
-                    textMargin: 5
-                    anchors.fill: parent
-                    anchors.leftMargin: 0
-                    anchors.rightMargin: 0
-                    anchors.topMargin: 0
-                    anchors.bottomMargin: 0
-                    font.pointSize: 20
-                    font.family: "Arial"
-                    readOnly: true
-                    text: "This is a text"
+            Libraries {
+                id: librariesInfoGrid
+                objectName: "librariesInfoGrid"
+                Layout.fillHeight: true
+            }
 
-                    Rectangle {
-                        anchors.fill: parent
-                        color: "white"
-                        border.color: "black"
-                        border.width: 3
-                        z: -1
-                    }
-
-                }
+            BuildInfo {
+                id: buildInfoGrid
+                objectName: "buildInfoGrid"
+                Layout.fillHeight: true
             }
         }
     }
-
 }

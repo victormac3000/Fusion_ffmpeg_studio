@@ -19,8 +19,11 @@
         <file>Qml/RecentProject.qml</file>
         <file>Qml/WelcomePane.qml</file>
         <file>Qml/MyButton.qml</file>
-        <file>Qml/windows/about/About.qml</file>
         <file>Documents/Txt/LICENSE</file>
+        <file>Qml/About.qml</file>
+        <file>Qml/ScrollableTextArea.qml</file>
+        <file>Qml/BuildInfo.qml</file>
+        <file>Qml/Libraries.qml</file>
     </qresource>
     <qresource prefix="/Qml">
         <file>Icons/VideoPlayer/Left.png</file>

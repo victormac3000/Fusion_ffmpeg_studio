@@ -3,6 +3,10 @@
 
 #include <QDialog>
 #include <QFile>
+#include <QSysInfo>
+
+#define LICENSE_MAIN 0
+#define LICENSE_LIBRARIES 1
 
 namespace Ui {
 class About;
@@ -18,7 +22,7 @@ public:
 
 private:
     Ui::About *ui;
-    QString getMainLicenseText();
+    QString getLicenseText(int name = LICENSE_MAIN);
 };
 
 #endif // ABOUT_H

@@ -21,15 +21,33 @@ About::About(QWidget *parent) :
     }
 
     QQuickItem* versionText = root->findChild<QQuickItem*>("versionText");
-    QQuickItem* licenseTextEdit = root->findChild<QQuickItem*>("licenseTextEdit");
+    QQuickItem* licenseTextArea = root->findChild<QQuickItem*>("licenseTextArea");
+    QQuickItem* librariesInfoGrid = root->findChild<QQuickItem*>("librariesInfoGrid");
+    QQuickItem* buildInfoGrid = root->findChild<QQuickItem*>("buildInfoGrid");
 
-    if (versionText == nullptr || licenseTextEdit == nullptr) {
+
+    if (versionText == nullptr || licenseTextArea == nullptr || librariesInfoGrid == nullptr ||
+        buildInfoGrid == nullptr) {
         qWarning() << "Could not find QML objects";
         return;
     }
 
+    QString buildDatetime = QStringLiteral(__DATE__) + " " + QStringLiteral(__TIME__);
+    QString compilationType = "Release";
+    #ifdef QT_DEBUG
+    compilationType = "Debug";
+    #endif
+
+    // TODO obtain ffmpeg version
+
     versionText->setProperty("text", QCoreApplication::applicationVersion());
-    licenseTextEdit->setProperty("text", getMainLicenseText());
+    licenseTextArea->setProperty("areaText", getLicenseText());
+    librariesInfoGrid->setProperty("qtVersion", QT_VERSION_STR);
+    librariesInfoGrid->setProperty("ffmpegVersion", "N/A");
+    buildInfoGrid->setProperty("compilationDate", buildDatetime);
+    buildInfoGrid->setProperty("compilationType", compilationType);
+    buildInfoGrid->setProperty("compilationOSName", QSysInfo::productType());
+    buildInfoGrid->setProperty("compilationOSVersion", QSysInfo::productVersion());
 }
 
 About::~About()
@@ -37,10 +55,24 @@ About::~About()
     delete ui;
 }
 
-QString About::getMainLicenseText()
+QString About::getLicenseText(int license)
 {
-    QFile licenseFile(":/Documents/Txt/LICENSE");
     QString licenseText = "Could not find license contents";
+    QString licensePath = "";
+
+    switch (license) {
+        case LICENSE_MAIN:
+            licensePath = ":/Documents/Txt/LICENSE";
+            break;
+        case LICENSE_LIBRARIES:
+            licensePath = ":/Documents/Txt/LICENSE_LIBS";
+            break;
+        default:
+            return licenseText;
+            break;
+    }
+
+    QFile licenseFile(licensePath);
 
     if (!licenseFile.open(QFile::ReadOnly)) {
         qWarning() << "Could not open main license file";
