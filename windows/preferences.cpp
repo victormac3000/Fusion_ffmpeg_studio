@@ -6,8 +6,43 @@ Preferences::Preferences(QWidget *parent) :
     ui(new Ui::Preferences)
 {
     ui->setupUi(this);
-    connect(ui->change_appdata, SIGNAL(clicked()), this, SLOT(changeAppDataDir()));
-    ui->appdata->setText(settings.value("appData").toString());
+
+    if (ui->quickWidget == nullptr) {
+        qWarning() << "Settings could not found quickWidget element";
+        return;
+    }
+
+    QQuickItem* root = ui->quickWidget->rootObject();
+
+    if (root == nullptr) {
+        qWarning() << "Settings could not found quickWidget element root QML object";
+        return;
+    }
+
+    QQuickItem* preferencesGeneralArea = root->findChild<QQuickItem*>("preferencesGeneralArea");
+    QQuickItem* preferencesRenderingArea = root->findChild<QQuickItem*>("preferencesRenderingArea");
+    QQuickItem* appDataPathBrowseButton = root->findChild<QQuickItem*>("appDataPathBrowseButton");
+
+
+    if (preferencesGeneralArea == nullptr || preferencesRenderingArea == nullptr ||
+        appDataPathBrowseButton == nullptr) {
+        qWarning() << "Could not find QML objects";
+        return;
+    }
+
+    // TODO manage all the settings
+
+    preferencesGeneralArea->setProperty("appDataPath", "appDataTest");
+    preferencesGeneralArea->setProperty("defaultProjectName", "defaultProjectNameTest");
+
+    QStringList encoders {"A", "N", "X"};
+    QStringList formats {"S", "D", "R"};
+
+    QMetaObject::invokeMethod(preferencesRenderingArea, "addEncoders", Q_ARG(QVariant, QVariant::fromValue(encoders)));
+    QMetaObject::invokeMethod(preferencesRenderingArea, "addFormats", Q_ARG(QVariant, QVariant::fromValue(formats)));
+
+
+    connect(appDataPathBrowseButton, SIGNAL(clicked()), this, SLOT(changeAppDataDir()));
 }
 
 Preferences::~Preferences()
@@ -27,12 +62,13 @@ void Preferences::changeAppDataDir()
         return;
     }
 
-    ui->appdata->setText(proposedAppDataDir);
+    //ui->appdata->setText(proposedAppDataDir);
     settings.setValue("appData", proposedAppDataDir);
 }
 
 bool Preferences::copyAppData(QString path)
 {
+    return false;
     // TODO fix
     QDir dir(settings.value("appData").toString());
     QDir newDir(path);

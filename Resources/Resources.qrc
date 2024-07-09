@@ -24,6 +24,9 @@
         <file>Qml/ScrollableTextArea.qml</file>
         <file>Qml/BuildInfo.qml</file>
         <file>Qml/Libraries.qml</file>
+        <file>Qml/Preferences.qml</file>
+        <file>Qml/PreferencesGeneral.qml</file>
+        <file>Qml/PreferencesRendering.qml</file>
     </qresource>
     <qresource prefix="/Qml">
         <file>Icons/VideoPlayer/Left.png</file>
@@ -34,5 +37,6 @@
         <file>Icons/Queue/cross.png</file>
         <file>Icons/Queue/dropdown.png</file>
         <file>Images/AppIcon.png</file>
+        <file>Images/Information.png</file>
     </qresource>
 </RCC>

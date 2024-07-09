@@ -6,6 +6,7 @@
 #include <QDir>
 #include <QFile>
 #include <QFileDialog>
+#include <QQuickItem>
 
 #include "utils/dialogs.h"
 
