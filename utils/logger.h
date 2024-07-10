@@ -16,10 +16,12 @@
 class Logger
 {
 public:
+    static void setup();
     static QFile* getLogFile();
     static void messageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg);
 private:
     static QHash<QtMsgType, QString> contextNames;
+    static QFile* logFile;
 };
 
 #endif // LOGGER_H

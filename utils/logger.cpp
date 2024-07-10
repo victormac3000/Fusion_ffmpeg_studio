@@ -8,6 +8,13 @@ QHash<QtMsgType, QString> Logger::contextNames = {
     {QtMsgType::QtCriticalMsg,	"CRITICAL  "},
     {QtMsgType::QtFatalMsg,		"FATAL     "}
 };
+QFile* Logger::logFile = nullptr;
+
+void Logger::setup()
+{
+    logFile = getLogFile();
+    qInstallMessageHandler(Logger::messageHandler);
+}
 
 QFile* Logger::getLogFile()
 {

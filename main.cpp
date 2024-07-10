@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
     a.setOrganizationName("Victor Corporation");
     a.setApplicationName("Fusion FFmpeg Studio");
 
-    qInstallMessageHandler(Logger::messageHandler);
+    Logger::setup();
     Settings::setup();
 
     MainWindow w;
