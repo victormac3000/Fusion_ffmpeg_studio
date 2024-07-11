@@ -2,67 +2,43 @@
 
 void Settings::setup()
 {
-    checkCompatible();
-    setupAppData();
     setupProjectPath();
     setupBinaries();
 }
 
 QString Settings::getAppDataPath()
-{   
-    setupAppData();
-    QSettings settings;
-    return settings.value("appData").toString();
-}
-
-void Settings::checkCompatible()
 {
-    bool supported = false;
-
-    #ifdef Q_OS_MAC
-        supported = true;
-    #endif
-
-    #ifdef Q_OS_WIN
-        supported = true;
-    #endif
-
-    #ifdef Q_OS_LINUX
-        supported = true;
-    #endif
-
-    if (!supported) {
-        Dialogs::critical("Fusion Ffmpeg Studio only supports Windows, macOS and linux",
-                          "OS Not supported");
-    }
+    setupAppData();
+    return QSettings().value("appData").toString();
 }
 
 void Settings::setupAppData()
 {
     QSettings settings;
-
     QString actualAppData = settings.value("appData").toString();
     QString defaultAppData = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
     QDir defaultAppDataDir(defaultAppData);
 
-    if (actualAppData.isEmpty() || !QDir(actualAppData).exists()) {
-        settings.setValue("appData", defaultAppData);
-        if (!defaultAppDataDir.exists() && !defaultAppDataDir.mkpath(defaultAppDataDir.absolutePath())) {
+    if (actualAppData.isEmpty() || !QDir(actualAppData).exists() || !QFileInfo(actualAppData).isWritable()) {
+        if ((!defaultAppDataDir.exists() && !defaultAppDataDir.mkpath(defaultAppDataDir.absolutePath())) || !QFileInfo(defaultAppData).isWritable()) {
             std::cerr << "Could not create the default appdata folder in the default path. The default appdata path is: "
-                      << defaultAppData.toStdString() << std::endl;
-            exit(ERROR_COULD_NOT_CREATE_APPDATA);
+                      << defaultAppData.toStdString()
+                      << std::endl;
+            qexit(ERROR_COULD_NOT_CREATE_APPDATA);
         }
+        settings.setValue("appData", defaultAppData);
     }
 }
 
 void Settings::setupProjectPath()
 {
     QSettings settings;
-
-    QString osDocumentsPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
     QString documentsPath = settings.value("defaultProjectPath").toString();
+    QString osDocumentsPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
 
-    if (documentsPath.isEmpty() || !QDir(documentsPath).exists()) {
+    if (documentsPath.isEmpty() || !QDir(documentsPath).exists() || !QFileInfo(documentsPath).isWritable()) {
+
+
         qInfo() << "Default project path not set, setting default";
         if (!QDir(osDocumentsPath).exists()) {
             Dialogs::critical("There was an internal error starting the application\nCheck the logs for more information",
@@ -70,7 +46,6 @@ void Settings::setupProjectPath()
         }
         settings.setValue("defaultProjectPath", osDocumentsPath);
     }
-
 }
 
 void Settings::setupBinaries()
@@ -134,4 +109,10 @@ void Settings::setupBinaries()
     settings.setValue("ffprobe", ffprobePath);
 
     settings.sync();
+}
+
+void Settings::qexit(int code)
+{
+    QCoreApplication::exit(code);
+    exit(code);
 }

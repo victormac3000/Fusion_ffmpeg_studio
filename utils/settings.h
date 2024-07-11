@@ -17,12 +17,12 @@ class Settings
 {
 public:
     static void setup();
+    static void setupAppData();
     static QString getAppDataPath();
 private:
-    static void checkCompatible();
-    static void setupAppData();
     static void setupProjectPath();
     static void setupBinaries();
+    static void qexit(int code);
 
 };
 

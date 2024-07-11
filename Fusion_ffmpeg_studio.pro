@@ -33,7 +33,8 @@ SOURCES += \
     panes/loadingpane.cpp \
     panes/welcomepane.cpp \
     windows/preferences.cpp \
-    worker.cpp
+    worker.cpp \
+    workerthread.cpp
 
 HEADERS += \
     models/fformat.h \
@@ -56,7 +57,8 @@ HEADERS += \
     panes/loadingpane.h \
     panes/welcomepane.h \
     windows/preferences.h \
-    worker.h
+    worker.h \
+    workerthread.h
 
 FORMS += \
     panes/projectcreator.ui \

@@ -1,9 +1,11 @@
 #include "windows/mainwindow.h"
 #include "utils/logger.h"
 #include "utils/settings.h"
+#include "workerthread.h"
 
 #include <QApplication>
 #include <QQuickStyle>
+#include <QElapsedTimer>
 
 int main(int argc, char *argv[])
 {
@@ -17,8 +19,13 @@ int main(int argc, char *argv[])
     Logger::setup();
     Settings::setup();
 
+    QElapsedTimer tmr;
+    tmr.start();
+
     MainWindow w;
     w.show();
+
+    std::cout << "Loading the main window log took " << tmr.elapsed() << " miliseconds" << std::endl;
 
     return a.exec();
 }
