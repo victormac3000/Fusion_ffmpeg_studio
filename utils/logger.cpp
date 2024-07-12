@@ -13,7 +13,6 @@ QMutex Logger::logMutex;
 
 void Logger::setup()
 {
-    Settings::setupAppData();
     logFile = getLogFile(true);
     qInstallMessageHandler(Logger::messageHandler);
 }
@@ -62,8 +61,11 @@ QFile* Logger::getLogFile(bool init)
 
 void Logger::messageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
-    if (QDateTime::currentDateTime().date().day() != logFileOpened.date().day()) {
+    QDateTime now = QDateTime::currentDateTime();
+
+    if (now.date().day() != logFileOpened.date().day()) {
         logFile = getLogFile();
+        logFileOpened = now;
     }
 
     QString logLine = QString("%1 | %2 | %3 | %4 | %5 | %6\n").arg(
