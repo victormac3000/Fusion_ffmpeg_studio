@@ -8,6 +8,7 @@
 #include <QDir>
 #include <QProcess>
 #include <iostream>
+#include <QRegularExpression>
 
 
 #include "utils/dialogs.h"
@@ -17,11 +18,22 @@ class Settings
 {
 public:
     static void setup();
-    static void setupAppData();
+
     static QString getAppDataPath();
+    static QString getDefaultProjectName();
+    static QString getDefaultProjectPath();
+    static QString getFFmpegPath();
+    static QString getFFprobePath();
+    static QStringList getAvailableEncoders();
 private:
-    static void setupProjectPath();
+    static void setupAppData();
+    static void setupDefaultProjectPath();
+    static void setupDefaultProjectName();
     static void setupBinaries();
+    static void setupBinariesWin(QString* ffmpegPath, QString* ffprobePath);
+    static void setupBinariesLin(QString* ffmpegPath, QString* ffprobePath);
+    static void setupBinariesMac(QString* ffmpegPath, QString* ffprobePath);
+    static void setupEncoders();
     static void qexit(int code);
 
 };
