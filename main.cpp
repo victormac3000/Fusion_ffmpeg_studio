@@ -1,7 +1,6 @@
 #include "windows/mainwindow.h"
 #include "utils/logger.h"
 #include "utils/settings.h"
-#include "workerthread.h"
 
 #include <QApplication>
 #include <QQuickStyle>
