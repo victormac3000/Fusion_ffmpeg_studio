@@ -1,5 +1,12 @@
 #include "settings.h"
 
+QMap<QString,FormatInfo> Settings::compatibleFormats = {
+    {"h264", {{"mp4", "mkv", "avi", "mov"}, "Most compatible"}},
+    {"hevc", {{"mp4", "mkv", "mov"}, "Most efficient"}},
+    {"mpeg4", {{"mp4", "mkv", "avi", "mov"}, "Older codec"}},
+    {"prores", {{"mov", "mxf"}, "Best for editing"}}
+};
+
 void Settings::setup()
 {
     setupDefaultProjectPath();
@@ -51,6 +58,56 @@ QString Settings::getFFprobePath()
         qCritical() << "ffprobePath was empty when requested. Renders WILL FAIL";
     }
     return QSettings().value("ffprobePath").toString();
+}
+
+QString Settings::getDefaultCodec()
+{
+    QString defaultCodec = QSettings().value("defaultCodec").toString();
+    if (defaultCodec.isEmpty() || !compatibleFormats.contains(defaultCodec)) {
+        qCritical() << "The default codec was invalid: " << defaultCodec;
+    }
+    return defaultCodec;
+}
+
+QString Settings::getDefaultEncoder()
+{
+    QString defaultEncoder = QSettings().value("defaultEncoder").toString();
+    if (defaultEncoder.isEmpty()) {
+        qCritical() << "The default encoder was invalid: " << defaultEncoder;
+    }
+    return defaultEncoder;
+}
+
+QString Settings::getDefaultFormat()
+{
+    QString defaultFormat = QSettings().value("defaultFormat").toString();
+    if (defaultFormat.isEmpty() || !compatibleFormats.value(getDefaultCodec()).supportedFormats.contains(defaultFormat)) {
+        qCritical() << "The default format was invalid: " << defaultFormat;
+    }
+    return defaultFormat;
+}
+
+QStringList Settings::getAvailableCodecs()
+{
+    QStringList availableCodecs = QSettings().value("availableCodecs").toStringList();
+    if (availableCodecs.isEmpty()) {
+        qCritical() << "The availableCodecs list is empty";
+    }
+    return availableCodecs;
+}
+
+QStringList Settings::getAvailableEncoders()
+{
+    QStringList availableEncoders = QSettings().value("availableEncoders").toStringList();
+    if (availableEncoders.isEmpty()) {
+        qCritical() << "The availableEncoders list is empty";
+    }
+    return availableEncoders;
+}
+
+QStringList Settings::getAvailableFormats(QString codec)
+{
+    return compatibleFormats.value(codec).supportedFormats;
 }
 
 void Settings::setupAppData()
@@ -185,6 +242,20 @@ void Settings::setupBinariesMac(QString* ffmpegPath, QString* ffprobePath)
 
 void Settings::setupEncoders()
 {
+    QSettings settings;
+
+    if (!settings.value("defaultCodec").toString().isEmpty() &&
+        !settings.value("defaultEncoder").toString().isEmpty() &&
+        !settings.value("defaultFormat").toString().isEmpty() &&
+        !settings.value("availableCodecs").toStringList().isEmpty()) {
+
+        if (settings.value("hardwareId").toByteArray() != getHardwareId()) {
+            Dialogs::ok("Looks like you changed some hardware on your computer. The encoding settings will be reset.");
+        } else {
+            return;
+        }
+    }
+
     QProcess p;
     p.start(getFFprobePath(), {"-loglevel", "panic", "-codecs"});
 
@@ -211,10 +282,11 @@ void Settings::setupEncoders()
     }
 
     QTextStream rawOutputStream(&rawOutput, QIODevice::ReadOnly);
-    QStringList supportedEncoders {""};
-    int nFound = 0;
+    QStringList availableCodecs;
+    QString defaultCodec, defaultEncoder;
 
     int i=0;
+
     while (!rawOutputStream.atEnd()) {
         QString line = rawOutputStream.readLine().trimmed();
 
@@ -238,22 +310,98 @@ void Settings::setupEncoders()
             continue;
         }
 
-        QString name = captures.at(1);
-        QString description = captures.at(2);
-        QStringList decoders, encoders;
-
-        if (captures.length() > 3) {
-            decoders = captures.at(3).split(" ");
-        }
+        QString codec = captures.at(1);
+        QStringList encoders;
 
         if (captures.length() > 4) {
             encoders = captures.at(4).split(" ");
         }
 
-        qDebug() << name << description << decoders << encoders;
 
-        nFound++;
+        if (!encoders.isEmpty() && compatibleFormats.contains(codec)) {
+            QString codecLine = codec + "@";
+            if (defaultCodec.isEmpty()) defaultCodec = codec;
+            for (int i=0; i<encoders.length(); i++) {
+                if (i == 0) {
+                    codecLine.append(encoders.at(i));
+                    if (defaultEncoder.isEmpty()) defaultEncoder = encoders.at(i);
+                } else {
+                    codecLine.append("," + encoders.at(i));
+                }
+            }
+            availableCodecs.append(codecLine);
+        }
     }
+
+    settings.setValue("availableCodecs", availableCodecs);
+
+    settings.setValue("defaultCodec", defaultCodec);
+    settings.setValue("defaultEncoder", defaultEncoder);
+    settings.setValue("defaultFormat", compatibleFormats.value(defaultCodec).supportedFormats.first());
+
+    settings.setValue("hardwareId", getHardwareId());
+}
+
+QByteArray Settings::getHardwareId()
+{
+    QCryptographicHash hash(QCryptographicHash::Sha256);
+    hash.addData(getMotherboardName().toUtf8());
+    hash.addData(getCpuName().toUtf8());
+    hash.addData(getGpuNames().join("|").toUtf8());
+    return hash.result();
+}
+
+QStringList Settings::getGpuNames()
+{
+    QStringList gpuNames;
+
+    #ifdef Q_OS_MAC
+    // Nothing because in macos the decoder is always videotoolbox
+    #endif
+
+    #ifdef Q_OS_WIN
+
+    #endif
+
+    #ifdef Q_OS_LIN
+
+    #endif
+
+    return gpuNames;
+}
+
+QString Settings::getCpuName()
+{
+    QString cpuName;
+
+    #ifdef Q_OS_MAC
+    char buffer[128];
+    size_t bufferlen = sizeof(buffer);
+    if (sysctlbyname("machdep.cpu.brand_string", &buffer, &bufferlen, nullptr, 0) == 0) {
+        cpuName = QString(buffer);
+    } else {
+        cpuName = "Unknown CPU";
+    }
+    #endif
+
+    return cpuName;
+}
+
+QString Settings::getMotherboardName()
+{
+    QString motherboardName;
+
+    #ifdef Q_OS_MAC
+    size_t len = 0;
+    sysctlbyname("hw.model", NULL, &len, NULL, 0);
+    if (len) {
+        char model[255];
+        sysctlbyname("hw.model", &model, &len, NULL, 0);
+        motherboardName = model;
+    }
+    #endif
+
+    return motherboardName;
 }
 
 void Settings::qexit(int code)
