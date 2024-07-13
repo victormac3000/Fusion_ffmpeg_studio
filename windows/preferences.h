@@ -9,6 +9,7 @@
 #include <QQuickItem>
 
 #include "utils/dialogs.h"
+#include "utils/settings.h"
 
 namespace Ui {
 class Preferences;
@@ -24,11 +25,16 @@ public:
 
 private slots:
     void changeAppDataDir();
+    void handleRequestEncoders(QString codec);
+    void handleRequestVideoFormats(QString codec);
+    void handleSave(QString data, QString type);
 
 private:
     Ui::Preferences *ui;
     QSettings settings;
     QString errorMsg;
+    QQuickItem *preferencesGeneralArea, *preferencesRenderingArea;
+
 
     bool copyAppData(QString path);
 };

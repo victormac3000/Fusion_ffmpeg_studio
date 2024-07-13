@@ -44,11 +44,18 @@ public:
     static QString getDefaultProjectPath();
     static QString getFFmpegPath();
     static QString getFFprobePath();
+
     static QString getDefaultCodec();
     static QString getDefaultEncoder();
+    static void resetDefaultFormat();
     static QString getDefaultFormat();
+
+    static void setDefaultCodec(QString defaultCodec);
+    static void setDefaultEncoder(QString defaultEncoder);
+    static void setDefaultFormat(QString defaultFormat);
+
     static QStringList getAvailableCodecs();
-    static QStringList getAvailableEncoders();
+    static QStringList getAvailableEncoders(QString codec);
     static QStringList getAvailableFormats(QString codec);
 
 private:

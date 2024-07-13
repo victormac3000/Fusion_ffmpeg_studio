@@ -19,8 +19,8 @@ Preferences::Preferences(QWidget *parent) :
         return;
     }
 
-    QQuickItem* preferencesGeneralArea = root->findChild<QQuickItem*>("preferencesGeneralArea");
-    QQuickItem* preferencesRenderingArea = root->findChild<QQuickItem*>("preferencesRenderingArea");
+    preferencesGeneralArea = root->findChild<QQuickItem*>("preferencesGeneralArea");
+    preferencesRenderingArea = root->findChild<QQuickItem*>("preferencesRenderingArea");
     QQuickItem* appDataPathBrowseButton = root->findChild<QQuickItem*>("appDataPathBrowseButton");
 
 
@@ -30,19 +30,23 @@ Preferences::Preferences(QWidget *parent) :
         return;
     }
 
+    connect(preferencesRenderingArea, SIGNAL(requestEncoders(QString)), this, SLOT(handleRequestEncoders(QString)));
+    connect(preferencesRenderingArea, SIGNAL(requestVideoFormats(QString)), this, SLOT(handleRequestVideoFormats(QString)));
+    connect(preferencesRenderingArea, SIGNAL(save(QString,QString)), this, SLOT(handleSave(QString,QString)));
+    connect(appDataPathBrowseButton, SIGNAL(clicked()), this, SLOT(changeAppDataDir()));
+
     // TODO manage all the settings
 
     preferencesGeneralArea->setProperty("appDataPath", "appDataTest");
     preferencesGeneralArea->setProperty("defaultProjectName", "defaultProjectNameTest");
 
-    QStringList encoders {"A", "N", "X"};
-    QStringList formats {"S", "D", "R"};
 
-    QMetaObject::invokeMethod(preferencesRenderingArea, "addEncoders", Q_ARG(QVariant, QVariant::fromValue(encoders)));
-    QMetaObject::invokeMethod(preferencesRenderingArea, "addFormats", Q_ARG(QVariant, QVariant::fromValue(formats)));
-
-
-    connect(appDataPathBrowseButton, SIGNAL(clicked()), this, SLOT(changeAppDataDir()));
+    QMetaObject::invokeMethod(
+        preferencesRenderingArea,
+        "addCodecs",
+        Q_ARG(QVariant, QVariant::fromValue(Settings::getAvailableCodecs())),
+        Q_ARG(QVariant, Settings::getDefaultCodec())
+    );
 }
 
 Preferences::~Preferences()
@@ -64,6 +68,40 @@ void Preferences::changeAppDataDir()
 
     //ui->appdata->setText(proposedAppDataDir);
     settings.setValue("appData", proposedAppDataDir);
+}
+
+void Preferences::handleRequestEncoders(QString codec)
+{
+    QMetaObject::invokeMethod(
+        preferencesRenderingArea,
+        "addEncoders",
+        Q_ARG(QVariant, QVariant::fromValue(Settings::getAvailableEncoders(codec))),
+        Q_ARG(QVariant, Settings::getDefaultEncoder())
+    );
+}
+
+void Preferences::handleRequestVideoFormats(QString codec)
+{
+    Settings::resetDefaultFormat();
+    QMetaObject::invokeMethod(
+        preferencesRenderingArea,
+        "addFormats",
+        Q_ARG(QVariant, QVariant::fromValue(Settings::getAvailableFormats(codec))),
+        Q_ARG(QVariant, Settings::getDefaultFormat())
+    );
+}
+
+void Preferences::handleSave(QString data, QString type)
+{
+    if (type == "codec") {
+        Settings::setDefaultCodec(data);
+    }
+    if (type == "encoder") {
+        Settings::setDefaultEncoder(data);
+    }
+    if (type == "format") {
+        Settings::setDefaultFormat(data);
+    }
 }
 
 bool Preferences::copyAppData(QString path)

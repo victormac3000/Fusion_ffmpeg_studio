@@ -78,6 +78,12 @@ QString Settings::getDefaultEncoder()
     return defaultEncoder;
 }
 
+void Settings::resetDefaultFormat()
+{
+    QSettings settings;
+    settings.setValue("defaultFormat", compatibleFormats.value(getDefaultCodec()).supportedFormats.first());
+}
+
 QString Settings::getDefaultFormat()
 {
     QString defaultFormat = QSettings().value("defaultFormat").toString();
@@ -87,22 +93,84 @@ QString Settings::getDefaultFormat()
     return defaultFormat;
 }
 
+void Settings::setDefaultCodec(QString defaultCodec)
+{
+    QSettings settings;
+    if (defaultCodec.isEmpty()) {
+        qWarning() << "The default codec to set is empty";
+        return;
+    }
+    if (!getAvailableCodecs().contains(defaultCodec)) {
+        qWarning() << "The provided codec is not available";
+        return;
+    }
+    settings.setValue("defaultCodec", defaultCodec);
+}
+
+void Settings::setDefaultEncoder(QString defaultEncoder)
+{
+    QSettings settings;
+    QString defaultCodec = settings.value("defaultCodec").toString();
+    if (defaultEncoder.isEmpty()) {
+        qWarning() << "The default encoder to set is empty";
+        return;
+    }
+    if (!getAvailableEncoders(defaultCodec).contains(defaultEncoder)) {
+        qWarning() << "The provided encoder is not available";
+        return;
+    }
+    settings.setValue("defaultEncoder", defaultEncoder);
+}
+
+void Settings::setDefaultFormat(QString defaultFormat)
+{
+    QSettings settings;
+    QString defaultCodec = settings.value("defaultCodec").toString();
+    if (defaultFormat.isEmpty()) {
+        qWarning() << "The default format to set is empty";
+        return;
+    }
+    if (!getAvailableFormats(defaultCodec).contains(defaultFormat)) {
+        qWarning() << "The provided format is not available";
+        return;
+    }
+    settings.setValue("defaultFormat", defaultFormat);
+}
+
 QStringList Settings::getAvailableCodecs()
 {
     QStringList availableCodecs = QSettings().value("availableCodecs").toStringList();
-    if (availableCodecs.isEmpty()) {
-        qCritical() << "The availableCodecs list is empty";
+    if (availableCodecs.empty()) {
+        qCritical() << "The available codecs list is empty";
     }
     return availableCodecs;
 }
 
-QStringList Settings::getAvailableEncoders()
+QStringList Settings::getAvailableEncoders(QString codec)
 {
     QStringList availableEncoders = QSettings().value("availableEncoders").toStringList();
-    if (availableEncoders.isEmpty()) {
-        qCritical() << "The availableEncoders list is empty";
+    QStringList availableEncodersReturn;
+
+    if (availableEncoders.empty()) {
+        qCritical() << "The available encoders list is empty";
     }
-    return availableEncoders;
+
+    for (const QString &availableEncoder: availableEncoders) {
+        QStringList availableEncoderSplitted = availableEncoder.split("@");
+        if (availableEncoderSplitted.length() != 2) {
+            qCritical() << "Found an encoder with an invalid format";
+            continue;
+        }
+        if (availableEncoderSplitted.last() == codec) {
+            availableEncodersReturn.append(availableEncoderSplitted.first());
+        }
+    }
+
+    if (availableEncodersReturn.empty()) {
+        qCritical() << "Could not find the encoders for the codec " << codec;
+    }
+
+    return availableEncodersReturn;
 }
 
 QStringList Settings::getAvailableFormats(QString codec)
@@ -244,10 +312,14 @@ void Settings::setupEncoders()
 {
     QSettings settings;
 
+    settings.remove("availableCodecs");
+    settings.remove("availableEncoders");
+
     if (!settings.value("defaultCodec").toString().isEmpty() &&
         !settings.value("defaultEncoder").toString().isEmpty() &&
         !settings.value("defaultFormat").toString().isEmpty() &&
-        !settings.value("availableCodecs").toStringList().isEmpty()) {
+        !settings.value("availableCodecs").toStringList().isEmpty() &&
+        !settings.value("availableEncoders").toStringList().isEmpty()) {
 
         if (settings.value("hardwareId").toByteArray() != getHardwareId()) {
             Dialogs::ok("Looks like you changed some hardware on your computer. The encoding settings will be reset.");
@@ -282,7 +354,7 @@ void Settings::setupEncoders()
     }
 
     QTextStream rawOutputStream(&rawOutput, QIODevice::ReadOnly);
-    QStringList availableCodecs;
+    QStringList availableCodecs, availableEncoders;
     QString defaultCodec, defaultEncoder;
 
     int i=0;
@@ -319,21 +391,17 @@ void Settings::setupEncoders()
 
 
         if (!encoders.isEmpty() && compatibleFormats.contains(codec)) {
-            QString codecLine = codec + "@";
             if (defaultCodec.isEmpty()) defaultCodec = codec;
-            for (int i=0; i<encoders.length(); i++) {
-                if (i == 0) {
-                    codecLine.append(encoders.at(i));
-                    if (defaultEncoder.isEmpty()) defaultEncoder = encoders.at(i);
-                } else {
-                    codecLine.append("," + encoders.at(i));
-                }
+            if (defaultEncoder.isEmpty()) defaultEncoder = encoders.first();
+            availableCodecs.append(codec);
+            for (const QString &encoder: encoders) {
+                availableEncoders.append(encoder + "@" + codec);
             }
-            availableCodecs.append(codecLine);
         }
     }
 
     settings.setValue("availableCodecs", availableCodecs);
+    settings.setValue("availableEncoders", availableEncoders);
 
     settings.setValue("defaultCodec", defaultCodec);
     settings.setValue("defaultEncoder", defaultEncoder);
