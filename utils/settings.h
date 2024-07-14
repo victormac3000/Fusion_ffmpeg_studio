@@ -15,11 +15,6 @@
 #include "utils/exitcodes.h"
 #include "utils/myqsysinfo.h"
 
-struct FormatInfo {
-    QStringList supportedFormats;
-    QString description;
-};
-
 class Settings
 {
 public:
@@ -53,7 +48,7 @@ private:
 
     static void qexit(int code);
 
-    static QMap<QString, FormatInfo> compatibleFormats;
+    static QMap<QString, QStringList> compatibleFormats;
 
 };
 

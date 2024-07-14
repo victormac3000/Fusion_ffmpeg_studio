@@ -1,10 +1,10 @@
 #include "settings.h"
 
-QMap<QString,FormatInfo> Settings::compatibleFormats = {
-    {"h264", {{"mp4", "mkv", "avi", "mov"}, "Most compatible"}},
-    {"hevc", {{"mp4", "mkv", "mov"}, "Most efficient"}},
-    {"mpeg4", {{"mp4", "mkv", "avi", "mov"}, "Older codec"}},
-    {"prores", {{"mov", "mxf"}, "Best for editing"}}
+QMap<QString,QStringList> Settings::compatibleFormats = {
+    {"h264", {"mp4", "mkv", "avi", "mov"}},
+    {"hevc", {"mp4", "mkv", "mov"}},
+    {"mpeg4", {"mp4", "mkv", "avi", "mov"}},
+    {"prores", {"mov", "mxf"}}
 };
 
 void Settings::setup()
@@ -81,13 +81,13 @@ QString Settings::getDefaultEncoder()
 void Settings::resetDefaultFormat()
 {
     QSettings settings;
-    settings.setValue("defaultFormat", compatibleFormats.value(getDefaultCodec()).supportedFormats.first());
+    settings.setValue("defaultFormat", compatibleFormats.value(getDefaultCodec()).first());
 }
 
 QString Settings::getDefaultFormat()
 {
     QString defaultFormat = QSettings().value("defaultFormat").toString();
-    if (defaultFormat.isEmpty() || !compatibleFormats.value(getDefaultCodec()).supportedFormats.contains(defaultFormat)) {
+    if (defaultFormat.isEmpty() || !compatibleFormats.value(getDefaultCodec()).contains(defaultFormat)) {
         qCritical() << "The default format was invalid: " << defaultFormat;
     }
     return defaultFormat;
@@ -175,7 +175,7 @@ QStringList Settings::getAvailableEncoders(QString codec)
 
 QStringList Settings::getAvailableFormats(QString codec)
 {
-    return compatibleFormats.value(codec).supportedFormats;
+    return compatibleFormats.value(codec);
 }
 
 void Settings::setupAppData()
@@ -388,7 +388,7 @@ void Settings::setupEncoders()
 
     settings.setValue("defaultCodec", defaultCodec);
     settings.setValue("defaultEncoder", defaultEncoder);
-    settings.setValue("defaultFormat", compatibleFormats.value(defaultCodec).supportedFormats.first());
+    settings.setValue("defaultFormat", compatibleFormats.value(defaultCodec).first());
 
     settings.setValue("hardwareId", hardwareId);
 }
