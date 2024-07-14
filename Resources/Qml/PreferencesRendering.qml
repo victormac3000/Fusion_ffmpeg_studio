@@ -9,6 +9,92 @@ Rectangle {
     signal requestVideoFormats(codec: string)
     signal save(data: string, type: string)
 
+    property variant formatsInfo: {
+        'mp4': "The most common video format",
+        'mkv': "The most common video format",
+        'avi': "The most common video format",
+        'mov': "The most common video format"
+    }
+
+    property variant codecsInfo: {
+        'h264': {
+            'description': "The most common codec",
+            'encoders': {
+                'libx264': {
+                    'description': 'Open source most common software encoder',
+                    'hardware': false
+                },
+                'libx264rgb': {
+                    'description': 'Like libx264 but outputs RGB instead of YUV',
+                    'hardware': false
+                },
+                'h264_amf': {
+                    'description': "Utilizes AMD's AMF (Advanced Media Framework)",
+                    'hardware': true
+                },
+                'h264_mf': {
+                    'description': "Uses Microsoft's Media Foundation",
+                    'hardware': true
+                },
+                'h264_nvenc': {
+                    'description': "Utilizes NVIDIA's NVENC (NVIDIA Video Encoder) API",
+                    'hardware': true
+                },
+                'h264_qsv': {
+                    'description': "Uses Intel's Quick Sync Video (QSV)",
+                    'hardware': true
+                }
+            }
+        },
+        'hevc': {
+            'description': "The most efficient and modern codec",
+            'encoders': {
+                'libx265': {
+                    'description': 'Open source most common software encoder',
+                    'hardware': false
+                },
+                'hevc_amf': {
+                    'description': "Utilizes AMD's AMF (Advanced Media Framework)",
+                    'hardware': true
+                },
+                'hevc_mf': {
+                    'description': "Uses Microsoft's Media Foundation",
+                    'hardware': true
+                },
+                'hevc_nvenc': {
+                    'description': "Utilizes NVIDIA's NVENC (NVIDIA Video Encoder) API",
+                    'hardware': true
+                },
+                'hevc_qsv': {
+                    'description': "Uses Intel's Quick Sync Video (QSV)",
+                    'hardware': true
+                }
+            }
+        },
+        'mpeg4': {
+            'description': "An older obsolete codec",
+            'encoders': {
+                'mpeg4': {
+                    'description': 'Uses ffmpeg internal encoder implementation',
+                    'hardware': false
+                },
+                'libxvid': {
+                    'description': 'Uses the Xvid library',
+                    'hardware': false
+                }
+            }
+        },
+        'prores': {
+            'description': "Popular codec for editing",
+            'encoders': {
+                'libx264': {
+                    'description': 'Most common software encoder',
+                    'hardware': false
+                }
+            }
+        }
+    }
+
 
     function addCodecs(list, defaultCodec) {
         codecsComboBox.model.clear()
