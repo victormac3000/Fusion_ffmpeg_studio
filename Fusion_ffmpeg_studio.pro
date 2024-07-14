@@ -25,8 +25,10 @@ SOURCES += \
     utils/ffmpeg.cpp \
     utils/logger.cpp \
     utils/mediainfo.cpp \
+    utils/myqsysinfo.cpp \
     utils/renderer.cpp \
     utils/settings.cpp \
+    utils/myqsysinfo.cpp \
     windows/about.cpp \
     windows/mainwindow.cpp \
     panes/editorpane.cpp \
@@ -50,6 +52,7 @@ HEADERS += \
     utils/mediainfo.h \
     utils/renderer.h \
     utils/settings.h \
+    utils/myqsysinfo.h \
     windows/about.h \
     windows/mainwindow.h \
     panes/editorpane.h \
@@ -66,6 +69,11 @@ FORMS += \
     panes/loadingpane.ui \
     panes/welcomepane.ui \
     windows/preferences.ui
+
+win32 {
+    LIBS += -lwbemuuid -ladvapi32
+    QMAKE_LFLAGS -= -lwbemuuid -ladvapi32
+}
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

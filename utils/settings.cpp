@@ -235,15 +235,46 @@ void Settings::setupBinaries()
     QString ffmpegPath, ffprobePath;
 
     #ifdef Q_OS_WIN
-    setupBinariesWin(&ffmpegPath, &ffprobePath);
+    QDir binariesFolder = QDir(QCoreApplication::applicationDirPath());
+
+    if (!binariesFolder.cd("Binaries")) {
+        Dialogs::criticalStart(
+            "The binary resources dir does not exist. The path is: " +
+            binariesFolder.absolutePath()
+            );
+    }
+
+    QFileInfo ffmpegInfo(binariesFolder.absolutePath() + "/ffmpeg.exe");
+    QFileInfo ffprobeInfo(binariesFolder.absolutePath() + "/ffprobe.exe");
+
+    if (!ffmpegInfo.exists() || !ffmpegInfo.isExecutable()) {
+        Dialogs::criticalStart(
+            "The ffmpeg binary does not exist or is not executable. The path is: " +
+            ffmpegInfo.absolutePath()
+            );
+    }
+
+    if (!ffprobeInfo.exists() || !ffprobeInfo.isExecutable()) {
+        Dialogs::criticalStart(
+            "The ffprobe binary does not exist or is not executable. The path is: " +
+            ffmpegInfo.absolutePath()
+            );
+    }
+
+    ffmpegPath = ffmpegInfo.absoluteFilePath();
+    ffprobePath = ffprobeInfo.absoluteFilePath();
     #endif
 
     #ifdef Q_OS_MAC
-    setupBinariesMac(&ffmpegPath, &ffprobePath);
+    // TODO find included binaries
+    ffmpegPath = "/usr/local/bin/ffmpeg";
+    ffprobePath = "/usr/local/bin/ffprobe";
     #endif
 
     #ifdef Q_OS_LINUX
-    setupBinariesLin(&ffmpegPath, &ffprobePath);
+    // TODO find included binaries
+    ffmpegPath = "/usr/bin/ffmpeg";
+    ffprobePath = "/usr/bin/ffprobe";
     #endif
 
     if (ffmpegPath.isEmpty() || !QFile(ffmpegPath).exists() || !QFileInfo(ffmpegPath).isExecutable()) {
@@ -262,58 +293,10 @@ void Settings::setupBinaries()
     settings.setValue("ffprobePath", ffprobePath);
 }
 
-void Settings::setupBinariesWin(QString* ffmpegPath, QString* ffprobePath)
-{
-    QDir binariesFolder = QDir(QCoreApplication::applicationDirPath());
-
-    if (!binariesFolder.cd("Binaries")) {
-        Dialogs::criticalStart(
-            "The binary resources dir does not exist. The path is: " +
-            binariesFolder.absolutePath()
-        );
-    }
-
-    QFileInfo ffmpegInfo(binariesFolder.absolutePath() + "/ffmpeg.exe");
-    QFileInfo ffprobeInfo(binariesFolder.absolutePath() + "/ffprobe.exe");
-
-    if (!ffmpegInfo.exists() || !ffmpegInfo.isExecutable()) {
-        Dialogs::criticalStart(
-            "The ffmpeg binary does not exist or is not executable. The path is: " +
-            ffmpegInfo.absolutePath()
-        );
-    }
-
-    if (!ffprobeInfo.exists() || !ffprobeInfo.isExecutable()) {
-        Dialogs::criticalStart(
-            "The ffprobe binary does not exist or is not executable. The path is: " +
-            ffmpegInfo.absolutePath()
-        );
-    }
-
-    ffmpegPath->assign(ffmpegInfo.absoluteFilePath());
-    ffprobePath->assign(ffprobeInfo.absoluteFilePath());
-}
-
-void Settings::setupBinariesLin(QString* ffmpegPath, QString* ffprobePath)
-{
-    // TODO find included binaries
-    ffmpegPath->assign("/usr/bin/ffmpeg");
-    ffprobePath->assign("/usr/bin/ffprobe");
-}
-
-void Settings::setupBinariesMac(QString* ffmpegPath, QString* ffprobePath)
-{
-    // TODO find included binaries
-    ffmpegPath->assign("/usr/local/bin/ffmpeg");
-    ffprobePath->assign("/usr/local/bin/ffprobe");
-}
-
 void Settings::setupEncoders()
 {
     QSettings settings;
-
-    settings.remove("availableCodecs");
-    settings.remove("availableEncoders");
+    QByteArray hardwareId = MyQSysInfo::hardwareId();
 
     if (!settings.value("defaultCodec").toString().isEmpty() &&
         !settings.value("defaultEncoder").toString().isEmpty() &&
@@ -321,7 +304,7 @@ void Settings::setupEncoders()
         !settings.value("availableCodecs").toStringList().isEmpty() &&
         !settings.value("availableEncoders").toStringList().isEmpty()) {
 
-        if (settings.value("hardwareId").toByteArray() != getHardwareId()) {
+        if (settings.value("hardwareId").toByteArray() != hardwareId) {
             Dialogs::ok("Looks like you changed some hardware on your computer. The encoding settings will be reset.");
         } else {
             return;
@@ -407,69 +390,7 @@ void Settings::setupEncoders()
     settings.setValue("defaultEncoder", defaultEncoder);
     settings.setValue("defaultFormat", compatibleFormats.value(defaultCodec).supportedFormats.first());
 
-    settings.setValue("hardwareId", getHardwareId());
-}
-
-QByteArray Settings::getHardwareId()
-{
-    QCryptographicHash hash(QCryptographicHash::Sha256);
-    hash.addData(getMotherboardName().toUtf8());
-    hash.addData(getCpuName().toUtf8());
-    hash.addData(getGpuNames().join("|").toUtf8());
-    return hash.result();
-}
-
-QStringList Settings::getGpuNames()
-{
-    QStringList gpuNames;
-
-    #ifdef Q_OS_MAC
-    // Nothing because in macos the decoder is always videotoolbox
-    #endif
-
-    #ifdef Q_OS_WIN
-
-    #endif
-
-    #ifdef Q_OS_LIN
-
-    #endif
-
-    return gpuNames;
-}
-
-QString Settings::getCpuName()
-{
-    QString cpuName;
-
-    #ifdef Q_OS_MAC
-    char buffer[128];
-    size_t bufferlen = sizeof(buffer);
-    if (sysctlbyname("machdep.cpu.brand_string", &buffer, &bufferlen, nullptr, 0) == 0) {
-        cpuName = QString(buffer);
-    } else {
-        cpuName = "Unknown CPU";
-    }
-    #endif
-
-    return cpuName;
-}
-
-QString Settings::getMotherboardName()
-{
-    QString motherboardName;
-
-    #ifdef Q_OS_MAC
-    size_t len = 0;
-    sysctlbyname("hw.model", NULL, &len, NULL, 0);
-    if (len) {
-        char model[255];
-        sysctlbyname("hw.model", &model, &len, NULL, 0);
-        motherboardName = model;
-    }
-    #endif
-
-    return motherboardName;
+    settings.setValue("hardwareId", hardwareId);
 }
 
 void Settings::qexit(int code)

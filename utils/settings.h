@@ -10,24 +10,10 @@
 #include <iostream>
 #include <QRegularExpression>
 #include <QMap>
-#include <QCryptographicHash>
-
-
-#ifdef Q_OS_MAC
-#include <sys/types.h>
-#include <sys/sysctl.h>
-#endif
-
-#ifdef Q_OS_WIN
-
-#endif
-
-#ifdef Q_OS_LIN
-
-#endif
 
 #include "utils/dialogs.h"
 #include "utils/exitcodes.h"
+#include "utils/myqsysinfo.h"
 
 struct FormatInfo {
     QStringList supportedFormats;
@@ -63,15 +49,7 @@ private:
     static void setupDefaultProjectPath();
     static void setupDefaultProjectName();
     static void setupBinaries();
-    static void setupBinariesWin(QString* ffmpegPath, QString* ffprobePath);
-    static void setupBinariesLin(QString* ffmpegPath, QString* ffprobePath);
-    static void setupBinariesMac(QString* ffmpegPath, QString* ffprobePath);
     static void setupEncoders();
-    static QByteArray getHardwareId();
-    static QStringList getGpuNames();
-    static QString getCpuName();
-    static QString getMotherboardName();
-
 
     static void qexit(int code);
 
