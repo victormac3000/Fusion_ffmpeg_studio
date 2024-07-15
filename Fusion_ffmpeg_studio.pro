@@ -28,7 +28,6 @@ SOURCES += \
     utils/myqsysinfo.cpp \
     utils/renderer.cpp \
     utils/settings.cpp \
-    utils/myqsysinfo.cpp \
     windows/about.cpp \
     windows/mainwindow.cpp \
     panes/editorpane.cpp \
