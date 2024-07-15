@@ -6,6 +6,8 @@
 #include <QDebug>
 #include <QCryptographicHash>
 #include <iostream>
+#include <QFile>
+#include <QElapsedTimer>
 
 #ifdef Q_OS_MAC
 #include <sys/types.h>
@@ -21,8 +23,8 @@
 #pragma comment(lib, "wbemuuid.lib")
 #endif
 
-#ifdef Q_OS_LIN
-
+#ifdef Q_OS_LINUX
+#include <fstream>
 #endif
 
 class MyQSysInfo : public QSysInfo
@@ -32,6 +34,9 @@ public:
     static QStringList gpuNames();
     static QString motherboardId();
     static QByteArray hardwareId();
+
+private:
+    static std::string readFile(const std::string& path);
 
 };
 

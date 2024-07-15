@@ -50,6 +50,25 @@ QString MyQSysInfo::cpuName()
     }
     #endif
 
+    #ifdef Q_OS_LINUX
+    std::ifstream cpuFile("/proc/cpuinfo");
+    std::string line;
+
+    if (!cpuFile.is_open()) {
+        qWarning() << "Cannot get CPU name. Cannot open CPU info file on /proc/cpuinfo";
+        return cpuName;
+    }
+
+    while (std::getline(cpuFile, line)) {
+        if (line.find("model name") != std::string::npos) {
+            cpuName = QString::fromStdString(line.substr(line.find(":") + 2));
+            break;
+        }
+    }
+
+    cpuFile.close();
+    #endif
+
     return cpuName;
 }
 
@@ -139,8 +158,37 @@ QStringList MyQSysInfo::gpuNames()
     CoUninitialize();
     #endif
 
-    #ifdef Q_OS_LIN
+    #ifdef Q_OS_LINUX
+    QElapsedTimer tmr;
+    tmr.start();
+    std::string basePath = "/sys/class/drm/";
 
+    for (const auto& entry : std::filesystem::directory_iterator(basePath)) {
+        std::string path = entry.path();
+        if (path.find("card") != std::string::npos && path.find("render") == std::string::npos) {
+            std::string devicePath = path + "/device";
+            std::ifstream vendorFile(devicePath + "/vendor");
+            std::ifstream deviceFile(devicePath + "/device");
+
+            if (vendorFile.is_open() && deviceFile.is_open()) {
+                std::string vendorID, deviceID;
+                std::getline(vendorFile, vendorID);
+                std::getline(deviceFile, deviceID);
+
+                unsigned int vendor = std::stoul(vendorID, nullptr, 16);
+
+                if (vendor == 0x10de) {
+                    gpuNames.push_back("NVIDIA GPU");
+                } else if (vendor == 0x1002) {
+                    gpuNames.push_back("AMD GPU");
+                } else if (vendor == 0x8086) {
+                    gpuNames.push_back("Intel GPU");
+                } else {
+                    gpuNames.push_back("Unknown GPU");
+                }
+            }
+        }
+    }
     #endif
 
     return gpuNames;
@@ -402,7 +450,31 @@ QString MyQSysInfo::motherboardId()
     }
     #endif
 
+    #ifdef Q_OS_LINUX
+    std::string basePath = "/sys/class/dmi/id/";
+    std::string vendorFile = basePath + "board_vendor";
+    std::string modelFile = basePath + "board_name";
+
+    std::string vendor = readFile(vendorFile);
+    std::string model = readFile(modelFile);
+
+    motherboardName = QString::fromStdString(vendor + " " + model);
+    #endif
+
     return motherboardName;
+}
+
+std::string MyQSysInfo::readFile(const std::string& path)
+{
+    std::ifstream file(path);
+    std::string content;
+    if (file.is_open()) {
+        std::getline(file, content);
+        file.close();
+    } else {
+        qWarning() << "Could not get motherboard name. Could not open file " << QString::fromStdString(path);
+    }
+    return content;
 }
 
 QByteArray MyQSysInfo::hardwareId()
