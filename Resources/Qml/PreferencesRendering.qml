@@ -11,14 +11,15 @@ Rectangle {
 
     property variant formatsInfo: {
         'mp4': "The most common video format",
-        'mkv': "The most common video format",
-        'avi': "The most common video format",
-        'mov': "The most common video format"
+        'mkv': "Open standard format",
+        'avi': "Older propietary Microsoft format",
+        'mov': "A format developed by Apple to store high resolution videos",
+        "mxf": "A professional format mainly used for TV prroduction and broadcasting"
     }
 
     property variant codecsInfo: {
         'h264': {
-            'description': "The most common codec",
+            'description': "The most common codec\nUse libx265 for quality, anything else with hardware acceleration for speed",
             'encoders': {
                 'libx264': {
                     'description': 'Open source most common software encoder',
@@ -47,7 +48,7 @@ Rectangle {
             }
         },
         'hevc': {
-            'description': "The most efficient and modern codec",
+            'description': "The most efficient and modern codec\nUse libx265 for quality, anything else with hardware acceleration for speed",
             'encoders': {
                 'libx265': {
                     'description': 'Open source most common software encoder',
@@ -72,7 +73,7 @@ Rectangle {
             }
         },
         'mpeg4': {
-            'description': "An older obsolete codec",
+            'description': "An older obsolete codec\nUse libxvid unless you want more legacy suppprt. libxvid is faster and produces lighter and better quality videos",
             'encoders': {
                 'mpeg4': {
                     'description': 'Uses ffmpeg internal encoder implementation',
@@ -85,10 +86,18 @@ Rectangle {
             }
         },
         'prores': {
-            'description': "Popular codec for editing",
+            'description': "Popular codec for editing\nFor general use with a good balance between quality and performance: Use prores_aw.\nFor scenarios where output quality is paramount and you need fine control: Use prores_ks.\nFor basic encoding: Use prores",
             'encoders': {
-                'libx264': {
-                    'description': 'Most common software encoder',
+                'prores': {
+                    'description': 'Uses ffmpeg internal encoder implementation',
+                    'hardware': false
+                },
+                'prores_aw': {
+                    'description': 'Based on the libavcodec library’s implementation',
+                    'hardware': false
+                },
+                'prores_ks': {
+                    'description': 'Another implementation of the ProRes encoder in FFmpeg by Kostya Shishkov',
                     'hardware': false
                 }
             }
@@ -120,6 +129,7 @@ Rectangle {
             encodersComboBox.model.append({text: list[i]})
         }
         encodersComboBox.currentIndex = defaultEncoderIndex
+        encodersComboBox.currentIndexChanged()
     }
 
     function addFormats(list, defaultFormat) {
@@ -132,6 +142,7 @@ Rectangle {
             formatsComboBox.model.append({text: list[i]})
         }
         formatsComboBox.currentIndex = defaultComboBoxIndex
+        formatsComboBox.currentIndexChanged()
     }
 
     ColumnLayout {
@@ -142,24 +153,23 @@ Rectangle {
             Layout.alignment: Qt.AlignCenter | Qt.AlignTop
             Layout.fillHeight: true
             Layout.fillWidth: true
-            Layout.columnSpan: 2
             columns: 3
 
             Rectangle {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                Layout.maximumHeight: 50
                 Layout.alignment: Qt.AlignTop
+                Layout.maximumWidth: parent.width*0.15
                 border.color: "green"
                 border.width: 3
 
                 Text {
                     anchors.fill: parent
-                    font.pointSize: 20
+                    font.pointSize: 12
                     minimumPointSize: 10
                     fontSizeMode: Text.Fit
                     font.family: "Arial"
-                    text: "Output video codec"
+                    text: "Codec"
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                     padding: 5
@@ -169,22 +179,48 @@ Rectangle {
             Rectangle {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                Layout.maximumHeight: 50
                 Layout.alignment: Qt.AlignTop
                 border.color: "green"
                 border.width: 3
-                Layout.columnSpan: 2
+
+                TextEdit {
+                    id: codecDescriptionText
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    clip: true
+                    font.pointSize: 12
+                    font.family: "Arial"
+                    text: ""
+                    wrapMode: Text.WordWrap
+                    readOnly: true
+                    horizontalAlignment: Text.AlignLeft
+                    verticalAlignment: Text.AlignTop
+                    padding: 5
+                }
+
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.alignment: Qt.AlignTop
+                border.color: "green"
+                border.width: 3
 
                 ComboBox {
                     id: codecsComboBox
                     anchors.fill: parent
                     anchors.margins: 10
-                    font.pointSize: 20
+                    font.pointSize: 12
                     model: ListModel {}
                     currentIndex: 0
 
                     onCurrentIndexChanged: {
                         save(model.get(currentIndex).text, "codec")
+                        var codecObject = codecsInfo[currentText]
+                        if (typeof codecObject != "undefined") {
+                            codecDescriptionText.text = codecObject.description
+                        }
                         requestEncoders(model.get(currentIndex).text)
                         requestVideoFormats(model.get(currentIndex).text)
                     }
@@ -195,14 +231,14 @@ Rectangle {
             Rectangle {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                Layout.maximumHeight: 50
                 Layout.alignment: Qt.AlignTop
+                Layout.maximumWidth: parent.width*0.15
                 border.color: "green"
                 border.width: 3
 
                 Text {
                     anchors.fill: parent
-                    font.pointSize: 20
+                    font.pointSize: 12
                     minimumPointSize: 10
                     fontSizeMode: Text.Fit
                     font.family: "Arial"
@@ -216,24 +252,29 @@ Rectangle {
             Rectangle {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                Layout.maximumHeight: 50
                 Layout.alignment: Qt.AlignTop
                 border.color: "green"
                 border.width: 3
 
-                Text {
-                    id: encoderDescriptionText
-                    anchors.fill: parent
-                    anchors.margins: 10
-                    font.pointSize: 20
+                TextEdit {
+                    id: encodersDescriptionText
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    clip: true
+                    font.pointSize: 12
+                    font.family: "Arial"
                     text: ""
+                    readOnly: true
+                    wrapMode: Text.WordWrap
+                    horizontalAlignment: Text.AlignLeft
+                    verticalAlignment: Text.AlignTop
+                    padding: 5
                 }
             }
 
             Rectangle {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                Layout.maximumHeight: 50
                 Layout.alignment: Qt.AlignTop
                 border.color: "green"
                 border.width: 3
@@ -242,13 +283,20 @@ Rectangle {
                     id: encodersComboBox
                     anchors.fill: parent
                     anchors.margins: 10
-                    font.pointSize: 20
+                    font.pointSize: 12
                     model: ListModel {}
                     currentIndex: 0
 
                     onCurrentIndexChanged: {
                         if (currentIndex >= 0) {
                             save(model.get(currentIndex).text, "encoder")
+                            var codecObject = codecsInfo[codecsComboBox.currentText]
+                            if (typeof codecObject != "undefined") {
+                                var encoderObject = codecsInfo[codecsComboBox.currentText].encoders[currentText]
+                                if (typeof encoderObject != "undefined") {
+                                    encodersDescriptionText.text = encoderObject.description + "\n"
+                                }
+                            }
                         }
                     }
                 }
@@ -257,18 +305,18 @@ Rectangle {
             Rectangle {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                Layout.maximumHeight: 50
                 Layout.alignment: Qt.AlignTop
+                Layout.maximumWidth: parent.width*0.15
                 border.color: "green"
                 border.width: 3
 
                 Text {
                     anchors.fill: parent
-                    font.pointSize: 20
+                    font.pointSize: 12
                     minimumPointSize: 10
                     fontSizeMode: Text.Fit
                     font.family: "Arial"
-                    text: "Video format"
+                    text: "Format"
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                     padding: 5
@@ -278,23 +326,48 @@ Rectangle {
             Rectangle {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                Layout.maximumHeight: 50
                 Layout.alignment: Qt.AlignTop
                 border.color: "green"
                 border.width: 3
-                Layout.columnSpan: 2
+
+                TextEdit {
+                    id: videoFormatsDescriptionText
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    clip: true
+                    font.pointSize: 12
+                    font.family: "Arial"
+                    text: ""
+                    readOnly: true
+                    wrapMode: Text.WordWrap
+                    horizontalAlignment: Text.AlignLeft
+                    verticalAlignment: Text.AlignTop
+                    padding: 5
+                }
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.alignment: Qt.AlignTop
+                border.color: "green"
+                border.width: 3
 
                 ComboBox {
                     id: formatsComboBox
                     anchors.fill: parent
                     anchors.margins: 10
-                    font.pointSize: 20
+                    font.pointSize: 12
                     model: ListModel {}
                     currentIndex: 0
 
                     onCurrentIndexChanged: {
                         if (currentIndex >= 0) {
                             save(model.get(currentIndex).text, "format")
+                            var videoFormatInfoObject = formatsInfo[currentText]
+                            if (typeof videoFormatInfoObject != "undefined") {
+                                videoFormatsDescriptionText.text = videoFormatInfoObject + "\n"
+                            }
                         }
                     }
                 }
