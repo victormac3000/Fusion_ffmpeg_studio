@@ -36,7 +36,9 @@ public:
     static QByteArray hardwareId();
 
 private:
+#ifdef Q_OS_LINUX
     static std::string readFile(const std::string& path);
+#endif
 
 };
 

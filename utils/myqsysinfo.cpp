@@ -464,6 +464,7 @@ QString MyQSysInfo::motherboardId()
     return motherboardName;
 }
 
+#ifdef Q_OS_LINUX
 std::string MyQSysInfo::readFile(const std::string& path)
 {
     std::ifstream file(path);
@@ -476,6 +477,7 @@ std::string MyQSysInfo::readFile(const std::string& path)
     }
     return content;
 }
+#endif
 
 QByteArray MyQSysInfo::hardwareId()
 {
