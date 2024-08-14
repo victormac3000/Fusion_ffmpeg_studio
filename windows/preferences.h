@@ -34,7 +34,6 @@ private:
     QSettings settings;
     QString errorMsg;
     QQuickItem *preferencesGeneralArea, *preferencesRenderingArea;
-    QQuickItem *changeAppDataPathButton;
     QQuickItem *codecsComboBox, *encodersComboBox, *formatsComboBox;
 
     bool copyAppData(QString path);

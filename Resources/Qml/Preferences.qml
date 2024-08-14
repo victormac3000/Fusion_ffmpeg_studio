@@ -25,13 +25,13 @@ Rectangle {
             TabButton {
                 Layout.fillWidth: true
                 text: qsTr("General")
-                font.pointSize: font.pointSize * constants.fontSizeScale
+                //font.pointSize: font.pointSize * constants.fontSizeScale
             }
 
             TabButton {
                 Layout.fillWidth: true
                 text: qsTr("Rendering")
-                font.pointSize: font.pointSize * constants.fontSizeScale
+                //font.pointSize: font.pointSize * constants.fontSizeScale
             }
         }
 

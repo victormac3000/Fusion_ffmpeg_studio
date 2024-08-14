@@ -32,9 +32,10 @@ Preferences::Preferences(QWidget *parent) :
         return;
     }
 
-    changeAppDataPathButton = preferencesGeneralArea->findChild<QQuickItem*>("appDataPathBrowseButton");
+    QQuickItem *changeAppDataPathButton = preferencesGeneralArea->findChild<QQuickItem*>("appDataPathBrowseButton");
+    QQuickItem *fontSizeScaleSlider = preferencesGeneralArea->findChild<QQuickItem*>("fontSizeScaleSlider");
 
-    if (changeAppDataPathButton == nullptr) {
+    if (changeAppDataPathButton == nullptr || fontSizeScaleSlider == nullptr) {
         qWarning() << "Could not find QML objects from preferences general area";
         return;
     }

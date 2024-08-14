@@ -126,7 +126,7 @@ Rectangle {
                         Layout.margins: 5
                         Layout.alignment: Qt.AlignCenter
                         text: qsTr("Browse")
-                        font.pointSize: font.pointSize * constants.fontSizeScale
+                        //font.pointSize: font.pointSize * constants.fontSizeScale
                     }
                 }
 
@@ -171,6 +171,115 @@ Rectangle {
                     placeholderTextColor: "grey"
                     text: defaultProjectName
                 }
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.alignment: Qt.AlignTop
+                Layout.maximumHeight: 70
+                border.width: 3
+                border.color: "green"
+
+                Text {
+                    anchors.fill: parent
+                    font.pointSize: 16 * constants.fontSizeScale
+                    font.family: "Arial"
+                    text: qsTr("Font size scale")
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    padding: 5
+                }
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.alignment: Qt.AlignTop
+                Layout.maximumHeight: 70
+                Layout.columnSpan: 2
+                border.width: 3
+                border.color: "green"
+
+
+                RowLayout {
+                    width: parent.width
+                    height: parent.height
+                    Layout.margins: 10
+
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        Layout.alignment: Qt.AlignTop
+                        Layout.maximumHeight: fontSizeScaleSlider.height
+                        Layout.margins: 10
+
+                        Text {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            font.pointSize: 16 * constants.fontSizeScale
+                            font.family: "Arial"
+                            text: fontSizeScaleSlider.from
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                    }
+
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        Layout.margins: 10
+
+                        Slider {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            id: fontSizeScaleSlider
+                            objectName: "fontSizeScaleSlider"
+                            from: 0.5
+                            value: 1.0
+                            to: 3.0
+                            stepSize: 0.1
+
+                            onMoved: {
+                                constants.fontSizeScale = value
+                            }
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            Layout.alignment: Qt.AlignTop
+                            font.pointSize: 16 * constants.fontSizeScale
+                            font.family: "Arial"
+                            text: fontSizeScaleSlider.value
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                    }
+
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        Layout.alignment: Qt.AlignTop
+                        Layout.maximumHeight: fontSizeScaleSlider.height
+                        Layout.margins: 10
+
+                        Text {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            font.pointSize: 16 * constants.fontSizeScale
+                            font.family: "Arial"
+                            text: fontSizeScaleSlider.to
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                    }
+
+                }
+
             }
         }
     }
