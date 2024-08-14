@@ -5,11 +5,6 @@ import QtQuick.Layouts
 Rectangle {
     color: "lightgrey"
 
-    Constants {
-        id: constants
-        visible: false
-    }
-
     ColumnLayout {
         width: parent.width
         height: parent.height
@@ -31,7 +26,7 @@ Rectangle {
 
                 Text {
                     anchors.fill: parent
-                    font.pointSize: 16
+                    font.pointSize: 16 * constants.fontSizeScale
                     clip: true
                     font.family: "Arial"
                     text: "Codec"
@@ -57,7 +52,7 @@ Rectangle {
 
                     TextArea {
                         id: codecsDescriptionText
-                        font.pointSize: 16
+                        font.pointSize: 16 * constants.fontSizeScale
                         clip: true
                         font.family: "Arial"
                         text: ""
@@ -85,7 +80,7 @@ Rectangle {
                     objectName: "codecsComboBox"
                     anchors.fill: parent
                     anchors.margins: 10
-                    font.pointSize: 16
+                    font.pointSize: 16 * constants.fontSizeScale
 
                     onCurrentIndexChanged: {
                         var selectedCodec = model.get(currentIndex).text
@@ -111,7 +106,7 @@ Rectangle {
 
                 Text {
                     anchors.fill: parent
-                    font.pointSize: 16
+                    font.pointSize: 16 * constants.fontSizeScale
                     font.family: "Arial"
                     text: "Encoder"
                     horizontalAlignment: Text.AlignHCenter
@@ -136,7 +131,7 @@ Rectangle {
                     TextArea {
                         id: encodersDescriptionText
                         clip: true
-                        font.pointSize: 16
+                        font.pointSize: 16 * constants.fontSizeScale
                         font.family: "Arial"
                         text: ""
                         readOnly: true
@@ -179,7 +174,7 @@ Rectangle {
                     objectName: "encodersComboBox"
                     anchors.fill: parent
                     anchors.margins: 10
-                    font.pointSize: 16
+                    font.pointSize: 16 * constants.fontSizeScale
 
                     onCurrentIndexChanged: {
                         if (currentIndex >= 0) {
@@ -210,7 +205,7 @@ Rectangle {
 
                 Text {
                     anchors.fill: parent
-                    font.pointSize: 16
+                    font.pointSize: 16 * constants.fontSizeScale
                     font.family: "Arial"
                     text: "Format"
                     horizontalAlignment: Text.AlignHCenter
@@ -236,7 +231,7 @@ Rectangle {
                     TextArea {
                         id: formatsDescriptionText
                         clip: true
-                        font.pointSize: 16
+                        font.pointSize: 16 * constants.fontSizeScale
                         font.family: "Arial"
                         text: ""
                         readOnly: true
@@ -261,7 +256,7 @@ Rectangle {
                     objectName: "formatsComboBox"
                     anchors.fill: parent
                     anchors.margins: 10
-                    font.pointSize: 16
+                    font.pointSize: 16 * constants.fontSizeScale
 
                     onCurrentIndexChanged: {
                         if (currentIndex >= 0) {

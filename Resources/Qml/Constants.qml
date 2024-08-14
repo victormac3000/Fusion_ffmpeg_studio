@@ -1,6 +1,7 @@
 import QtQuick 2.15
 
 Item {
+    property double fontSizeScale: 1.0
 
     property variant codecsInfo: {
         'h264': "The most common codec\nUse libx265 for quality, anything else with hardware acceleration for speed",

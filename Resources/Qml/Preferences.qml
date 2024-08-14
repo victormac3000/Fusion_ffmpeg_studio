@@ -8,6 +8,11 @@ Rectangle {
     height: 400
     color: "lightblue"
 
+    Constants {
+        id: constants
+        visible: false
+    }
+
     ColumnLayout {
         anchors.fill: parent
 
@@ -20,11 +25,13 @@ Rectangle {
             TabButton {
                 Layout.fillWidth: true
                 text: qsTr("General")
+                font.pointSize: font.pointSize * constants.fontSizeScale
             }
 
             TabButton {
                 Layout.fillWidth: true
                 text: qsTr("Rendering")
+                font.pointSize: font.pointSize * constants.fontSizeScale
             }
         }
 

@@ -28,24 +28,33 @@ Preferences::Preferences(QWidget *parent) :
     if (preferencesGeneralArea == nullptr || preferencesRenderingArea == nullptr ||
         appDataPathBrowseButton == nullptr)
     {
-        qWarning() << "Could not find QML objects";
+        qWarning() << "Could not find QML objects for the preferences areas";
         return;
     }
 
+    changeAppDataPathButton = preferencesGeneralArea->findChild<QQuickItem*>("appDataPathBrowseButton");
+
+    if (changeAppDataPathButton == nullptr) {
+        qWarning() << "Could not find QML objects from preferences general area";
+        return;
+    }
+
+    preferencesGeneralArea->setProperty("appDataPath", Settings::getAppDataPath());
+    preferencesGeneralArea->setProperty("defaultProjectName", "defaultProjectNameTest");
+
+    connect(changeAppDataPathButton, SIGNAL(clicked()), this, SLOT(changeAppDataDir()));
 
     codecsComboBox = preferencesRenderingArea->findChild<QQuickItem*>("codecsComboBox");
     encodersComboBox = preferencesRenderingArea->findChild<QQuickItem*>("encodersComboBox");
     formatsComboBox = preferencesRenderingArea->findChild<QQuickItem*>("formatsComboBox");
 
-    if (codecsComboBox == nullptr || encodersComboBox == nullptr || formatsComboBox == nullptr) {
+
+    if (codecsComboBox == nullptr || encodersComboBox == nullptr ||
+        formatsComboBox == nullptr)
+    {
         qWarning() << "Could not find QML objects from preferences rendering area";
         return;
     }
-
-    // TODO manage all the settings general
-
-    preferencesGeneralArea->setProperty("appDataPath", "appDataTest");
-    preferencesGeneralArea->setProperty("defaultProjectName", "defaultProjectNameTest");
 
     connect(codecsComboBox, SIGNAL(save(QString,QString)), this, SLOT(handleSave(QString,QString)));
     connect(codecsComboBox, SIGNAL(codecChanged()), this, SLOT(handleCodecChanged()));
@@ -82,7 +91,7 @@ void Preferences::changeAppDataDir()
         return;
     }
 
-    //ui->appdata->setText(proposedAppDataDir);
+    preferencesGeneralArea->setProperty("appDataPath", proposedAppDataDir);
     settings.setValue("appData", proposedAppDataDir);
 }
 

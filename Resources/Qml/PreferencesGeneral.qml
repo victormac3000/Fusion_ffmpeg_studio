@@ -7,7 +7,7 @@ Rectangle {
     width: 800
     height: 600
 
-    property string appDataPath: ""
+    property string appDataPath: "/Users/victor/Library/Application Support/Victor Corporation/Fusion FFmpeg Studio"
     property string defaultProjectName: ""
 
     ColumnLayout {
@@ -23,54 +23,81 @@ Rectangle {
             Rectangle {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                Layout.maximumHeight: 50
                 Layout.alignment: Qt.AlignTop
+                Layout.maximumHeight: 100
                 border.width: 3
                 border.color: "green"
 
-                Text {
-                    anchors.fill: parent
-                    font.pointSize: 16
-                    font.family: "Arial"
-                    text: qsTr("Application data path")
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                    padding: 5
+                ColumnLayout {
+                    width: parent.width
+                    height: parent.height
 
-                    MouseArea {
-                        id: appDataPathImageMouseArea
-                        anchors.fill: parent
-                        hoverEnabled: true
-
-                        onEntered: {
-                            appDataPathPopup.open()
-                        }
-
-                        onExited: {
-                            closePopup()
-                        }
+                    Text {
+                        Layout.fillHeight: true
+                        Layout.fillWidth: true
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        font.bold: true
+                        font.pointSize: 16 * constants.fontSizeScale
+                        font.family: "Arial"
+                        text: qsTr("Application data path")
+                        topPadding: 10
+                        leftPadding: 10
+                        rightPadding: 10
+                        wrapMode: Text.WordWrap
                     }
 
-                    Popup {
-                        id: appDataPathPopup
-                        width: 200
-                        height: contentItem.implicitHeight
+                    Rectangle {
+                        Layout.fillHeight: true
+                        Layout.fillWidth: true
+                        Layout.minimumHeight: 3
+                        Layout.maximumHeight: 3
+                        color: "blue"
+                    }
 
-                        contentItem: Rectangle {
-                            id: contentRect
-                            color: "grey"
-                            implicitWidth: 200
-                            implicitHeight: textElement.implicitHeight + 10 // Adding some padding
+                    Text {
+                        Layout.fillHeight: true
+                        Layout.fillWidth: true
+                        Layout.alignment: Qt.AlignBottom
+                        font.pointSize: 16 * constants.fontSizeScale
+                        font.family: "Arial"
+                        wrapMode: Text.WordWrap
+                        bottomPadding: 10
+                        leftPadding: 10
+                        rightPadding: 10
+                        text: qsTr("This folder contains the logs of the application and temporary files")
+                    }
+                }
+            }
 
-                            Text {
-                                id: textElement
-                                anchors.fill: parent
-                                font.pointSize: 16
-                                font.family: "Arial"
-                                text: qsTr("This folder contains the logs of the application and temporary files")
-                                wrapMode: Text.WordWrap
-                                padding: 5
-                            }
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.alignment: Qt.AlignTop
+                Layout.maximumHeight: 100
+                border.color: "green"
+                border.width: 3
+
+                ColumnLayout {
+                    width: parent.width
+                    height: parent.height
+
+                    ScrollView {
+                        Layout.fillHeight: true
+                        Layout.fillWidth: true
+                        Layout.margins: 10
+                        contentHeight: parent.height
+
+                        TextArea {
+                            font.pointSize: 16 * constants.fontSizeScale
+                            clip: true
+                            font.family: "Arial"
+                            text: appDataPath
+                            wrapMode: Text.WordWrap
+                            readOnly: true
+                            horizontalAlignment: Text.AlignLeft
+                            verticalAlignment: Text.AlignTop
+                            padding: 5
                         }
                     }
                 }
@@ -79,50 +106,44 @@ Rectangle {
             Rectangle {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                Layout.maximumHeight: 50
                 Layout.alignment: Qt.AlignTop
-                border.color: "green"
-                border.width: 3
-
-                Text {
-                    anchors.fill: parent
-                    font.pointSize: 16
-                    font.family: "Arial"
-                    text: appDataPath
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                    padding: 5
-                }
-            }
-
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                Layout.maximumHeight: 50
-                Layout.alignment: Qt.AlignTop
+                Layout.maximumHeight: 100
                 Layout.maximumWidth: 100
                 border.width: 3
                 border.color: "green"
 
-                MyButton {
-                    id: appDataPathBrowseButton
-                    objectName: "appDataPathBrowseButton"
-                    anchors.fill: parent
-                    text: qsTr("Browse")
+                ColumnLayout {
+                    height: parent.height
+                    width: parent.width
+
+                    MyButton {
+                        id: appDataPathBrowseButton
+                        objectName: "appDataPathBrowseButton"
+                        Layout.fillHeight: true
+                        Layout.fillWidth: true
+                        Layout.maximumHeight: 50
+                        Layout.maximumWidth: 100
+                        Layout.margins: 5
+                        Layout.alignment: Qt.AlignCenter
+                        text: qsTr("Browse")
+                        font.pointSize: font.pointSize * constants.fontSizeScale
+                    }
                 }
+
+
             }
 
             Rectangle {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                Layout.maximumHeight: 50
                 Layout.alignment: Qt.AlignTop
+                Layout.maximumHeight: 50
                 border.width: 3
                 border.color: "green"
 
                 Text {
                     anchors.fill: parent
-                    font.pointSize: 16
+                    font.pointSize: 16 * constants.fontSizeScale
                     font.family: "Arial"
                     text: qsTr("Default project name")
                     horizontalAlignment: Text.AlignHCenter
@@ -143,7 +164,7 @@ Rectangle {
                 TextField {
                     anchors.fill: parent
                     anchors.margins: 5
-                    font.pointSize: 16
+                    font.pointSize: 16 * constants.fontSizeScale
                     font.family: "Arial"
                     hoverEnabled: true
                     placeholderText: "Example_Project"
@@ -152,22 +173,5 @@ Rectangle {
                 }
             }
         }
-    }
-
-    Timer {
-        id: timer
-        repeat: false
-
-        function delay(delayTime, cb) {
-            timer.interval = delayTime
-            timer.triggered.connect(cb)
-            timer.start()
-        }
-    }
-
-    function closePopup() {
-        timer.delay(100, function() {
-            appDataPathPopup.close()
-        })
     }
 }
