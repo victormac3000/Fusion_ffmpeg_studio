@@ -27,6 +27,11 @@
         <file>Qml/Preferences.qml</file>
         <file>Qml/PreferencesGeneral.qml</file>
         <file>Qml/PreferencesRendering.qml</file>
+        <file>Qml/Constants.qml</file>
+        <file>Qml/MyComboBox.qml</file>
+        <file>Images/cpu_icon.png</file>
+        <file>Images/gpu_icon.png</file>
+        <file>Images/Information.png</file>
     </qresource>
     <qresource prefix="/Qml">
         <file>Icons/VideoPlayer/Left.png</file>
@@ -38,5 +43,7 @@
         <file>Icons/Queue/dropdown.png</file>
         <file>Images/AppIcon.png</file>
         <file>Images/Information.png</file>
+        <file>Images/cpu_icon.png</file>
+        <file>Images/gpu_icon.png</file>
     </qresource>
 </RCC>

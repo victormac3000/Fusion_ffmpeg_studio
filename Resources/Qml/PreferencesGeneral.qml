@@ -30,9 +30,7 @@ Rectangle {
 
                 Text {
                     anchors.fill: parent
-                    font.pointSize: 20
-                    minimumPointSize: 10
-                    fontSizeMode: Text.Fit
+                    font.pointSize: 16
                     font.family: "Arial"
                     text: qsTr("Application data path")
                     horizontalAlignment: Text.AlignHCenter
@@ -67,9 +65,7 @@ Rectangle {
                             Text {
                                 id: textElement
                                 anchors.fill: parent
-                                font.pointSize: 20
-                                minimumPointSize: 10
-                                fontSizeMode: Text.Fit
+                                font.pointSize: 16
                                 font.family: "Arial"
                                 text: qsTr("This folder contains the logs of the application and temporary files")
                                 wrapMode: Text.WordWrap
@@ -90,9 +86,7 @@ Rectangle {
 
                 Text {
                     anchors.fill: parent
-                    font.pointSize: 20
-                    minimumPointSize: 10
-                    fontSizeMode: Text.Fit
+                    font.pointSize: 16
                     font.family: "Arial"
                     text: appDataPath
                     horizontalAlignment: Text.AlignHCenter
@@ -128,9 +122,7 @@ Rectangle {
 
                 Text {
                     anchors.fill: parent
-                    font.pointSize: 20
-                    minimumPointSize: 10
-                    fontSizeMode: Text.Fit
+                    font.pointSize: 16
                     font.family: "Arial"
                     text: qsTr("Default project name")
                     horizontalAlignment: Text.AlignHCenter
@@ -151,7 +143,7 @@ Rectangle {
                 TextField {
                     anchors.fill: parent
                     anchors.margins: 5
-                    font.pointSize: 20
+                    font.pointSize: 16
                     font.family: "Arial"
                     hoverEnabled: true
                     placeholderText: "Example_Project"

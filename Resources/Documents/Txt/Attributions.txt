@@ -3,3 +3,13 @@ https://www.rawpixel.com/image/6664576 - Settings button icon
 https://github.com/zhuzichu520/FluentUI - UI components
 https://dabreha.blogspot.com/2022/12/qml-flat-button.html
 https://es.m.wikipedia.org/wiki/Archivo:Logo_informations.svg
+
+GPU LOGO ATTRIBUTION START
+Image by <a href=" https://www.vectorportal.com" >Vectorportal.com</a>,
+<a class="external text" href="https://creativecommons.org/licenses/by/4.0/" >CC BY</a>
+GPU LOGO ATTRIBUTION END
+
+CPU LOGO ATTRIBUTION START
+Image by <a href=" https://www.vectorportal.com" >Vectorportal.com</a>,
+<a class="external text" href="https://creativecommons.org/licenses/by/4.0/" >CC BY</a>
+CPU LOGO ATTRIBUTION END

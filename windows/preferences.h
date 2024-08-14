@@ -7,6 +7,7 @@
 #include <QFile>
 #include <QFileDialog>
 #include <QQuickItem>
+#include <QJsonObject>
 
 #include "utils/dialogs.h"
 #include "utils/settings.h"
@@ -25,16 +26,15 @@ public:
 
 private slots:
     void changeAppDataDir();
-    void handleRequestEncoders(QString codec);
-    void handleRequestVideoFormats(QString codec);
     void handleSave(QString data, QString type);
+    void handleCodecChanged();
 
 private:
     Ui::Preferences *ui;
     QSettings settings;
     QString errorMsg;
     QQuickItem *preferencesGeneralArea, *preferencesRenderingArea;
-
+    QQuickItem *codecsComboBox, *encodersComboBox, *formatsComboBox;
 
     bool copyAppData(QString path);
 };

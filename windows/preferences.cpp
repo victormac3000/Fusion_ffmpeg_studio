@@ -19,34 +19,50 @@ Preferences::Preferences(QWidget *parent) :
         return;
     }
 
+
     preferencesGeneralArea = root->findChild<QQuickItem*>("preferencesGeneralArea");
     preferencesRenderingArea = root->findChild<QQuickItem*>("preferencesRenderingArea");
     QQuickItem* appDataPathBrowseButton = root->findChild<QQuickItem*>("appDataPathBrowseButton");
 
 
     if (preferencesGeneralArea == nullptr || preferencesRenderingArea == nullptr ||
-        appDataPathBrowseButton == nullptr) {
+        appDataPathBrowseButton == nullptr)
+    {
         qWarning() << "Could not find QML objects";
         return;
     }
 
-    connect(preferencesRenderingArea, SIGNAL(requestEncoders(QString)), this, SLOT(handleRequestEncoders(QString)));
-    connect(preferencesRenderingArea, SIGNAL(requestVideoFormats(QString)), this, SLOT(handleRequestVideoFormats(QString)));
-    connect(preferencesRenderingArea, SIGNAL(save(QString,QString)), this, SLOT(handleSave(QString,QString)));
-    connect(appDataPathBrowseButton, SIGNAL(clicked()), this, SLOT(changeAppDataDir()));
 
-    // TODO manage all the settings
+    codecsComboBox = preferencesRenderingArea->findChild<QQuickItem*>("codecsComboBox");
+    encodersComboBox = preferencesRenderingArea->findChild<QQuickItem*>("encodersComboBox");
+    formatsComboBox = preferencesRenderingArea->findChild<QQuickItem*>("formatsComboBox");
+
+    if (codecsComboBox == nullptr || encodersComboBox == nullptr || formatsComboBox == nullptr) {
+        qWarning() << "Could not find QML objects from preferences rendering area";
+        return;
+    }
+
+    // TODO manage all the settings general
 
     preferencesGeneralArea->setProperty("appDataPath", "appDataTest");
     preferencesGeneralArea->setProperty("defaultProjectName", "defaultProjectNameTest");
 
+    connect(codecsComboBox, SIGNAL(save(QString,QString)), this, SLOT(handleSave(QString,QString)));
+    connect(codecsComboBox, SIGNAL(codecChanged()), this, SLOT(handleCodecChanged()));
+    connect(encodersComboBox, SIGNAL(save(QString,QString)), this, SLOT(handleSave(QString,QString)));
+    connect(formatsComboBox, SIGNAL(save(QString,QString)), this, SLOT(handleSave(QString,QString)));
+
+    QStringList availableCodecs = Settings::getAvailableCodecs();
+    QString defaultCodec = Settings::getDefaultCodec();
 
     QMetaObject::invokeMethod(
-        preferencesRenderingArea,
-        "addCodecs",
-        Q_ARG(QVariant, QVariant::fromValue(Settings::getAvailableCodecs())),
-        Q_ARG(QVariant, Settings::getDefaultCodec())
+        codecsComboBox,
+        "add",
+        Q_ARG(QVariant, availableCodecs),
+        Q_ARG(QVariant, defaultCodec)
     );
+
+    handleSave(defaultCodec, "codec");
 }
 
 Preferences::~Preferences()
@@ -70,31 +86,24 @@ void Preferences::changeAppDataDir()
     settings.setValue("appData", proposedAppDataDir);
 }
 
-void Preferences::handleRequestEncoders(QString codec)
-{
-    QMetaObject::invokeMethod(
-        preferencesRenderingArea,
-        "addEncoders",
-        Q_ARG(QVariant, QVariant::fromValue(Settings::getAvailableEncoders(codec))),
-        Q_ARG(QVariant, Settings::getDefaultEncoder())
-    );
-}
-
-void Preferences::handleRequestVideoFormats(QString codec)
-{
-    Settings::resetDefaultFormat();
-    QMetaObject::invokeMethod(
-        preferencesRenderingArea,
-        "addFormats",
-        Q_ARG(QVariant, QVariant::fromValue(Settings::getAvailableFormats(codec))),
-        Q_ARG(QVariant, Settings::getDefaultFormat())
-    );
-}
-
 void Preferences::handleSave(QString data, QString type)
 {
     if (type == "codec") {
         Settings::setDefaultCodec(data);
+
+        QMetaObject::invokeMethod(
+            encodersComboBox,
+            "add",
+            Q_ARG(QVariant, QVariant::fromValue(Settings::getAvailableEncoders(Settings::getDefaultCodec()))),
+            Q_ARG(QVariant, Settings::getDefaultEncoder())
+        );
+
+        QMetaObject::invokeMethod(
+            formatsComboBox,
+            "add",
+            Q_ARG(QVariant, QVariant::fromValue(Settings::getAvailableFormats(Settings::getDefaultCodec()))),
+            Q_ARG(QVariant, Settings::getDefaultFormat())
+        );
     }
     if (type == "encoder") {
         Settings::setDefaultEncoder(data);
@@ -102,6 +111,29 @@ void Preferences::handleSave(QString data, QString type)
     if (type == "format") {
         Settings::setDefaultFormat(data);
     }
+}
+
+void Preferences::handleCodecChanged()
+{
+    QStringList availableEncoders = Settings::getAvailableEncoders(Settings::getDefaultCodec());
+    QString defaultEncoder = Settings::getDefaultEncoder();
+
+    QMetaObject::invokeMethod(
+        encodersComboBox,
+        "add",
+        Q_ARG(QVariant, availableEncoders),
+        Q_ARG(QVariant, defaultEncoder)
+    );
+
+    QStringList availableFormats = Settings::getAvailableFormats(Settings::getDefaultCodec());
+    QString defaultFormat = Settings::getDefaultFormat();
+
+    QMetaObject::invokeMethod(
+        formatsComboBox,
+        "add",
+        Q_ARG(QVariant, availableFormats),
+        Q_ARG(QVariant, defaultFormat)
+    );
 }
 
 bool Preferences::copyAppData(QString path)
