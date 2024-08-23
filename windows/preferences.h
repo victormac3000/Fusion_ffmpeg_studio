@@ -36,7 +36,7 @@ private:
     QQuickItem *preferencesGeneralArea, *preferencesRenderingArea;
     QQuickItem *codecsComboBox, *encodersComboBox, *formatsComboBox;
 
-    bool copyAppData(QString path);
+    QString copyAppData(QString path);
 };
 
 #endif // PREFERENCES_H

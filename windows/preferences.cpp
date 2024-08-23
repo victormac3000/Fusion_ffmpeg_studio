@@ -7,6 +7,8 @@ Preferences::Preferences(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    setWindowTitle("Settings");
+
     if (ui->quickWidget == nullptr) {
         qWarning() << "Settings could not found quickWidget element";
         return;
@@ -33,9 +35,8 @@ Preferences::Preferences(QWidget *parent) :
     }
 
     QQuickItem *changeAppDataPathButton = preferencesGeneralArea->findChild<QQuickItem*>("appDataPathBrowseButton");
-    QQuickItem *fontSizeScaleSlider = preferencesGeneralArea->findChild<QQuickItem*>("fontSizeScaleSlider");
 
-    if (changeAppDataPathButton == nullptr || fontSizeScaleSlider == nullptr) {
+    if (changeAppDataPathButton == nullptr) {
         qWarning() << "Could not find QML objects from preferences general area";
         return;
     }
@@ -87,8 +88,11 @@ void Preferences::changeAppDataDir()
     );
     if (proposedAppDataDir.isEmpty()) return;
 
-    if (!copyAppData(proposedAppDataDir)) {
-        Dialogs::warning("Cannot change the rendered directory, failed to copy appdata contents to the new path");
+    QString copyAppDataErr = copyAppData(proposedAppDataDir);
+
+    if (!copyAppDataErr.isEmpty()) {
+        Dialogs::warning("Could not change the appData directory: " + copyAppDataErr,
+                        "Failed to copy appdata contents to the new path: " + copyAppDataErr);
         return;
     }
 
@@ -146,28 +150,41 @@ void Preferences::handleCodecChanged()
     );
 }
 
-bool Preferences::copyAppData(QString path)
+QString Preferences::copyAppData(QString path)
 {
-    return false;
-    // TODO fix
-    QDir dir(settings.value("appData").toString());
+    QString appDataPath = Settings::getAppDataPath();
+
+    QDir dir(appDataPath);
     QDir newDir(path);
+
+    if (!dir.exists() || !dir.isReadable()) {
+        qCritical() << "Actual appdata does not exist";
+        return "Critical error occurred";
+    }
+
+    if (!newDir.exists() || !QFileInfo(path).isWritable()) {
+        qWarning() << "Could not move appdata to a non writable directory";
+        return "You must select a writable directory";
+    }
+
+    if (!newDir.isEmpty()) {
+        return "You must select an empty directory";
+    }
 
     QFileInfoList dirFiles = dir.entryInfoList(QDir::NoDotAndDotDot | QDir::AllDirs | QDir::Files);
 
     for (const QFileInfo &dirFileInfo: dirFiles) {
         QString src = dirFileInfo.absoluteFilePath();
         QString dst = newDir.absolutePath() + "/" + dirFileInfo.fileName();
-        if (QFile::exists(dst) && !QFile::remove(dst)) {
-            qWarning() << "Could not delete existing file in destination: "<< dst;
-            return false;
+        if (QFile::exists(dst)) {
+            qWarning() << "File exists in destination and shouldnt exist: "<< dst;
+            return "Error copying the files. View the logs for more information";
         }
         if (!QFile(src).copy(dst)) {
             qWarning() << "Could not copy file "<< src << " to " << dst;
-            return false;
+            return "Error copying the files. View the logs for more information";
         }
     }
 
-    settings.setValue("appData", path);
-    return true;
+    return "";
 }
