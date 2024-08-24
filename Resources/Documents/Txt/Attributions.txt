@@ -13,3 +13,11 @@ CPU LOGO ATTRIBUTION START
 Image by <a href=" https://www.vectorportal.com" >Vectorportal.com</a>,
 <a class="external text" href="https://creativecommons.org/licenses/by/4.0/" >CC BY</a>
 CPU LOGO ATTRIBUTION END
+
+SD CARD LOGO ATTRIUBUTION START
+<a href="https://www.flaticon.com/free-icons/sd-card" title="sd card icons">Sd card icons created by DinosoftLabs - Flaticon</a>
+SD CARD LOGO ATTRIUBUTION END
+
+FOLDER ICON LOGO ATTRIBUTION START
+<a href="https://www.flaticon.com/free-icons/folder" title="folder icons">Folder icons created by juicy_fish - Flaticon</a>
+FOLDER ICON LOGO ATTRIBUTION END

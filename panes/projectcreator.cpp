@@ -8,6 +8,8 @@ ProjectCreator::ProjectCreator(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    /*
+
     this->mainWindow = (MainWindow*) parent;
 
     if (mainWindow != nullptr) {
@@ -25,6 +27,7 @@ ProjectCreator::ProjectCreator(QWidget *parent) :
     connect(ui->browse_project_location, SIGNAL(clicked()), this, SLOT(browseProjectLocationClicked()));
     connect(ui->cancel_button, SIGNAL(clicked()), this, SLOT(cancelButtonClicked()));
     connect(ui->create_button, SIGNAL(clicked()), this, SLOT(createButtonClicked()));
+*/
 }
 
 ProjectCreator::~ProjectCreator()
@@ -34,32 +37,39 @@ ProjectCreator::~ProjectCreator()
 
 void ProjectCreator::projectNameChanged(QString newName)
 {
+    /*
     ui->project_location->setText(settings.value("defaultProjectPath").toString() + "/" + newName);
+    */
 }
 
 void ProjectCreator::browseDCIMFolderClicked()
 {
+    /*
     QString proposedDCIMFolder = QFileDialog::getExistingDirectory(
         this, tr("Select the DCIM directory"), "/Users/victor/Documents/NoTM/2023_02_11_Nieve/Test/DCIM", QFileDialog::ShowDirsOnly
     );
     ui->dcim_location->setText(proposedDCIMFolder);
+*/
 }
 
 void ProjectCreator::browseProjectLocationClicked()
 {
+    /*
     QString proposedProjectFolder = QFileDialog::getExistingDirectory(
         this, tr("Select the project directory"), "/Users/victor/Documents/NoTM/2023_02_11_Nieve/Test/Project", QFileDialog::ShowDirsOnly
     );
     ui->project_location->setText(proposedProjectFolder + "/" + ui->project_name->text());
+*/
 }
 
 void ProjectCreator::cancelButtonClicked()
 {
-    emit changePane(new WelcomePane(mainWindow));
+    //emit changePane(new WelcomePane(mainWindow));
 }
 
 void ProjectCreator::createButtonClicked()
 {
+    /*
     QString projectName = ui->project_name->text();
     QString DCIMFolder = ui->dcim_location->text();
     QString projectFolder = ui->project_location->text();
@@ -82,4 +92,5 @@ void ProjectCreator::createButtonClicked()
     }
     LoadingPane *loader = new LoadingPane(mainWindow, projectFolder, DCIMFolder, projectName);
     emit changePane(loader);
+*/
 }

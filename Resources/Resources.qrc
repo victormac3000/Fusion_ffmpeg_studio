@@ -32,6 +32,7 @@
         <file>Images/cpu_icon.png</file>
         <file>Images/gpu_icon.png</file>
         <file>Images/Information.png</file>
+        <file>Qml/CreateProject.qml</file>
     </qresource>
     <qresource prefix="/Qml">
         <file>Icons/VideoPlayer/Left.png</file>
@@ -45,5 +46,7 @@
         <file>Images/Information.png</file>
         <file>Images/cpu_icon.png</file>
         <file>Images/gpu_icon.png</file>
+        <file>Images/folder.png</file>
+        <file>Images/sd-card.png</file>
     </qresource>
 </RCC>
