@@ -8,11 +8,6 @@ About::About(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    if (ui->quickWidget == nullptr) {
-        qWarning() << "About could not found quickWidget element";
-        return;
-    }
-
     QQuickItem* root = ui->quickWidget->rootObject();
 
     if (root == nullptr) {
@@ -48,11 +43,18 @@ About::About(QWidget *parent) :
     buildInfoGrid->setProperty("compilationType", compilationType);
     buildInfoGrid->setProperty("compilationOSName", QSysInfo::productType());
     buildInfoGrid->setProperty("compilationOSVersion", QSysInfo::productVersion());
+
+    init = true;
 }
 
 About::~About()
 {
     delete ui;
+}
+
+bool About::getInit()
+{
+    return init;
 }
 
 QString About::getLicenseText(int license)

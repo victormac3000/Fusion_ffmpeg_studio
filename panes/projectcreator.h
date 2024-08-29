@@ -1,8 +1,6 @@
 #ifndef PROJECTCREATOR_H
 #define PROJECTCREATOR_H
 
-#include "panes/welcomepane.h"
-
 #include <QWidget>
 #include <QSettings>
 #include <QStandardPaths>
@@ -25,11 +23,9 @@ signals:
     void changePane(QWidget *pane);
 
 private slots:
-    void projectNameChanged(QString newName);
-    void browseDCIMFolderClicked();
-    void browseProjectLocationClicked();
-    void cancelButtonClicked();
-    void createButtonClicked();
+    void sdCardClicked();
+    void folderClicked();
+    void backButtonClicked();
 
 private:
     Ui::ProjectCreator *ui;

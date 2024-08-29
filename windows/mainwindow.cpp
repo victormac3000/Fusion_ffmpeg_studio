@@ -12,8 +12,6 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
     delete ui;
-    delete preferencesWindow;
-    delete aboutWindow;
 }
 
 QMenuBar *MainWindow::getMenuBar()
@@ -32,6 +30,11 @@ void MainWindow::clearMenuBar()
     }
     ui->menubar->addMenu("File");
     */
+}
+
+void MainWindow::setTitle(QString title)
+{
+    setWindowTitle(QCoreApplication::applicationName() + " - " + title);
 }
 
 bool MainWindow::changePane(QWidget* pane)
@@ -67,24 +70,4 @@ void MainWindow::clearLayout(QLayout* layout)
         }
         delete item;
     }
-}
-
-void MainWindow::displayAbout()
-{
-    if (aboutWindow == nullptr) {
-        aboutWindow = new About;
-        aboutWindow->setWindowTitle("About");
-        aboutWindow->setWindowModality(Qt::ApplicationModal);
-    }
-    aboutWindow->show();
-}
-
-void MainWindow::displayPreferences()
-{
-    if (preferencesWindow == nullptr) {
-        preferencesWindow = new Preferences;
-        preferencesWindow->setWindowTitle("Preferences");
-        preferencesWindow->setWindowModality(Qt::ApplicationModal);
-    }
-    preferencesWindow->show();
 }

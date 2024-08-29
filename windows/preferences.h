@@ -23,6 +23,7 @@ class Preferences : public QDialog
 public:
     explicit Preferences(QWidget *parent = nullptr);
     ~Preferences();
+    bool getInit();
 
 private slots:
     void changeAppDataDir();
@@ -35,6 +36,7 @@ private:
     QString errorMsg;
     QQuickItem *preferencesGeneralArea, *preferencesRenderingArea;
     QQuickItem *codecsComboBox, *encodersComboBox, *formatsComboBox;
+    bool init = false;
 
     QString copyAppData(QString path);
 };

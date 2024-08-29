@@ -7,13 +7,6 @@ Preferences::Preferences(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    setWindowTitle("Settings");
-
-    if (ui->quickWidget == nullptr) {
-        qWarning() << "Settings could not found quickWidget element";
-        return;
-    }
-
     QQuickItem* root = ui->quickWidget->rootObject();
 
     if (root == nullptr) {
@@ -74,11 +67,18 @@ Preferences::Preferences(QWidget *parent) :
     );
 
     handleSave(defaultCodec, "codec");
+
+    init = true;
 }
 
 Preferences::~Preferences()
 {
     delete ui;
+}
+
+bool Preferences::getInit()
+{
+    return init;
 }
 
 void Preferences::changeAppDataDir()

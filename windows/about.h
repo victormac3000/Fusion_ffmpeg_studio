@@ -19,10 +19,12 @@ class About : public QDialog
 public:
     explicit About(QWidget *parent = nullptr);
     ~About();
+    bool getInit();
 
 private:
     Ui::About *ui;
     QString getLicenseText(int name = LICENSE_MAIN);
+    bool init = false;
 };
 
 #endif // ABOUT_H

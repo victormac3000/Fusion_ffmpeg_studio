@@ -54,9 +54,14 @@ Rectangle {
                     color: "#3E3EFA"
 
                     MouseArea {
-                        id: sdCardMouseArea
+                        objectName: "sdCardMouseArea"
                         anchors.fill: parent
                         hoverEnabled: true
+                        signal clickDetected()
+
+                        onClicked: {
+                            clickDetected()
+                        }
 
                         onEntered: {
                             parent.color = "#8B8BFF"
@@ -77,11 +82,17 @@ Rectangle {
                     Layout.fillHeight: true
                     Layout.fillWidth: true
                     radius: 15
+                    color: "#3E3EFA"
 
                     MouseArea {
-                        id: dcimFolderMouseArea
+                        objectName: "dcimFolderMouseArea"
                         anchors.fill: parent
                         hoverEnabled: true
+                        signal clickDetected()
+
+                        onClicked: {
+                            clickDetected()
+                        }
 
                         onEntered: {
                             parent.color = "#8B8BFF"
@@ -107,6 +118,21 @@ Rectangle {
                     }
                 }
 
+            }
+
+        }
+
+        Rectangle {
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            Layout.maximumHeight: 50
+            Layout.margins: 5
+            radius: 15
+
+            MyButton {
+                objectName: "createProjectBackButton"
+                anchors.fill: parent
+                text: qsTr("Back")
             }
 
         }

@@ -21,6 +21,8 @@ SOURCES += \
     models/project.cpp \
     models/renderwork.cpp \
     panes/projectcreator.cpp \
+    panes/projectcreatorfolder.cpp \
+    panes/projectcreatorsd.cpp \
     utils/dialogs.cpp \
     utils/ffmpeg.cpp \
     utils/logger.cpp \
@@ -44,6 +46,8 @@ HEADERS += \
     models/project.h \
     models/renderwork.h \
     panes/projectcreator.h \
+    panes/projectcreatorfolder.h \
+    panes/projectcreatorsd.h \
     utils/dialogs.h \
     utils/exitcodes.h \
     utils/ffmpeg.h \
@@ -62,6 +66,8 @@ HEADERS += \
 
 FORMS += \
     panes/projectcreator.ui \
+    panes/projectcreatorfolder.ui \
+    panes/projectcreatorsd.ui \
     windows/about.ui \
     windows/mainwindow.ui \
     panes/editorpane.ui \

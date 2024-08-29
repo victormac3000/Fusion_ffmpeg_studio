@@ -102,13 +102,27 @@ void WelcomePane::recentProjectClicked(QVariant rectangle)
 void WelcomePane::aboutButtonClicked()
 {
     About* aboutWindow = new About;
+    aboutWindow->setWindowTitle("About");
+    aboutWindow->setWindowModality(Qt::ApplicationModal);
+    if (!aboutWindow->getInit()) {
+        Dialogs::warning("Could not open About window");
+        return;
+    }
     aboutWindow->exec();
+    delete aboutWindow;
 }
 
 void WelcomePane::settingsButtonClicked()
 {
     Preferences* preferencesWindow = new Preferences;
+    preferencesWindow->setWindowTitle("Preferences");
+    preferencesWindow->setWindowModality(Qt::ApplicationModal);
+    if (!preferencesWindow->getInit()) {
+        Dialogs::warning("Could not open Preferences window");
+        return;
+    }
     preferencesWindow->exec();
+    delete preferencesWindow;
 }
 
 void WelcomePane::searchRecentProjects(QString text)

@@ -33,6 +33,7 @@
         <file>Images/gpu_icon.png</file>
         <file>Images/Information.png</file>
         <file>Qml/CreateProject.qml</file>
+        <file>Qml/CreateProjectFolder.qml</file>
     </qresource>
     <qresource prefix="/Qml">
         <file>Icons/VideoPlayer/Left.png</file>

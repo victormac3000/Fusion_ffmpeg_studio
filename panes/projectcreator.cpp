@@ -1,6 +1,9 @@
 #include "projectcreator.h"
 #include "ui_projectcreator.h"
 #include "windows/mainwindow.h"
+#include "panes/welcomepane.h"
+#include "panes/projectcreatorfolder.h"
+#include "panes/projectcreatorsd.h"
 
 ProjectCreator::ProjectCreator(QWidget *parent) :
     QWidget(parent),
@@ -8,26 +11,43 @@ ProjectCreator::ProjectCreator(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    /*
-
     this->mainWindow = (MainWindow*) parent;
 
     if (mainWindow != nullptr) {
-        mainWindow->setWindowTitle(QCoreApplication::applicationName() + " - New project");
-        //mainWindow->clearMenuBar();
+        mainWindow->setTitle("Create project");
     } else {
-        qWarning() << "MainWindow not found";
+        Dialogs::critical(
+            "Error loading the project creator",
+            "MainWindow pointer is null"
+        );
+        return;
     }
 
-    ui->project_location->setText(settings.value("defaultProjectPath").toString());
+    QQuickItem* root = ui->quickWidget->rootObject();
 
-    // Connect buttons
-    connect(ui->project_name, SIGNAL(textChanged(QString)), this, SLOT(projectNameChanged(QString)));
-    connect(ui->browse_dcim_location, SIGNAL(clicked()), this, SLOT(browseDCIMFolderClicked()));
-    connect(ui->browse_project_location, SIGNAL(clicked()), this, SLOT(browseProjectLocationClicked()));
-    connect(ui->cancel_button, SIGNAL(clicked()), this, SLOT(cancelButtonClicked()));
-    connect(ui->create_button, SIGNAL(clicked()), this, SLOT(createButtonClicked()));
-*/
+    if (root == nullptr) {
+        Dialogs::critical(
+            "Error loading the project creator",
+            "Could not found quickWidget element root QML object. Rolling back to Welcome Pane"
+        );
+        return;
+    }
+
+    QQuickItem* sdCardMouseArea = root->findChild<QQuickItem*>("sdCardMouseArea");
+    QQuickItem* dcimFolderMouseArea = root->findChild<QQuickItem*>("dcimFolderMouseArea");
+    QQuickItem* createProjectBackButton = root->findChild<QQuickItem*>("createProjectBackButton");
+
+    if (sdCardMouseArea == nullptr || dcimFolderMouseArea == nullptr || createProjectBackButton == nullptr) {
+        Dialogs::critical(
+            "Error loading the project creator",
+            "Could not find QML objects"
+        );
+        return;
+    }
+
+    connect(sdCardMouseArea, SIGNAL(clickDetected()), this, SLOT(sdCardClicked()));
+    connect(dcimFolderMouseArea, SIGNAL(clickDetected()), this, SLOT(folderClicked()));
+    connect(createProjectBackButton, SIGNAL(clicked()), this, SLOT(backButtonClicked()));
 }
 
 ProjectCreator::~ProjectCreator()
@@ -35,62 +55,17 @@ ProjectCreator::~ProjectCreator()
     delete ui;
 }
 
-void ProjectCreator::projectNameChanged(QString newName)
+void ProjectCreator::sdCardClicked()
 {
-    /*
-    ui->project_location->setText(settings.value("defaultProjectPath").toString() + "/" + newName);
-    */
+    emit changePane(new ProjectCreatorSd(mainWindow));
 }
 
-void ProjectCreator::browseDCIMFolderClicked()
+void ProjectCreator::folderClicked()
 {
-    /*
-    QString proposedDCIMFolder = QFileDialog::getExistingDirectory(
-        this, tr("Select the DCIM directory"), "/Users/victor/Documents/NoTM/2023_02_11_Nieve/Test/DCIM", QFileDialog::ShowDirsOnly
-    );
-    ui->dcim_location->setText(proposedDCIMFolder);
-*/
+    emit changePane(new ProjectCreatorFolder(mainWindow));
 }
 
-void ProjectCreator::browseProjectLocationClicked()
+void ProjectCreator::backButtonClicked()
 {
-    /*
-    QString proposedProjectFolder = QFileDialog::getExistingDirectory(
-        this, tr("Select the project directory"), "/Users/victor/Documents/NoTM/2023_02_11_Nieve/Test/Project", QFileDialog::ShowDirsOnly
-    );
-    ui->project_location->setText(proposedProjectFolder + "/" + ui->project_name->text());
-*/
-}
-
-void ProjectCreator::cancelButtonClicked()
-{
-    //emit changePane(new WelcomePane(mainWindow));
-}
-
-void ProjectCreator::createButtonClicked()
-{
-    /*
-    QString projectName = ui->project_name->text();
-    QString DCIMFolder = ui->dcim_location->text();
-    QString projectFolder = ui->project_location->text();
-
-    // Check that the strings are not empty
-
-    if (projectName.isEmpty()) {
-        Dialogs::warning("The project name cannot be empty");
-        return;
-    }
-
-    if (DCIMFolder.isEmpty()) {
-        Dialogs::warning("The project DCIM folder cannot be empty");
-        return;
-    }
-
-    if (projectFolder.isEmpty()) {
-        Dialogs::warning("The project folder cannot be empty");
-        return;
-    }
-    LoadingPane *loader = new LoadingPane(mainWindow, projectFolder, DCIMFolder, projectName);
-    emit changePane(loader);
-*/
+    emit changePane(new WelcomePane(mainWindow));
 }

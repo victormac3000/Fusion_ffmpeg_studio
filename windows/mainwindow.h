@@ -31,21 +31,17 @@ public:
     ~MainWindow();
     QMenuBar* getMenuBar();
     void clearMenuBar();
+    void setTitle(QString title);
 
-signals:
-
+public slots:
+    bool changePane(QWidget *pane);
 
 private slots:
-    void displayAbout();
-    void displayPreferences();
-    bool changePane(QWidget *pane);
     void menuBarStartDrag();
     void menuBarEndDrag();
 
 private:
     Ui::MainWindow *ui;
-    About *aboutWindow = nullptr;
-    Preferences *preferencesWindow = nullptr;
     bool dragging = false;
 
     void clearLayout(QLayout* layout);
