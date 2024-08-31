@@ -19,6 +19,7 @@ class ProjectCreatorFolder : public QWidget
 public:
     explicit ProjectCreatorFolder(QWidget *parent = nullptr);
     ~ProjectCreatorFolder();
+    bool getInit();
 
 signals:
     void changePane(QWidget *pane);
@@ -35,8 +36,9 @@ private:
     MainWindow* mainWindow;
     QQuickItem *projectNameField, *projectDCIMField, *projectPathField;
     QQuickItem *linkDCIMCheckbox, *copyDCIMCheckbox;
-    QQuickItem *backButton, *createProjectButton, *createProjectFolderProgressBar;
+    QQuickItem *backButton, *createProjectButton;
     QString rootProjectFolder;
+    bool initOk = false;
 
     void generateDefaultProject();
     void generateDefaultProjectPath();

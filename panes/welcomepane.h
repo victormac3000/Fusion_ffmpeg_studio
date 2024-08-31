@@ -20,6 +20,7 @@
 #include "panes/projectcreator.h"
 #include "panes/loadingpane.h"
 #include "windows/mainwindow.h"
+#include "utils/dialogs.h"
 
 class MainWindow;
 

@@ -1,7 +1,7 @@
 #include "project.h"
 
 Project::Project(QObject *parent)
-    : QObject{nullptr}
+    : QObject{parent}
 {
 
 }

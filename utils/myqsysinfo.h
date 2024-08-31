@@ -12,6 +12,7 @@
 #ifdef Q_OS_MAC
 #include <sys/types.h>
 #include <sys/sysctl.h>
+#include <sys/mount.h>
 #endif
 
 #ifdef Q_OS_WIN
@@ -34,6 +35,7 @@ public:
     static QStringList gpuNames();
     static QString motherboardId();
     static QByteArray hardwareId();
+    static QStringList mountedVolumes(bool externalOnly = false, bool namesOnly = false);
 
 private:
 #ifdef Q_OS_LINUX

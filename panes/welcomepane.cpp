@@ -73,14 +73,25 @@ void WelcomePane::openProjectButtonClicked()
         this, tr("Select the project file"), QSettings().value("defaultProjectPath").toString() + "/Mi proyecto", tr("Fusion FFmpeg studio project (*.ffs)")
     );
     if (proposedProjectFile.isEmpty()) return;
+
+    /*
+    LoadingInfo loadingInfo{
+        LOAD_PROJECT, proposedProjectFile
+    };
+
     LoadingPane *loader = new LoadingPane(mainWindow, QFileInfo(proposedProjectFile).absolutePath());
     emit changePane(loader);
+    */
 }
 
 void WelcomePane::newProjectButtonClicked()
 {
     ProjectCreator *creator = new ProjectCreator(mainWindow);
-    emit changePane(creator);
+    if (creator->getInit()) {
+        emit changePane(creator);
+    } else {
+        Dialogs::warning("Could not load menu");
+    }
 }
 
 void WelcomePane::recentProjectClicked(QVariant rectangle)
@@ -95,8 +106,10 @@ void WelcomePane::recentProjectClicked(QVariant rectangle)
         qWarning() << "The recent project clicked path is empty";
         return;
     }
+/*
     LoadingPane *loader = new LoadingPane(mainWindow, path);
     emit changePane(loader);
+*/
 }
 
 void WelcomePane::aboutButtonClicked()

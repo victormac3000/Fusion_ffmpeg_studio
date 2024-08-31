@@ -34,6 +34,11 @@
      <property name="resizeMode">
       <enum>QQuickWidget::ResizeMode::SizeRootObjectToView</enum>
      </property>
+     <property name="source">
+      <url>
+       <string>qrc:/Qml/CreateProjectSd.qml</string>
+      </url>
+     </property>
     </widget>
    </item>
   </layout>

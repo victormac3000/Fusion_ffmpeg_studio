@@ -487,3 +487,38 @@ QByteArray MyQSysInfo::hardwareId()
     hash.addData(gpuNames().join("|").toUtf8());
     return hash.result();
 }
+
+QStringList MyQSysInfo::mountedVolumes(bool externalOnly, bool namesOnly)
+{
+    QStringList mountedVolumes;
+
+    #ifdef Q_OS_MAC
+    struct statfs *mounts;
+    int numMounts = getmntinfo(&mounts, MNT_NOWAIT);
+
+    if (numMounts > 0) {
+        for (int i=0; i<numMounts; i++) {
+            QString path = mounts[i].f_mntonname;
+            QString fileSystemType = mounts[i].f_fstypename;
+
+            if (fileSystemType == "devfs" || fileSystemType == "autofs" ||
+                fileSystemType == "tmpfs" || fileSystemType == "overlay" ||
+                path.startsWith("/System") || path.startsWith("/private") || path == "/") {
+                continue;
+            }
+
+            if (namesOnly) {
+                path = path.replace("/Volumes/", "");
+            }
+
+            if (!(mounts[i].f_flags & MNT_LOCAL)) {
+                mountedVolumes.push_back(path);
+            } else {
+                if (!externalOnly) mountedVolumes.append(path);
+            }
+        }
+    }
+    #endif
+
+    return mountedVolumes;
+}

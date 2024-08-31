@@ -4,9 +4,9 @@
 #include <QWidget>
 #include <QDir>
 
-#include "panes/welcomepane.h"
 #include "panes/editorpane.h"
 #include "utils/dialogs.h"
+#include "models/loadinginfo.h"
 #include "worker.h"
 
 class MainWindow;
@@ -20,8 +20,9 @@ class LoadingPane : public QWidget
     Q_OBJECT
 
 public:
-    explicit LoadingPane(QWidget *parent = nullptr, QString projectPath = "", QString dcimPath = "", QString projectName = "");
+    explicit LoadingPane(QWidget *parent = nullptr, LoadingInfo loadingInfo = {});
     ~LoadingPane();
+    bool getInit();
 
 signals:
     void changePane(QWidget *pane);
@@ -34,8 +35,9 @@ private slots:
 private:
     Ui::LoadingPane *ui;
     MainWindow* mainWindow;
-    Worker worker;
+    Worker* worker;
     QThread *workerThread;
+    bool initOk = false;
 
 };
 

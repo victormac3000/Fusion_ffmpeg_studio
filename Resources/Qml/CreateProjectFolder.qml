@@ -150,24 +150,6 @@ Rectangle {
 
         }
 
-        Rectangle {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            Layout.minimumWidth: 20
-            Layout.maximumHeight: 20
-            Layout.margins: 5
-            visible: createProjectFolderProgressBar.visible
-
-            NiceProgressBar {
-                id: createProjectFolderProgressBar
-                objectName: "createProjectFolderProgressBar"
-                anchors.fill: parent
-                insideText: "0%"
-                visible: false
-            }
-        }
-
-
         RowLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true

@@ -13,23 +13,17 @@ ProjectCreator::ProjectCreator(QWidget *parent) :
 
     this->mainWindow = (MainWindow*) parent;
 
-    if (mainWindow != nullptr) {
-        mainWindow->setTitle("Create project");
-    } else {
-        Dialogs::critical(
-            "Error loading the project creator",
-            "MainWindow pointer is null"
-        );
+    if (mainWindow == nullptr) {
+        qWarning() << "MainWindow pointer is null";
         return;
     }
+
+    mainWindow->setTitle("Create project");
 
     QQuickItem* root = ui->quickWidget->rootObject();
 
     if (root == nullptr) {
-        Dialogs::critical(
-            "Error loading the project creator",
-            "Could not found quickWidget element root QML object. Rolling back to Welcome Pane"
-        );
+        qWarning() << "Could not found quickWidget element root QML object.";
         return;
     }
 
@@ -38,16 +32,15 @@ ProjectCreator::ProjectCreator(QWidget *parent) :
     QQuickItem* createProjectBackButton = root->findChild<QQuickItem*>("createProjectBackButton");
 
     if (sdCardMouseArea == nullptr || dcimFolderMouseArea == nullptr || createProjectBackButton == nullptr) {
-        Dialogs::critical(
-            "Error loading the project creator",
-            "Could not find QML objects"
-        );
+        qWarning() << "Could not find QML objects";
         return;
     }
 
     connect(sdCardMouseArea, SIGNAL(clickDetected()), this, SLOT(sdCardClicked()));
     connect(dcimFolderMouseArea, SIGNAL(clickDetected()), this, SLOT(folderClicked()));
     connect(createProjectBackButton, SIGNAL(clicked()), this, SLOT(backButtonClicked()));
+
+    initOk = true;
 }
 
 ProjectCreator::~ProjectCreator()
@@ -55,14 +48,29 @@ ProjectCreator::~ProjectCreator()
     delete ui;
 }
 
+bool ProjectCreator::getInit()
+{
+    return initOk;
+}
+
 void ProjectCreator::sdCardClicked()
 {
-    emit changePane(new ProjectCreatorSd(mainWindow));
+    ProjectCreatorSd* projectCreatorSd = new ProjectCreatorSd(mainWindow);
+    if (projectCreatorSd->getInit()) {
+        emit changePane(projectCreatorSd);
+    } else {
+        Dialogs::warning("Could not load menu");
+    }
 }
 
 void ProjectCreator::folderClicked()
 {
-    emit changePane(new ProjectCreatorFolder(mainWindow));
+    ProjectCreatorFolder* projectCreatorFolder = new ProjectCreatorFolder(mainWindow);
+    if (projectCreatorFolder->getInit()) {
+        emit changePane(projectCreatorFolder);
+    } else {
+        Dialogs::warning("Could not load menu");
+    }
 }
 
 void ProjectCreator::backButtonClicked()

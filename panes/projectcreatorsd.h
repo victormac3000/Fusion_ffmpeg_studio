@@ -2,6 +2,11 @@
 #define PROJECTCREATORSD_H
 
 #include <QWidget>
+#include <QStorageInfo>
+
+#include "utils/myqsysinfo.h"
+
+class MainWindow;
 
 namespace Ui {
 class ProjectCreatorSd;
@@ -15,11 +20,15 @@ public:
     explicit ProjectCreatorSd(QWidget *parent = nullptr);
     ~ProjectCreatorSd();
 
+    bool getInit();
+
 signals:
     void changePane(QWidget *pane);
 
 private:
     Ui::ProjectCreatorSd *ui;
+    MainWindow* mainWindow;
+    bool initOk = false;
 };
 
 #endif // PROJECTCREATORSD_H

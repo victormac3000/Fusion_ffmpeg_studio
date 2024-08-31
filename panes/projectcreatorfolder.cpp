@@ -10,23 +10,17 @@ ProjectCreatorFolder::ProjectCreatorFolder(QWidget *parent)
 
     this->mainWindow = (MainWindow*) parent;
 
-    if (mainWindow != nullptr) {
-        mainWindow->setTitle("Create project");
-    } else {
-        Dialogs::critical(
-            "Error loading the project creator from folder",
-            "MainWindow pointer is null"
-        );
+    if (mainWindow == nullptr) {
+        qWarning() << "MainWindow pointer is null";
         return;
     }
+
+    mainWindow->setTitle("Create project");
 
     QQuickItem* root = ui->quickWidget->rootObject();
 
     if (root == nullptr) {
-        Dialogs::critical(
-            "Error loading the project creator from folder",
-            "Could not found quickWidget element root QML object. Rolling back to Welcome Pane"
-        );
+        qWarning() << "Could not found quickWidget element root QML object";
         return;
     }
 
@@ -40,19 +34,14 @@ ProjectCreatorFolder::ProjectCreatorFolder(QWidget *parent)
     linkDCIMCheckbox = root->findChild<QQuickItem*>("linkDCIMCheckbox");
     copyDCIMCheckbox = root->findChild<QQuickItem*>("copyDCIMCheckbox");
 
-    createProjectFolderProgressBar = root->findChild<QQuickItem*>("createProjectFolderProgressBar");
-
     backButton = root->findChild<QQuickItem*>("createProjectFolderBackButton");
     createProjectButton = root->findChild<QQuickItem*>("createProjectFolderButton");
 
     if (projectNameField == nullptr || projectDCIMField == nullptr || projectPathField == nullptr ||
         projectPathButton == nullptr || projectDCIMButton == nullptr ||
-        linkDCIMCheckbox == nullptr || copyDCIMCheckbox == nullptr || createProjectFolderProgressBar == nullptr ||
+        linkDCIMCheckbox == nullptr || copyDCIMCheckbox == nullptr ||
         backButton == nullptr || createProjectButton == nullptr) {
-        Dialogs::critical(
-            "Error loading the project creator from folder",
-            "Could not find QML objects"
-        );
+        qWarning() << "Could not find QML objects";
         return;
     }
 
@@ -65,6 +54,8 @@ ProjectCreatorFolder::ProjectCreatorFolder(QWidget *parent)
 
     connect(backButton, SIGNAL(clicked()), this, SLOT(backButtonClicked()));
     connect(createProjectButton, SIGNAL(clicked()), this, SLOT(createButtonClicked()));
+
+    initOk = true;
 }
 
 ProjectCreatorFolder::~ProjectCreatorFolder()
@@ -173,12 +164,23 @@ void ProjectCreatorFolder::createButtonClicked()
 
     backButton->setProperty("enabled", false);
     createProjectButton->setProperty("enabled", false);
-    createProjectFolderProgressBar->setProperty("visible", true);
 
-    /*
-    LoadingPane *loader = new LoadingPane(mainWindow, projectFolder, DCIMFolder, projectName);
-    emit changePane(loader);
-*/
+    LoadingInfo loadingInfo{
+        CREATE_PROJECT_FOLDER, projectFolder,
+        DCIMFolder, projectName, copyDCIM
+    };
+
+    LoadingPane* loader = new LoadingPane(mainWindow, loadingInfo);
+    if (loader->getInit()) {
+        emit changePane(loader);
+    } else {
+        Dialogs::warning("Could not load the next menu");
+    }
+}
+
+bool ProjectCreatorFolder::getInit()
+{
+    return initOk;
 }
 
 void ProjectCreatorFolder::generateDefaultProject()

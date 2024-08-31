@@ -43,6 +43,7 @@ HEADERS += \
     models/fformats.h \
     models/fsegment.h \
     models/fvideo.h \
+    models/loadinginfo.h \
     models/project.h \
     models/renderwork.h \
     panes/projectcreator.h \

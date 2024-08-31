@@ -9,17 +9,17 @@
 #include "models/fvideo.h"
 #include "models/fsegment.h"
 #include "models/project.h"
+#include "models/loadinginfo.h"
 
 class Worker : public QObject
 {
     Q_OBJECT
 public:
-    explicit Worker(QObject *parent = nullptr);
+    explicit Worker(QObject *parent = nullptr, LoadingInfo loadingInfo = {});
     ~Worker();
 
 public slots:
-    void createProject(QString dcimPath, QString projectName, QString projectPath);
-    void loadProject(QString projectPath);
+    void work();
 
 signals:
     void loadProjectUpdate(int percent = 0, QString message = "");
@@ -29,12 +29,16 @@ signals:
 private slots:
 
 private:
+    LoadingInfo loadingInfo;
     int doneSegments = 0;
     int totalSegments = 0;
+    Project* project = nullptr;
+
+    void createProjectFolder();
+    void createProjectSd();
+    void loadProject();
 
     void segmentComplete();
-
-    Project* project = nullptr;
 
 };
 

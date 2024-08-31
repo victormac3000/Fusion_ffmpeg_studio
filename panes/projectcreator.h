@@ -18,6 +18,7 @@ class ProjectCreator : public QWidget
 public:
     explicit ProjectCreator(QWidget *parent = nullptr);
     ~ProjectCreator();
+    bool getInit();
 
 signals:
     void changePane(QWidget *pane);
@@ -31,6 +32,7 @@ private:
     Ui::ProjectCreator *ui;
     MainWindow* mainWindow;
     QSettings settings;
+    bool initOk = false;
 
 };
 

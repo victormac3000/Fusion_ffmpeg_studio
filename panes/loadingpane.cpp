@@ -1,8 +1,9 @@
 #include "loadingpane.h"
+#include "panes/welcomepane.h"
 #include "ui_loadingpane.h"
 #include "windows/mainwindow.h"
 
-LoadingPane::LoadingPane(QWidget *parent, QString projectPath, QString dcimPath, QString projectName) :
+LoadingPane::LoadingPane(QWidget *parent, LoadingInfo loadingInfo) :
     QWidget(parent),
     ui(new Ui::LoadingPane)
 {
@@ -10,26 +11,28 @@ LoadingPane::LoadingPane(QWidget *parent, QString projectPath, QString dcimPath,
 
     this->mainWindow = (MainWindow*) parent;
 
-    if (mainWindow != nullptr) {
-        mainWindow->setWindowTitle(QCoreApplication::applicationName() + " - Loading project");
-        //mainWindow->clearMenuBar();
-    } else {
-        qWarning() << "MainWindow not found";
+    if (mainWindow == nullptr) {
+        qWarning() << "MainWindow pointer is null";
+        return;
     }
 
+    mainWindow->setTitle("Loading project");
+
+    this->worker = new Worker(nullptr, loadingInfo);
     this->workerThread = new QThread;
-    worker.moveToThread(workerThread);
-    connect(&worker, SIGNAL(loadProjectFinished(Project*)), this, SLOT(loadProjectFinished(Project*)));
-    connect(&worker, SIGNAL(loadProjectError(QString)), this, SLOT(loadProjectError(QString)));
-    connect(&worker, SIGNAL(loadProjectUpdate(int,QString)), this, SLOT(loadProjectUpdate(int,QString)));
+    if (!worker->moveToThread(workerThread)) {
+        qWarning() << "Could not move worker to workerThread";
+        return;
+    }
+
+    connect(worker, SIGNAL(loadProjectFinished(Project*)), this, SLOT(loadProjectFinished(Project*)));
+    connect(worker, SIGNAL(loadProjectError(QString)), this, SLOT(loadProjectError(QString)));
+    connect(worker, SIGNAL(loadProjectUpdate(int,QString)), this, SLOT(loadProjectUpdate(int,QString)));
     this->workerThread->start();
 
-    // Worker actions
-    if (dcimPath.isEmpty() || projectName.isEmpty()) {
-        QMetaObject::invokeMethod(&worker, "loadProject", Qt::AutoConnection, Q_ARG(QString, projectPath));
-    } else {
-        QMetaObject::invokeMethod(&worker, "createProject", Qt::AutoConnection, Q_ARG(QString, dcimPath), Q_ARG(QString, projectName), Q_ARG(QString, projectPath));
-    }
+    QMetaObject::invokeMethod(worker, "work");
+
+    initOk = true;
 }
 
 LoadingPane::~LoadingPane()
@@ -37,7 +40,13 @@ LoadingPane::~LoadingPane()
     workerThread->quit();
     workerThread->wait();
     delete workerThread;
+    delete worker;
     delete ui;
+}
+
+bool LoadingPane::getInit()
+{
+    return initOk;
 }
 
 void LoadingPane::loadProjectFinished(Project* project)
