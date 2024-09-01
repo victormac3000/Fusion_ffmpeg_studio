@@ -488,9 +488,9 @@ QByteArray MyQSysInfo::hardwareId()
     return hash.result();
 }
 
-QStringList MyQSysInfo::mountedVolumes(bool externalOnly, bool namesOnly)
+QList<VolumeInfo> MyQSysInfo::mountedVolumes()
 {
-    QStringList mountedVolumes;
+    QList<VolumeInfo> mountedVolumes;
 
     #ifdef Q_OS_MAC
     struct statfs *mounts;
@@ -499,26 +499,66 @@ QStringList MyQSysInfo::mountedVolumes(bool externalOnly, bool namesOnly)
     if (numMounts > 0) {
         for (int i=0; i<numMounts; i++) {
             QString path = mounts[i].f_mntonname;
-            QString fileSystemType = mounts[i].f_fstypename;
+            QString fsType = mounts[i].f_fstypename;
+            QString deviceName = mounts[i].f_mntfromname;
+            QString volumeLabel = getVolumeLabel(mounts[i].f_mntfromname);
 
-            if (fileSystemType == "devfs" || fileSystemType == "autofs" ||
-                fileSystemType == "tmpfs" || fileSystemType == "overlay" ||
+            if (fsType == "devfs" || fsType == "autofs" ||
+                fsType == "tmpfs" || fsType == "overlay" ||
                 path.startsWith("/System") || path.startsWith("/private") || path == "/") {
                 continue;
             }
 
-            if (namesOnly) {
-                path = path.replace("/Volumes/", "");
+            VolumeInfo volumeInfo;
+            volumeInfo.deviceName = deviceName;
+            volumeInfo.label = volumeLabel;
+            volumeInfo.fileSystemType = fsType;
+            volumeInfo.mountPath = path;
+            volumeInfo.isExternal = !(mounts[i].f_flags & MNT_LOCAL);
+
+            if (volumeInfo.label.isEmpty()) {
+                QString mountPathCopy = volumeInfo.mountPath;
+                volumeInfo.label = mountPathCopy.replace("/Volumes/", "");
             }
 
-            if (!(mounts[i].f_flags & MNT_LOCAL)) {
-                mountedVolumes.push_back(path);
-            } else {
-                if (!externalOnly) mountedVolumes.append(path);
-            }
+            mountedVolumes.append(volumeInfo);
         }
     }
     #endif
 
     return mountedVolumes;
 }
+
+#ifdef Q_OS_MAC
+QString MyQSysInfo::getVolumeLabel(const char* deviceName)
+{
+    QString label;
+
+    // Create a Disk Arbitration session
+    DASessionRef session = DASessionCreate(kCFAllocatorDefault);
+    if (session) {
+        // Create a disk reference from the device name
+        DADiskRef disk = DADiskCreateFromBSDName(kCFAllocatorDefault, session, deviceName);
+        if (disk) {
+            // Get disk information dictionary
+            CFDictionaryRef diskInfo = DADiskCopyDescription(disk);
+            if (diskInfo) {
+                // Get the volume name from the dictionary
+                CFStringRef volumeName = (CFStringRef)CFDictionaryGetValue(diskInfo, kDADiskDescriptionVolumeNameKey);
+                if (volumeName) {
+                    // Convert the volume name to a C++ string
+                    char nameBuffer[256];
+                    if (CFStringGetCString(volumeName, nameBuffer, sizeof(nameBuffer), kCFStringEncodingUTF8)) {
+                        label = nameBuffer;
+                    }
+                }
+                CFRelease(diskInfo);
+            }
+            CFRelease(disk);
+        }
+        CFRelease(session);
+    }
+
+    return label;
+}
+#endif

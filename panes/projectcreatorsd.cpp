@@ -24,10 +24,10 @@ ProjectCreatorSd::ProjectCreatorSd(QWidget *parent)
         return;
     }
 
-    QQuickItem* frontSDRectangle = root->findChild<QQuickItem*>("frontSDRectangle");
-    QQuickItem* frontSDComboBox = root->findChild<QQuickItem*>("frontSDComboBox");
-    QQuickItem* backSDRectangle = root->findChild<QQuickItem*>("backSDRectangle");
-    QQuickItem* backSDComboBox = root->findChild<QQuickItem*>("backSDComboBox");
+    frontSDRectangle = root->findChild<QQuickItem*>("frontSDRectangle");
+    frontSDComboBox = root->findChild<QQuickItem*>("frontSDComboBox");
+    backSDRectangle = root->findChild<QQuickItem*>("backSDRectangle");
+    backSDComboBox = root->findChild<QQuickItem*>("backSDComboBox");
     QQuickItem* createProjectSDBackButton = root->findChild<QQuickItem*>("createProjectSDBackButton");
     QQuickItem* createProjectSDButton = root->findChild<QQuickItem*>("createProjectSDButton");
 
@@ -38,20 +38,33 @@ ProjectCreatorSd::ProjectCreatorSd(QWidget *parent)
         return;
     }
 
-    QStringList mountedVolumes = MyQSysInfo::mountedVolumes(false, true);
+    connect(frontSDComboBox, SIGNAL(addCompleted()), this, SLOT(checkFrontSelection()));
+    connect(frontSDComboBox, SIGNAL(currentIndexChanged()), this, SLOT(checkFrontSelection()));
+    connect(backSDComboBox, SIGNAL(addCompleted()), this, SLOT(checkBackSelection()));
+    connect(backSDComboBox, SIGNAL(currentIndexChanged()), this, SLOT(checkBackSelection()));
 
-    if (mountedVolumes.length() > 0) {
+
+    mountedVolumes = MyQSysInfo::mountedVolumes();
+    QStringList volumeLabels;
+
+    for (const VolumeInfo &volume: mountedVolumes) {
+        if (volume.isExternal) {
+            volumeLabels.append(volume.label);
+        }
+    }
+
+    if (volumeLabels.length() > 0) {
         QMetaObject::invokeMethod(
             frontSDComboBox,
             "add",
-            Q_ARG(QVariant, mountedVolumes),
-            Q_ARG(QVariant, mountedVolumes.first())
+            Q_ARG(QVariant, volumeLabels),
+            Q_ARG(QVariant, volumeLabels.first())
         );
         QMetaObject::invokeMethod(
             backSDComboBox,
             "add",
-            Q_ARG(QVariant, mountedVolumes),
-            Q_ARG(QVariant, mountedVolumes.first())
+            Q_ARG(QVariant, volumeLabels),
+            Q_ARG(QVariant, volumeLabels.first())
         );
     }
 
@@ -66,4 +79,44 @@ ProjectCreatorSd::~ProjectCreatorSd()
 bool ProjectCreatorSd::getInit()
 {
     return initOk;
+}
+
+void ProjectCreatorSd::checkFrontSelection()
+{
+    if (frontSDComboBox == nullptr || frontSDRectangle == nullptr) {
+        Dialogs::warning("Error checking the volumes", "front SD combobox and/or rectangle are null");
+        return;
+    }
+
+    QString selectedText = frontSDComboBox->property("currentText").toString();
+    qDebug() << "FRONT: " + selectedText;
+    for (const VolumeInfo &volume: mountedVolumes) {
+        bool volumeMatches = selectedText == volume.label;
+        bool hasBasicPaths = QDir(volume.mountPath + "/DCIM/100GFRNT").exists();
+        if (volumeMatches && hasBasicPaths) {
+            frontSDRectangle->setProperty("valid", true);
+            return;
+        }
+    }
+    frontSDRectangle->setProperty("valid", false);
+}
+
+void ProjectCreatorSd::checkBackSelection()
+{
+    if (backSDComboBox == nullptr || backSDRectangle == nullptr) {
+        Dialogs::warning("Error checking the volumes", "back SD combobox and/or rectangle are null");
+        return;
+    }
+
+    QString selectedText = backSDComboBox->property("currentText").toString();
+    qDebug() << "BACK: " + selectedText;
+    for (const VolumeInfo &volume: mountedVolumes) {
+        bool volumeMatches = selectedText == volume.label;
+        bool hasBasicPaths = QDir(volume.mountPath + "/DCIM/100GBACK").exists();
+        if (volumeMatches && hasBasicPaths) {
+            backSDRectangle->setProperty("valid", true);
+            return;
+        }
+    }
+    backSDRectangle->setProperty("valid", false);
 }

@@ -13,6 +13,8 @@
 #include <sys/types.h>
 #include <sys/sysctl.h>
 #include <sys/mount.h>
+#include <DiskArbitration/DiskArbitration.h>
+#include <CoreFoundation/CoreFoundation.h>
 #endif
 
 #ifdef Q_OS_WIN
@@ -28,6 +30,14 @@
 #include <fstream>
 #endif
 
+struct VolumeInfo {
+    QString label;
+    QString mountPath;
+    QString deviceName;
+    QString fileSystemType;
+    bool isExternal;
+};
+
 class MyQSysInfo : public QSysInfo
 {
 public:
@@ -35,11 +45,14 @@ public:
     static QStringList gpuNames();
     static QString motherboardId();
     static QByteArray hardwareId();
-    static QStringList mountedVolumes(bool externalOnly = false, bool namesOnly = false);
+    static QList<VolumeInfo> mountedVolumes();
 
 private:
 #ifdef Q_OS_LINUX
     static std::string readFile(const std::string& path);
+#endif
+#ifdef Q_OS_MAC
+    static QString getVolumeLabel(const char* deviceName);
 #endif
 
 };

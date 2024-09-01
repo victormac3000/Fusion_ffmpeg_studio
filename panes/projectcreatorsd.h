@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QStorageInfo>
+#include <QQuickItem>
 
 #include "utils/myqsysinfo.h"
 
@@ -25,9 +26,16 @@ public:
 signals:
     void changePane(QWidget *pane);
 
+private slots:
+    void checkFrontSelection();
+    void checkBackSelection();
+
 private:
     Ui::ProjectCreatorSd *ui;
     MainWindow* mainWindow;
+    QQuickItem *frontSDComboBox, *backSDComboBox;
+    QQuickItem *frontSDRectangle, *backSDRectangle;
+    QList<VolumeInfo> mountedVolumes;
     bool initOk = false;
 };
 

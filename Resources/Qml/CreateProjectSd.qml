@@ -85,10 +85,6 @@ Rectangle {
                             objectName: "frontSDComboBox"
                             anchors.fill: parent
                             anchors.topMargin: 10
-
-                            onCurrentIndexChanged: {
-                                console.log("Changed index")
-                            }
                         }
                     }
                 }
