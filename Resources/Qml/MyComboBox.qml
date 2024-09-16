@@ -4,7 +4,9 @@ import QtQuick.Layouts
 
 ComboBox {
     signal save(data: string, type: string)
-    signal addCompleted()
+    signal addCompleted(currentText: string)
+
+    property string actualText: ""
 
     model: ListModel {}
     currentIndex: 0
@@ -22,6 +24,9 @@ ComboBox {
         if (!foundDefault) {
             currentIndex = 0
         }
-        addCompleted()
+        if (list.length > 0) {
+            addCompleted(model.get(currentIndex).text)
+        }
     }
+
 }

@@ -3,11 +3,33 @@ import QtQuick.Controls 2.15
 
 Button {
     id: root
+    property color disabledColor: "#000eb2"
     property color backgroundDefaultColor: "#4E5BF2"
     property color backgroundPressedColor: Qt.darker(backgroundDefaultColor, 1.2)
     property color contentItemTextColor: "white"
 
     text: "Button"
+
+    MouseArea {
+        anchors.fill: parent
+        hoverEnabled: true
+
+        onEntered: {
+            if (parent.enabled) {
+                parent.background.color = backgroundPressedColor
+            }
+        }
+
+        onExited: {
+            if (parent.enabled) {
+                parent.background.color = backgroundDefaultColor
+            }
+        }
+
+        onClicked: {
+            root.clicked()
+        }
+    }
 
     contentItem: Item {
         width: parent.width
@@ -36,7 +58,12 @@ Button {
     background: Rectangle {
         width: 83
         height: 37
-        color: root.down ? root.backgroundPressedColor : root.backgroundDefaultColor
+        color: {
+            if (!root.enabled) {
+                return root.disabledColor
+            }
+            return root.down ? root.backgroundPressedColor : root.backgroundDefaultColor
+        }
         radius: 3
 
         Rectangle {
