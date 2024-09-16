@@ -5,6 +5,7 @@
 #include <QApplication>
 #include <QQuickStyle>
 #include <QElapsedTimer>
+#include <iostream>
 
 int main(int argc, char *argv[])
 {
