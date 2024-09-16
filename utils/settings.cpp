@@ -1,4 +1,8 @@
 #include "settings.h"
+#include "utils/dialogs.h"
+#include "utils/exitcodes.h"
+#include "utils/myqsysinfo.h"
+#include <iostream>
 
 QMap<QString,QStringList> Settings::compatibleFormats = {
     {"h264", {"mp4", "mkv", "avi", "mov"}},

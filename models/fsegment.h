@@ -5,9 +5,9 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QTime>
+#include <QSize>
 
 #include "models/fformat.h"
-#include "models/fformats.h"
 
 class FSegment : public QObject
 {

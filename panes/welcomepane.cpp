@@ -1,5 +1,11 @@
 #include "welcomepane.h"
 #include "ui_welcomepane.h"
+#include "windows/preferences.h"
+#include "windows/about.h"
+#include "utils/dialogs.h"
+#include "panes/projectcreator.h"
+#include "panes/loadingpane.h"
+#include "windows/mainwindow.h"
 
 WelcomePane::WelcomePane(QWidget *parent) :
     QWidget(parent),

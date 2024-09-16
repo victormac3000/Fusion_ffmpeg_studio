@@ -1,5 +1,7 @@
 #include "fformats.h"
 
+#include "utils/mediainfo.h"
+
 FFormats::FFormats(QObject *parent)
     : QObject{parent}
 {

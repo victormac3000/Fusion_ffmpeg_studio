@@ -1,5 +1,7 @@
 #include "fsegment.h"
 #include "models/fvideo.h"
+#include "models/fformats.h"
+#include "utils/mediainfo.h"
 
 FSegment::FSegment(QObject *parent, int id, QFile *front_mp4, QFile *front_lrv, QFile *front_thm, QFile *back_mp4, QFile *back_lrv, QFile *back_thm, QFile *back_wav)
     : QObject {parent}

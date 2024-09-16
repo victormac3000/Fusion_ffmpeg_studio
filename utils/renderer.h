@@ -1,8 +1,8 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
-#include "models/renderwork.h"
-#include "utils/ffmpeg.h"
+class FFmpeg;
+class RenderWork;
 
 #include <QObject>
 #include <QQueue>

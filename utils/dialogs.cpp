@@ -1,4 +1,5 @@
 #include "dialogs.h"
+#include "utils/exitcodes.h"
 
 void Dialogs::ok(QString userMsg, QString logMsg)
 {

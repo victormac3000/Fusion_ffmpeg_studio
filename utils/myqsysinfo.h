@@ -5,7 +5,6 @@
 #include <QStringList>
 #include <QDebug>
 #include <QCryptographicHash>
-#include <iostream>
 #include <QFile>
 #include <QElapsedTimer>
 

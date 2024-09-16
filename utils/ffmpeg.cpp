@@ -1,5 +1,7 @@
 #include "ffmpeg.h"
 #include "models/project.h"
+#include "models/fvideo.h"
+#include "models/renderwork.h"
 
 FFmpeg::FFmpeg(QObject *parent)
     : QObject{parent}

@@ -1,6 +1,13 @@
 #include "editorpane.h"
 #include "ui_editorpane.h"
 #include "windows/mainwindow.h"
+#include "models/fvideo.h"
+#include "models/fsegment.h"
+#include "models/project.h"
+#include "models/renderwork.h"
+#include "utils/dialogs.h"
+#include "utils/ffmpeg.h"
+#include "utils/renderer.h"
 
 EditorPane::EditorPane(QWidget* parent, Project* project) :
     QWidget(parent),

@@ -18,7 +18,6 @@ const int FUSION_AUDIO = 2;
 const int FUSION_THUMNAIL = 3;
 
 #include "fformat.h"
-#include "utils/mediainfo.h"
 
 class FFormats : public QObject
 {

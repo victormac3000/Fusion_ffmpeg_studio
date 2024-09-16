@@ -14,13 +14,14 @@
 #include <QPixmap>
 #include <QImage>
 
-#include "models/fvideo.h"
-#include "models/fsegment.h"
-#include "models/project.h"
-#include "models/renderwork.h"
-#include "utils/dialogs.h"
-#include "utils/ffmpeg.h"
-#include "utils/renderer.h"
+class FVideo;
+class FSegment;
+class Project;
+class Dialogs;
+class FFmpeg;
+class Renderer;
+class RenderWork;
+struct FFmpegStatus;
 
 #define PLAYER_DEFAULT 0
 #define PLAYER_EQUIRECTANGULAR 1

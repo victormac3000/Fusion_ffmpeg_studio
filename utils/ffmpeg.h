@@ -7,10 +7,10 @@
 #include <QProcess>
 #include <QSettings>
 #include <QRegularExpression>
+#include <QProcess>
+#include <QDir>
 
-#include "models/fvideo.h"
-#include "models/renderwork.h"
-
+class RenderWork;
 const int TO_DUAL_FISHEYE = 0;
 
 class FFmpeg : public QObject

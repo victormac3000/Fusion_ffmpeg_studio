@@ -9,9 +9,6 @@
 #include <QQuickItem>
 #include <QJsonObject>
 
-#include "utils/dialogs.h"
-#include "utils/settings.h"
-
 namespace Ui {
 class Preferences;
 }

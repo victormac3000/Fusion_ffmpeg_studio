@@ -14,13 +14,7 @@
 #include <QFrame>
 #include <QMenuBar>
 #include <QQuickItem>
-
-#include "worker.h"
-#include "utils/dialogs.h"
-#include "panes/projectcreator.h"
-#include "panes/loadingpane.h"
-#include "windows/mainwindow.h"
-#include "utils/dialogs.h"
+#include <QSettings>
 
 class MainWindow;
 

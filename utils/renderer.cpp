@@ -1,4 +1,6 @@
 #include "renderer.h"
+#include "models/renderwork.h"
+#include "utils/ffmpeg.h"
 
 Renderer::Renderer(QObject *parent)
     : QObject{parent}

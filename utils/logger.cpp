@@ -1,4 +1,7 @@
 #include "logger.h"
+#include "utils/settings.h"
+#include "utils/exitcodes.h"
+#include <iostream>
 
 QHash<QtMsgType, QString> Logger::contextNames = {
     {QtMsgType::QtDebugMsg,		"DEBUG     "},

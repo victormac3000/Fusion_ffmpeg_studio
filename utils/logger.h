@@ -1,8 +1,6 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
-#include <iostream>
-
 #include <QApplication>
 #include <QDir>
 #include <QFile>
@@ -10,9 +8,6 @@
 #include <QFileInfo>
 #include <QThread>
 #include <QMutex>
-
-#include "utils/settings.h"
-#include "utils/exitcodes.h"
 
 class Logger
 {

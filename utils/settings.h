@@ -7,13 +7,8 @@
 #include <QStandardPaths>
 #include <QDir>
 #include <QProcess>
-#include <iostream>
 #include <QRegularExpression>
 #include <QMap>
-
-#include "utils/dialogs.h"
-#include "utils/exitcodes.h"
-#include "utils/myqsysinfo.h"
 
 class Settings
 {

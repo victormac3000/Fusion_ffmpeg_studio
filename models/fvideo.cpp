@@ -1,4 +1,5 @@
 #include "fvideo.h"
+#include "utils/mediainfo.h"
 
 FVideo::FVideo(int id)
     : QObject{nullptr}

@@ -8,12 +8,6 @@
 #include <QMetaObject>
 #include <QMouseEvent>
 
-#include "panes/welcomepane.h"
-#include "preferences.h"
-#include "about.h"
-#include "utils/dialogs.h"
-#include "worker.h"
-
 #define MAIN_PANE 0
 #define LOADING_PANE 1
 
