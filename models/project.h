@@ -59,6 +59,7 @@ private:
     QList<QPair<int,QString>> badVideos;
 
     void addToRecent();
+    bool copyDCIM();
     bool indexVideos();
     void indexSegmentComplete();
     void indexVideoComplete();

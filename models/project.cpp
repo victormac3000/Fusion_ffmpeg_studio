@@ -325,71 +325,7 @@ void Project::create(LoadingInfo loadingInfo)
     this->name = loadingInfo.projectName;
     this->file = new QFile(path + "/project.ffs");
 
-    if (loadingInfo.copyDCIM) {
-        progress.stepID = COPY_DCIM_FOLDER;
-        progress.stepNumber++;
-        emit loadProjectUpdate(progress);
-
-        QDir projectDir(path);
-
-        if (!projectDir.mkpath("DCIM/100GFRNT") ||
-            !projectDir.mkpath("DCIM/100GBACK")) {
-            emit loadProjectError("Could not copy the DCIM files");
-            qWarning() << "Could not create DCIM paths in the project folder";
-            return;
-        }
-
-        QFileInfoList frontFiles = front.entryInfoList(QDir::NoDotAndDotDot | QDir::Files);
-        QFileInfoList backFiles = back.entryInfoList(QDir::NoDotAndDotDot | QDir::Files);
-        progress.copy.fileCount = frontFiles.length() + backFiles.length();
-
-        int i=0;
-        for (const QFileInfo &frontFileInfo: frontFiles) {
-            progress.copy.currentFile.name = frontFileInfo.fileName();
-            progress.copy.currentFile.bytesCount = frontFileInfo.size();
-            progress.copy.fileNumber = i+1;
-            progress.copy.progress = i/progress.copy.fileCount;
-            QString src = frontFileInfo.absoluteFilePath();
-            QString dst = projectDir.absolutePath() + "/DCIM/100GFRNT/" + frontFileInfo.fileName();
-            if (QFile::exists(dst) && !QFile::remove(dst)) {
-                qWarning() << "File exists in destination and could not be removed: "<< dst;
-                emit loadProjectError("Could not copy the DCIM files");
-                return;
-            }
-            if (!copy(src, dst)) {
-                qWarning() << "Could not copy file "<< src << " to " << dst;
-                emit loadProjectError("Could not copy the DCIM files");
-                return;
-            }
-            i++;
-        }
-
-        i=0;
-        for (const QFileInfo &backFileInfo: backFiles) {
-            progress.copy.currentFile.name = backFileInfo.fileName();
-            progress.copy.currentFile.bytesCount = backFileInfo.size();
-            progress.copy.fileNumber = i+1;
-            progress.copy.progress = i/progress.copy.fileCount;
-            QString src = backFileInfo.absoluteFilePath();
-            QString dst = projectDir.absolutePath() + "/DCIM/100GBACK/" + backFileInfo.fileName();
-            if (QFile::exists(dst) && !QFile::remove(dst)) {
-                qWarning() << "File exists in destination and could not be removed: "<< dst;
-                emit loadProjectError("Could not copy the DCIM files");
-                return;
-            }
-            qDebug() << src << dst;
-            if (!QFile(src).copy(dst)) {
-                qWarning() << "Could not copy file "<< src << " to " << dst;
-                emit loadProjectError("Could not copy the DCIM files");
-                return;
-            }
-            i++;
-        }
-
-        this->front = QDir(projectDir.absolutePath() + "/DCIM/100GFRNT");
-        this->back = QDir(projectDir.absolutePath() + "/DCIM/100GBACK");
-    }
-
+    if (loadingInfo.copyDCIM && !copyDCIM()) return;
     if (!indexVideos()) return;
 
     this->save();
@@ -528,6 +464,74 @@ void Project::addToRecent()
     }
 
     recentProjectsFile.close();
+}
+
+bool Project::copyDCIM()
+{
+    progress.stepID = COPY_DCIM_FOLDER;
+    progress.stepNumber++;
+    emit loadProjectUpdate(progress);
+
+    QDir projectDir(path);
+
+    if (!projectDir.mkpath("DCIM/100GFRNT") ||
+        !projectDir.mkpath("DCIM/100GBACK")) {
+        emit loadProjectError("Could not copy the DCIM files");
+        qWarning() << "Could not create DCIM paths in the project folder";
+        return false;
+    }
+
+    QFileInfoList frontFiles = front.entryInfoList(QDir::NoDotAndDotDot | QDir::Files);
+    QFileInfoList backFiles = back.entryInfoList(QDir::NoDotAndDotDot | QDir::Files);
+    progress.copy.fileCount = frontFiles.length() + backFiles.length();
+
+    int i=0;
+    for (const QFileInfo &frontFileInfo: frontFiles) {
+        progress.copy.currentFile.name = frontFileInfo.fileName();
+        progress.copy.currentFile.bytesCount = frontFileInfo.size();
+        progress.copy.fileNumber = i+1;
+        progress.copy.progress = i/progress.copy.fileCount;
+        QString src = frontFileInfo.absoluteFilePath();
+        QString dst = projectDir.absolutePath() + "/DCIM/100GFRNT/" + frontFileInfo.fileName();
+        if (QFile::exists(dst) && !QFile::remove(dst)) {
+            qWarning() << "File exists in destination and could not be removed: "<< dst;
+            emit loadProjectError("Could not copy the DCIM files");
+            return false;
+        }
+        if (!copy(src, dst)) {
+            qWarning() << "Could not copy file "<< src << " to " << dst;
+            emit loadProjectError("Could not copy the DCIM files");
+            return false;
+        }
+        i++;
+    }
+
+    i=0;
+    for (const QFileInfo &backFileInfo: backFiles) {
+        progress.copy.currentFile.name = backFileInfo.fileName();
+        progress.copy.currentFile.bytesCount = backFileInfo.size();
+        progress.copy.fileNumber = i+1;
+        progress.copy.progress = i/progress.copy.fileCount;
+        QString src = backFileInfo.absoluteFilePath();
+        QString dst = projectDir.absolutePath() + "/DCIM/100GBACK/" + backFileInfo.fileName();
+        if (QFile::exists(dst) && !QFile::remove(dst)) {
+            qWarning() << "File exists in destination and could not be removed: "<< dst;
+            emit loadProjectError("Could not copy the DCIM files");
+            return false;
+        }
+        qDebug() << src << dst;
+        if (!QFile(src).copy(dst)) {
+            qWarning() << "Could not copy file "<< src << " to " << dst;
+            emit loadProjectError("Could not copy the DCIM files");
+            return false;
+        }
+        i++;
+    }
+
+    this->front = QDir(projectDir.absolutePath() + "/DCIM/100GFRNT");
+    this->back = QDir(projectDir.absolutePath() + "/DCIM/100GBACK");
+
+    return true;
 }
 
 bool Project::indexVideos()
