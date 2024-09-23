@@ -24,6 +24,11 @@ FSegment::~FSegment()
 bool FSegment::verify()
 {
     FVideo *video = (FVideo*) this->parent();
+    if (video == nullptr) {
+        qWarning() << "The segment has a nullptr video";
+        return false;
+    }
+
     FFormats formats;
 
     FFormat *frontMP4Format = formats.get(frontMP4, FUSION_VIDEO);
@@ -35,50 +40,42 @@ bool FSegment::verify()
     FFormat *backWAVFormat = formats.get(backWAV, FUSION_AUDIO);
 
     if (frontMP4Format == nullptr)  {
-        qWarning() << "FrontMP4 file is invalid. Raw segment: " + toString();
-        emit verifyError("The front segment MP4 number " + getIdString() + " of video " + video->getIdString() + " has an invalid format, check if your fusion files settings are supported");
+        qWarning() << "FrontMP4 file is invalid. Raw segment: " << toString();
         return false;
     }
 
     if (frontLRVFormat == nullptr)  {
         qWarning() << "FrontLRV file is invalid. Raw segment: " + toString();
-        emit verifyError("The front segment LRV number " + getIdString() + " of video " + video->getIdString() + " has an invalid format, check if your fusion files settings are supported");
         return false;
     }
 
     if (frontTHMFormat == nullptr)  {
         qWarning() << "FrontTHM file is invalid. Raw segment: " + toString();
-        emit verifyError("The front segment THM number " + getIdString() + " of video " + video->getIdString() + " has an invalid format, check if your fusion files settings are supported");
         return false;
     }
 
     if (backMP4Format == nullptr)  {
         qWarning() << "BackMP4 file is invalid. Raw segment: " + toString();
-        emit verifyError("The back segment MP4 number " + getIdString() + " of video " + video->getIdString() + " has an invalid format, check if your fusion files settings are supported");
         return false;
     }
 
     if (backLRVFormat == nullptr)  {
         qWarning() << "BackLRV file is invalid. Raw segment: " + toString();
-        emit verifyError("The back segment LRV number " + getIdString() + " of video " + video->getIdString() + " has an invalid format, check if your fusion files settings are supported");
         return false;
     }
 
     if (backTHMFormat == nullptr)  {
         qWarning() << "BackTHM file is invalid. Raw segment: " + toString();
-        emit verifyError("The back segment THM number " + getIdString() + " of video " + video->getIdString() + " has an invalid format, check if your fusion files settings are supported");
         return false;
     }
 
     if (backWAVFormat == nullptr)  {
         qWarning() << "BackWAV file is invalid. Raw segment: " + toString();
-        emit verifyError("The back segment WAV number " + getIdString() + " of video " + video->getIdString() + " has an invalid format, check if your fusion files settings are supported");
         return false;
     }
 
     if (!MediaInfo::isSameLength(frontMP4, backMP4)) {
         qWarning() << "FrontMP4 and BackMP4 are not the same length. Raw segment: " + toString();
-        emit verifyError("The front and back MP4 files numbers " + getIdString() + " of video " + video->getIdString() + " does not have the same length");
         return false;
     }
 

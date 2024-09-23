@@ -1,6 +1,10 @@
 #include "projectcreatorfolder.h"
 #include "ui_projectcreatorfolder.h"
 #include "windows/mainwindow.h"
+#include "utils/dialogs.h"
+#include "panes/projectcreator.h"
+#include "panes/loadingpane.h"
+#include "models/loading.h"
 
 ProjectCreatorFolder::ProjectCreatorFolder(QWidget *parent)
     : QWidget(parent)
@@ -111,7 +115,7 @@ void ProjectCreatorFolder::browseProjectLocationClicked()
 void ProjectCreatorFolder::browseDCIMFolderClicked()
 {
     QString proposedDCIMFolder = QFileDialog::getExistingDirectory(
-        this, tr("Select the DCIM directory"), "/Users/victor/Documents/NoTM/2023_02_11_Nieve/Test/DCIM", QFileDialog::ShowDirsOnly
+        this, tr("Select the DCIM directory"), "/Volumes/MAQUINAS/Archivos/Test Fusion/DCIM", QFileDialog::ShowDirsOnly
     );
 
     if (!QFileInfo(proposedDCIMFolder).isReadable()) {
@@ -130,16 +134,16 @@ void ProjectCreatorFolder::createButtonClicked()
 {
     QString projectName = projectNameField->property("text").toString();
     QString projectFolder = projectPathField->property("text").toString();
-    QString DCIMFolder = projectDCIMField->property("text").toString();
+    QString dcimFolder = projectDCIMField->property("text").toString();
     bool indexDCIM = linkDCIMCheckbox->property("checked").toBool();
-    bool copyDCIM = linkDCIMCheckbox->property("checked").toBool();
+    bool copyDCIM = copyDCIMCheckbox->property("checked").toBool();
 
     if (projectName.isEmpty()) {
         Dialogs::warning("The project name cannot be empty");
         return;
     }
 
-    if (DCIMFolder.isEmpty()) {
+    if (dcimFolder.isEmpty()) {
         Dialogs::warning("The project DCIM folder cannot be empty");
         return;
     }
@@ -149,26 +153,22 @@ void ProjectCreatorFolder::createButtonClicked()
         return;
     }
 
-    if (!(indexDCIM & copyDCIM)) {
+    if (!(indexDCIM ^ copyDCIM)) {
         Dialogs::warning("You must select to index or copy the DCIM folder");
-        return;
-    }
-
-    if (!QDir(rootProjectFolder).mkdir(projectName)) {
-        Dialogs::warning(
-            "Could not create the project folder",
-            "Cannot create project on " + rootProjectFolder + "/" + projectName
-        );
         return;
     }
 
     backButton->setProperty("enabled", false);
     createProjectButton->setProperty("enabled", false);
 
-    LoadingInfo loadingInfo{
-        CREATE_PROJECT_FOLDER, projectFolder,
-        DCIMFolder, projectName, copyDCIM
-    };
+
+    LoadingInfo loadingInfo;
+    loadingInfo.type = CREATE_PROJECT_FOLDER;
+    loadingInfo.rootProjectPath = rootProjectFolder;
+    loadingInfo.projectPath = rootProjectFolder + "/" + projectName;
+    loadingInfo.dcimPath = dcimFolder;
+    loadingInfo.projectName = projectName;
+    loadingInfo.copyDCIM = copyDCIM;
 
     LoadingPane* loader = new LoadingPane(mainWindow, loadingInfo);
     if (loader->getInit()) {

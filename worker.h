@@ -6,10 +6,10 @@
 #include <QDir>
 #include <QFile>
 
-#include "models/fvideo.h"
-#include "models/fsegment.h"
-#include "models/project.h"
-#include "models/loadinginfo.h"
+#include "models/loading.h"
+
+struct LoadingProgress;
+class Project;
 
 class Worker : public QObject
 {
@@ -22,7 +22,7 @@ public slots:
     void work();
 
 signals:
-    void loadProjectUpdate(int percent = 0, QString message = "");
+    void loadProjectUpdate(LoadingProgress progress);
     void loadProjectFinished(Project *project);
     void loadProjectError(QString error);
 
@@ -34,8 +34,7 @@ private:
     int totalSegments = 0;
     Project* project = nullptr;
 
-    void createProjectFolder();
-    void createProjectSd();
+    void createProject();
     void loadProject();
 
     void segmentComplete();

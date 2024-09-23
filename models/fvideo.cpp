@@ -19,7 +19,6 @@ FVideo::~FVideo()
 
 bool FVideo::addSegment(FSegment *segment, bool fileVerify)
 {
-    connect(segment, SIGNAL(verifyError(QString)), this, SLOT(segmentVerifyError(QString)));
     if (fileVerify && !segment->verify()) return false;
     this->segments.append(segment);
     return true;
@@ -27,6 +26,18 @@ bool FVideo::addSegment(FSegment *segment, bool fileVerify)
 
 bool FVideo::verify()
 {
+    if (this->frontThumbnail == nullptr ||
+        !MediaInfo::isImage(frontThumbnail)) {
+        qWarning() << "Front video thumnail is null or not an image";
+        return false;
+    }
+
+    if (this->backThumbnail == nullptr ||
+        !MediaInfo::isImage(frontThumbnail)) {
+        qWarning() << "Back video thumnail is null or not an image";
+        return false;
+    }
+
     for (FSegment *segment: this->segments) {
         qDebug() << "Verifying segment " << getIdString() + segment->getIdString();
         if (!segment->verify()) return false;
@@ -204,9 +215,4 @@ QString FVideo::toString()
         ret.append("FIN SEGMENTO");
     }
     return ret;
-}
-
-void FVideo::segmentVerifyError(QString error)
-{
-    emit verifyError("A segment is invalid. " + error);
 }

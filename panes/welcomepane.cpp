@@ -165,7 +165,7 @@ void WelcomePane::loadRecentProjects()
         QJsonDocument doc = QJsonDocument::fromJson(recentProjectsFile.readAll(), &error);
         if (error.error == QJsonParseError::NoError && doc.isArray()) {
             QJsonArray mArray = doc.array();
-            for (QJsonValueRef valueRef: mArray) {
+            for (const QJsonValueRef &valueRef: mArray) {
                 if (valueRef.isObject()) {
                     QJsonObject obj = valueRef.toObject();
                     if (obj.contains("name") && obj.contains("path") && obj.contains("last_opened")) {

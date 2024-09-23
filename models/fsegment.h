@@ -48,7 +48,6 @@ public:
     QTime getLength();
 
 signals:
-    void verifyError(QString error);
 
 private:
     int id;

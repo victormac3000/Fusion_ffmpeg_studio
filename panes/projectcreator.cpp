@@ -4,6 +4,7 @@
 #include "panes/welcomepane.h"
 #include "panes/projectcreatorfolder.h"
 #include "panes/projectcreatorsd.h"
+#include "utils/dialogs.h"
 
 ProjectCreator::ProjectCreator(QWidget *parent) :
     QWidget(parent),

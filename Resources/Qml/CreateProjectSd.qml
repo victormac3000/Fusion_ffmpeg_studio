@@ -85,6 +85,12 @@ Rectangle {
                             objectName: "frontSDComboBox"
                             anchors.fill: parent
                             anchors.topMargin: 10
+
+                            signal optionChanged(text: string)
+
+                            onCurrentIndexChanged: {
+                                optionChanged(model.get(currentIndex).text)
+                            }
                         }
                     }
                 }
@@ -139,6 +145,12 @@ Rectangle {
                             objectName: "backSDComboBox"
                             anchors.fill: parent
                             anchors.topMargin: 10
+
+                            signal optionChanged(text: string)
+
+                            onCurrentIndexChanged: {
+                                optionChanged(model.get(currentIndex).text)
+                            }
                         }
                     }
                 }

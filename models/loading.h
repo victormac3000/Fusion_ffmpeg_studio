@@ -5,6 +5,12 @@
 #define CREATE_PROJECT_SD 1
 #define LOAD_PROJECT 2
 
+#define CHECK_SOURCE_FOLDERS 0
+#define CREATE_PROJECT_DIRS 1
+#define COPY_DCIM_FOLDER 2
+#define INDEX_VIDEOS 3
+
+
 #include <QString>
 
 struct LoadingInfo {
@@ -18,10 +24,27 @@ struct LoadingInfo {
 };
 
 struct LoadingProgress {
-    QString stepMessage;
-    double stepProgress;  // 0-100
+    int stepID;
     int stepNumber;
     int stepCount;
+    struct index {
+        int doneVideos;
+        int totalVideos;
+        int doneSegments;
+        int totalSegments;
+    } index;
+    struct copy {
+        int fileCount;
+        int fileNumber;
+        double progress;
+        struct currentFile {
+            QString name;
+            qint64 bytesCount;
+            qint64 bytesDone;
+            double progress;
+            double speed;   // In MB/s
+        } currentFile;
+    } copy;
 };
 
 #endif

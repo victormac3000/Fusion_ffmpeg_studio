@@ -3,13 +3,14 @@
 
 #include <QWidget>
 #include <QDir>
+#include <QQuickItem>
 
-#include "panes/editorpane.h"
-#include "utils/dialogs.h"
-#include "models/loadinginfo.h"
-#include "worker.h"
+#include "models/loading.h"
 
 class MainWindow;
+class LoadinPane;
+class Project;
+class Worker;
 
 namespace Ui {
 class LoadingPane;
@@ -30,7 +31,7 @@ signals:
 private slots:
     void loadProjectFinished(Project *project);
     void loadProjectError(QString error);
-    void loadProjectUpdate(int percent, QString message);
+    void loadProjectUpdate(LoadingProgress progress);
 
 private:
     Ui::LoadingPane *ui;
@@ -38,6 +39,19 @@ private:
     Worker* worker;
     QThread *workerThread;
     bool initOk = false;
+    QQuickItem* progressBarGrid;
+    QQuickItem* mainMessageTopText;
+    QQuickItem* mainMessageLeftText;
+    QQuickItem* mainMessageBar;
+    QQuickItem* mainMessageRightText;
+    QQuickItem* generalMessageTopText;
+    QQuickItem* generalMessageLeftText;
+    QQuickItem* generalMessageBar;
+    QQuickItem* generalMessageRightText;
+    QQuickItem* specificMessageTopText;
+    QQuickItem* specificMessageLeftText;
+    QQuickItem* specificMessageBar;
+    QQuickItem* specificMessageRightText;
 
 };
 

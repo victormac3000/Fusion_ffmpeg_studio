@@ -1,12 +1,22 @@
 #ifndef PROJECT_H
 #define PROJECT_H
 
-#include "fvideo.h"
+class FVideo;
+struct LoadingInfo;
+
+#include "loading.h"
 
 #include <QObject>
 #include <QList>
 #include <QDomDocument>
 #include <QCoreApplication>
+#include <QDir>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonParseError>
+#include <QJsonObject>
+#include <QSettings>
+#include <QThread>
 
 class Project : public QObject
 {
@@ -16,7 +26,7 @@ public:
     ~Project();
 
     void load(QString projectPath);
-    void create(QString projectPath, QString dcimPath, QString projectName);
+    void create(LoadingInfo loadingInfo);
 
     bool isValid();
     QDir getDcim();
@@ -28,7 +38,7 @@ public:
     QList<FVideo*> getVideos();
 
 signals:
-    void loadProjectUpdate(int percent = 0, QString message = "");
+    void loadProjectUpdate(LoadingProgress progress);
     void loadProjectError(QString error);
 
 public slots:
@@ -38,16 +48,21 @@ private:
     bool valid;
     QDir dcim;
     QString path;
+    QString rootPath;
     QString name;
     QString version;
     QFile *file;
     QList<FVideo*> videos;
     QDateTime lastSaved;
+    QDir front, back;
+    LoadingProgress progress;
+    QList<QPair<int,QString>> badVideos;
 
     void addToRecent();
     bool indexVideos();
-    void indexSegmentComplete(int doneSegments, int totalSegments);
-    void indexVideoComplete(int doneVideos, int totalVideos);
+    void indexSegmentComplete();
+    void indexVideoComplete();
+    bool copy(QString src, QString dst);
 
 
 };

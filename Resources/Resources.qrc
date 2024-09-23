@@ -35,6 +35,7 @@
         <file>Qml/CreateProject.qml</file>
         <file>Qml/CreateProjectFolder.qml</file>
         <file>Qml/CreateProjectSd.qml</file>
+        <file>Qml/LoadingPane.qml</file>
     </qresource>
     <qresource prefix="/Qml">
         <file>Icons/VideoPlayer/Left.png</file>
@@ -50,5 +51,6 @@
         <file>Images/gpu_icon.png</file>
         <file>Images/folder.png</file>
         <file>Images/sd-card.png</file>
+        <file>Images/Snow.jpg</file>
     </qresource>
 </RCC>

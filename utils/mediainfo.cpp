@@ -155,14 +155,8 @@ bool MediaInfo::isImage(QFile *media)
 
 QMimeType MediaInfo::getMimeType(QFile *media)
 {
-    QElapsedTimer tmr;
-    tmr.start();
-
     QMimeDatabase db;
     QMimeType type = db.mimeTypeForFile(media->fileName(), QMimeDatabase::MatchContent);
-
-    qDebug() << "Get mime type took" << tmr.elapsed() << "ms";
-
     return type;
 }
 

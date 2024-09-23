@@ -1,4 +1,6 @@
 #include "project.h"
+#include "fvideo.h"
+#include "loading.h"
 
 Project::Project(QObject *parent)
     : QObject{parent}
@@ -50,67 +52,6 @@ void Project::setVideos(QList<FVideo*> videos)
 QList<FVideo*> Project::getVideos()
 {
     return videos;
-}
-
-void Project::save()
-{
-    qDebug() << "Trying to save to project file" << file->fileName();
-
-    file->close();
-
-    if (!file->open(QFile::ReadWrite)) {
-        qWarning() << "Could not open project file" << file->fileName();
-        return;
-    }
-
-    QJsonDocument jsonDoc;
-    QJsonObject mainObj;
-
-    QJsonObject info;
-
-    info.insert("name", name);
-    info.insert("dcim", dcim.absolutePath());
-    info.insert("version", QCoreApplication::applicationVersion());
-
-    mainObj.insert("info", info);
-
-    QJsonArray videosArray;
-
-    for (FVideo *video: videos) {
-        QJsonObject videoObject;
-        videoObject.insert("id", video->getId());
-        videoObject.insert("dualFisheye", video->isDualFisheyeValid());
-        videoObject.insert("dualFisheyeLow", video->isDualFisheyeLowValid());
-        videoObject.insert("equirectangular", video->isEquirectangularValid());
-        videoObject.insert("equirectangularLow", video->isEquirectangularLowValid());
-        QJsonArray segmentsArray;
-        QList<FSegment*> segments = video->getSegments();
-        for (FSegment* segment: segments) {
-            QJsonObject segmentObject;
-            segmentObject.insert("id", segment->getId());
-            segmentObject.insert("dualFisheye", segment->isDualFisheyeValid());
-            segmentObject.insert("dualFisheyeLow", segment->isDualFisheyeLowValid());
-            segmentsArray.append(segmentObject);
-        }
-        videoObject.insert("segments", segmentsArray);
-        videosArray.append(videoObject);
-    }
-
-    mainObj.insert("videos", videosArray);
-    jsonDoc.setObject(mainObj);
-
-    int written = file->write(jsonDoc.toJson(QJsonDocument::Indented));
-    if (written < 0) {
-        file->close();
-        qWarning() << "Could not save the project" << path;
-        return;
-    }
-
-    file->close();
-
-    lastSaved = QDateTime::currentDateTime();
-
-    addToRecent();
 }
 
 void Project::load(QString projectPath)
@@ -196,7 +137,7 @@ void Project::load(QString projectPath)
 
     QJsonArray videosArray = mainObj.value("videos").toArray();
 
-    emit loadProjectUpdate(0, "Indexing videos");
+    //emit loadProjectUpdate(0, "Indexing videos");
 
     int totalVideos = videosArray.size();
     int doneVideos = 0;
@@ -268,7 +209,7 @@ void Project::load(QString projectPath)
                     new QFile(dcim.absolutePath() + "/100GBACK/GPBK" + video->getIdString() + ".LRV"),
                     new QFile(dcim.absolutePath() + "/100GBACK/GPBK" + video->getIdString() + ".THM"),
                     new QFile(dcim.absolutePath() + "/100GBACK/GPBK" + video->getIdString() + ".WAV")
-                );
+                    );
             } else {
                 segment = new FSegment(
                     video, sid,
@@ -279,7 +220,7 @@ void Project::load(QString projectPath)
                     new QFile(dcim.absolutePath() + "/100GBACK/GB" + sidString + video->getIdString() + ".LRV"),
                     new QFile(dcim.absolutePath() + "/100GBACK/GPBK" + video->getIdString() + ".THM"),
                     new QFile(dcim.absolutePath() + "/100GBACK/GB" + sidString + video->getIdString() + ".WAV")
-                );
+                    );
             }
             if (dualFisheye) {
                 QString dualFisheyePath = path + "/DFSegments/" + QString::number(vid) + "_" + QString::number(sid) + ".MP4";
@@ -305,45 +246,59 @@ void Project::load(QString projectPath)
         }
         if (valid) this->videos.append(video);
         doneVideos++;
-        emit indexVideoComplete(doneVideos, totalVideos);
+        emit indexVideoComplete();
     }
 
     file->close();
     this->valid = true;
 }
 
-void Project::create(QString projectPath, QString dcimPath, QString projectName)
+void Project::create(LoadingInfo loadingInfo)
 {
-    // Phase 0: Create the project directories
-    emit loadProjectUpdate(0, "Creating the project files");
+    progress.stepCount = loadingInfo.copyDCIM ? 3 : 4;
+    progress.stepID = CHECK_SOURCE_FOLDERS;
+    progress.stepNumber = 1;
+    emit loadProjectUpdate(progress);
 
     // Check that the DCIM folder is readable
 
-    if (!QFileInfo(dcimPath).isReadable()) {
-        emit loadProjectError("Could not read the DCIM folder");
-        qWarning() << "DCIM folder invalid, not readable" << dcimPath
-                   << "The permissions on the folder are " << QFileInfo(dcimPath).permissions();
-        return;
-    }
-
-    // Check that the project folder does not exists and try to create one
-
-    if (QFile::exists(projectPath)) {
-        if (!QDir(projectPath).isEmpty()) {
-            emit loadProjectError("The project folder must be empty");
-            qWarning() << "Project folder invalid, not empty" << projectPath;
+    if (loadingInfo.type == CREATE_PROJECT_FOLDER) {
+        if (!QFileInfo(loadingInfo.dcimPath).isReadable() ||
+            !QFileInfo(loadingInfo.dcimPath + "/100GFRNT").isReadable() ||
+            !QFileInfo(loadingInfo.dcimPath + "/100GBACK").isReadable()) {
+            emit loadProjectError("Could not read the DCIM folder");
+            qWarning() << "DCIM folder invalid, not readable" << loadingInfo.dcimPath
+                       << "The permissions on the folder are " << QFileInfo(loadingInfo.dcimPath).permissions();
             return;
         }
     } else {
-        if (!QDir::root().mkpath(projectPath)) {
-            emit loadProjectError("Could not create the project folder");
-            qWarning() << "Could not create the project folder, mkdir failed on" << projectPath;
+        if (!QFileInfo(loadingInfo.dcimFrontPath).isReadable()) {
+            emit loadProjectError("Could not read the front folder of the SD card");
+            qWarning() << "front folder of sd card invalid, not readable" << loadingInfo.dcimFrontPath
+                       << "The permissions on the front folder are " << QFileInfo(loadingInfo.dcimFrontPath).permissions();
+            return;
+        }
+        if (!QFileInfo(loadingInfo.dcimBackPath).isReadable()) {
+            emit loadProjectError("Could not read the front folder of the SD card");
+            qWarning() << "front folder of sd card invalid, not readable" << loadingInfo.dcimBackPath
+                       << "The permissions on the back folder are " << QFileInfo(loadingInfo.dcimBackPath).permissions();
             return;
         }
     }
 
-    QDir projectFolder(projectPath);
-    QDir dcimFolder(dcimPath);
+    // Create project folder
+
+    if (!QDir(loadingInfo.rootProjectPath).mkdir(loadingInfo.projectName)) {
+        emit loadProjectError("Could not create the project folder");
+        qWarning() << "Could not create the project folder, mkdir failed on" << loadingInfo.rootProjectPath;
+        return;
+    }
+
+    progress.stepID = CREATE_PROJECT_DIRS;
+    progress.stepNumber++;
+    emit loadProjectUpdate(progress);
+
+    QDir projectFolder(loadingInfo.rootProjectPath + "/" + loadingInfo.projectName);
 
     if ((!projectFolder.mkdir("DFSegments")) ||
         (!projectFolder.mkdir("DFVideos")) ||
@@ -357,18 +312,153 @@ void Project::create(QString projectPath, QString dcimPath, QString projectName)
         return;
     }
 
-    this->dcim = dcimFolder;
-    this->path = projectPath;
-    this->name = projectName;
+    if (loadingInfo.type == CREATE_PROJECT_FOLDER) {
+        this->front = QDir(loadingInfo.dcimPath + "/100GFRNT");
+        this->back = QDir(loadingInfo.dcimPath + "/100GBACK");
+    } else {
+        this->front = loadingInfo.dcimFrontPath;
+        this->back = loadingInfo.dcimBackPath;
+    }
+
+    this->rootPath = loadingInfo.rootProjectPath;
+    this->path = loadingInfo.projectPath;
+    this->name = loadingInfo.projectName;
     this->file = new QFile(path + "/project.ffs");
 
-    // Phase 1: Serialize the videos in the DCIM folder
-    emit loadProjectUpdate(0, "Indexing videos");
-    indexVideos();
+    if (loadingInfo.copyDCIM) {
+        progress.stepID = COPY_DCIM_FOLDER;
+        progress.stepNumber++;
+        emit loadProjectUpdate(progress);
+
+        QDir projectDir(path);
+
+        if (!projectDir.mkpath("DCIM/100GFRNT") ||
+            !projectDir.mkpath("DCIM/100GBACK")) {
+            emit loadProjectError("Could not copy the DCIM files");
+            qWarning() << "Could not create DCIM paths in the project folder";
+            return;
+        }
+
+        QFileInfoList frontFiles = front.entryInfoList(QDir::NoDotAndDotDot | QDir::Files);
+        QFileInfoList backFiles = back.entryInfoList(QDir::NoDotAndDotDot | QDir::Files);
+        progress.copy.fileCount = frontFiles.length() + backFiles.length();
+
+        int i=0;
+        for (const QFileInfo &frontFileInfo: frontFiles) {
+            progress.copy.currentFile.name = frontFileInfo.fileName();
+            progress.copy.currentFile.bytesCount = frontFileInfo.size();
+            progress.copy.fileNumber = i+1;
+            progress.copy.progress = i/progress.copy.fileCount;
+            QString src = frontFileInfo.absoluteFilePath();
+            QString dst = projectDir.absolutePath() + "/DCIM/100GFRNT/" + frontFileInfo.fileName();
+            if (QFile::exists(dst) && !QFile::remove(dst)) {
+                qWarning() << "File exists in destination and could not be removed: "<< dst;
+                emit loadProjectError("Could not copy the DCIM files");
+                return;
+            }
+            if (!copy(src, dst)) {
+                qWarning() << "Could not copy file "<< src << " to " << dst;
+                emit loadProjectError("Could not copy the DCIM files");
+                return;
+            }
+            i++;
+        }
+
+        i=0;
+        for (const QFileInfo &backFileInfo: backFiles) {
+            progress.copy.currentFile.name = backFileInfo.fileName();
+            progress.copy.currentFile.bytesCount = backFileInfo.size();
+            progress.copy.fileNumber = i+1;
+            progress.copy.progress = i/progress.copy.fileCount;
+            QString src = backFileInfo.absoluteFilePath();
+            QString dst = projectDir.absolutePath() + "/DCIM/100GBACK/" + backFileInfo.fileName();
+            if (QFile::exists(dst) && !QFile::remove(dst)) {
+                qWarning() << "File exists in destination and could not be removed: "<< dst;
+                emit loadProjectError("Could not copy the DCIM files");
+                return;
+            }
+            qDebug() << src << dst;
+            if (!QFile(src).copy(dst)) {
+                qWarning() << "Could not copy file "<< src << " to " << dst;
+                emit loadProjectError("Could not copy the DCIM files");
+                return;
+            }
+            i++;
+        }
+
+        this->front = QDir(projectDir.absolutePath() + "/DCIM/100GFRNT");
+        this->back = QDir(projectDir.absolutePath() + "/DCIM/100GBACK");
+    }
+
+    if (!indexVideos()) return;
 
     this->save();
-
     this->valid = true;
+}
+
+void Project::save()
+{
+    qDebug() << "Trying to save to project file" << file->fileName();
+
+    if (file == nullptr) {
+        qWarning() << "Project file pointer is null";
+        return;
+    }
+
+    if (file->isOpen()) file->close();
+
+    if (!file->open(QFile::ReadWrite)) {
+        qWarning() << "Could not open project file" << file->fileName();
+        return;
+    }
+
+    QJsonDocument jsonDoc;
+    QJsonObject mainObj;
+
+    QJsonObject info;
+
+    info.insert("name", name);
+    info.insert("dcim", dcim.absolutePath());
+    info.insert("version", QCoreApplication::applicationVersion());
+
+    mainObj.insert("info", info);
+
+    QJsonArray videosArray;
+
+    for (FVideo *video: videos) {
+        QJsonObject videoObject;
+        videoObject.insert("id", video->getId());
+        videoObject.insert("dualFisheye", video->isDualFisheyeValid());
+        videoObject.insert("dualFisheyeLow", video->isDualFisheyeLowValid());
+        videoObject.insert("equirectangular", video->isEquirectangularValid());
+        videoObject.insert("equirectangularLow", video->isEquirectangularLowValid());
+        QJsonArray segmentsArray;
+        QList<FSegment*> segments = video->getSegments();
+        for (FSegment* segment: segments) {
+            QJsonObject segmentObject;
+            segmentObject.insert("id", segment->getId());
+            segmentObject.insert("dualFisheye", segment->isDualFisheyeValid());
+            segmentObject.insert("dualFisheyeLow", segment->isDualFisheyeLowValid());
+            segmentsArray.append(segmentObject);
+        }
+        videoObject.insert("segments", segmentsArray);
+        videosArray.append(videoObject);
+    }
+
+    mainObj.insert("videos", videosArray);
+    jsonDoc.setObject(mainObj);
+
+    int written = file->write(jsonDoc.toJson(QJsonDocument::Indented));
+    if (written < 0) {
+        file->close();
+        qWarning() << "Could not save the project" << path;
+        return;
+    }
+
+    file->close();
+
+    lastSaved = QDateTime::currentDateTime();
+    addToRecent();
 }
 
 void Project::addToRecent()
@@ -444,52 +534,59 @@ bool Project::indexVideos()
 {
     QList<FVideo*> videos;
 
-    QDir front(dcim.absolutePath() + "/100GFRNT");
-    QDir back(dcim.absolutePath() + "/100GBACK");
-
     if (!front.exists()) {
-        emit loadProjectError("The DCIM folder has an invalid structure");
-        qWarning() << "Could not found the 100GFRNT folder inside the DCIM folder specified: " << dcim;
+        emit loadProjectError("The front folder has an invalid structure");
+        qWarning() << "Front folder does not exist: " << front.absolutePath();
         return false;
     }
 
     if (!back.exists()) {
-        emit loadProjectError("The DCIM folder has an invalid structure");
-        qWarning() << "Could not found the 100GBACK folder inside the DCIM folder specified: " << dcim;
+        emit loadProjectError("The back folder has an invalid structure");
+        qWarning() << "Back folder does not exist: " << back.absolutePath();
         return false;
     }
-
-    emit loadProjectUpdate(0, "Indexing front folder files");
 
     front.setNameFilters({"GPFR????.MP4"});
     QFileInfoList mainFrontSegments = front.entryInfoList(QDir::Files);
 
-    back.setNameFilters({"GPBK????.MP4"});
-    QFileInfoList mainBackSegments = back.entryInfoList(QDir::Files);
-
-
-    int totalSegments = 0;
+    // Count total segments in total
+    progress.index.totalSegments = 0;
     QDir frontAux(front.absolutePath());
-    frontAux.setNameFilters({"GPFR????.MP4", "GF??????.MP4"});
-    totalSegments += frontAux.entryInfoList(QDir::Files).size();
-    frontAux.setNameFilters({"GPBK????.MP4", "GB??????.MP4"});
-    totalSegments += frontAux.entryInfoList(QDir::Files).size();
 
-    int doneSegments = 0;
+    frontAux.setNameFilters({"GPFR????.MP4", "GF??????.MP4"});
+    progress.index.totalSegments += frontAux.entryInfoList(QDir::Files).length();
+
+    frontAux.setNameFilters({"GPFR????.MP4"});
+    progress.index.totalVideos = frontAux.entryInfoList(QDir::Files).length();
+
+    frontAux.setNameFilters({"GPBK????.MP4", "GB??????.MP4"});
+    progress.index.totalSegments += frontAux.entryInfoList(QDir::Files).length();
+
+    progress.index.doneSegments = 0;
+    progress.index.doneVideos = 0;
+
+    progress.stepID = INDEX_VIDEOS;
+    progress.stepNumber++;
+    emit loadProjectUpdate(progress);
 
     for (const QFileInfo &mainFrontSegment: mainFrontSegments) {
         bool isNumber = false;
-        int vid = mainFrontSegment.fileName().mid(4,4).toInt(&isNumber);
+
+        int vid = QStringView(mainFrontSegment.fileName()).mid(4,4).toInt(&isNumber);
         if (!isNumber) {
             qWarning() << "Found a main front segment with an invalid ID: " << mainFrontSegment.absoluteFilePath();
             continue;
         }
 
         FVideo *video = new FVideo(vid);
-        connect(video, SIGNAL(verifyError(QString)), this, SIGNAL(loadProjectError(QString)));
 
         video->setFrontThumbnail(new QFile(front.path() + "/GPFR" + video->getIdString() + ".THM"));
-        video->setBackThumbnail(new QFile(front.path() + "/GPBK" + video->getIdString() + ".THM"));
+        video->setBackThumbnail(new QFile(back.path() + "/GPBK" + video->getIdString() + ".THM"));
+
+        if (!video->verify()) {
+            badVideos.append({vid, "Invalid thumnails"});
+            continue;
+        }
 
         // Add main segment
         FSegment *mainSegment = new FSegment(
@@ -502,18 +599,23 @@ bool Project::indexVideos()
             new QFile(back.path() + "/GPBK" + video->getIdString() + ".THM"),
             new QFile(back.path() + "/GPBK" + video->getIdString() + ".WAV")
         );
-        if (!video->addSegment(mainSegment)) continue;
-        doneSegments++;
-        indexSegmentComplete(doneSegments, totalSegments);
+        if (!video->addSegment(mainSegment)) {
+            badVideos.append({vid, "Invalid main segment"});
+            continue;
+        }
+        indexSegmentComplete();
 
         front.setNameFilters({"GF??" + video->getIdString() + ".MP4"});
         QFileInfoList mainSecSegments = front.entryInfoList(QDir::Files);
 
+        bool secSegmentsOk = true;
         for (const QFileInfo &mainSecSegment: mainSecSegments) {
             bool isNumber = false;
-            int segId = mainSecSegment.fileName().mid(2,2).toInt(&isNumber);
+            int segId = QStringView(mainSecSegment.fileName()).mid(2,2).toInt(&isNumber);
             if (!isNumber) {
                 qWarning() << "Found a secondary front segment with an invalid ID: " << mainFrontSegment.absoluteFilePath();
+                badVideos.append({vid, "Secondary video segment invalid"});
+                secSegmentsOk = false;
                 break;
             }
 
@@ -530,12 +632,20 @@ bool Project::indexVideos()
                 new QFile(back.path() + "/GB" + segIdString + video->getIdString() + ".WAV")
             );
 
-            if (!video->addSegment(secSegment)) break;
-            doneSegments++;
-            indexSegmentComplete(doneSegments, totalSegments);
+            if (!video->addSegment(secSegment)) {
+                qWarning() << "Found an invalid secondary segment for video " << vid;
+                badVideos.append({vid, "Secondary video segment invalid"});
+                secSegmentsOk = false;
+                break;
+            }
+
+            indexSegmentComplete();
         }
 
+        if (!secSegmentsOk) continue;
+
         videos.append(video);
+        indexVideoComplete();
     }
 
     this->videos = videos;
@@ -543,16 +653,58 @@ bool Project::indexVideos()
     return true;
 }
 
-void Project::indexSegmentComplete(int doneSegments, int totalSegments)
+void Project::indexSegmentComplete()
 {
-    float percent = ((float) doneSegments / (float) totalSegments)*100;
-    qDebug() << "New segment indexed: " << doneSegments << " of " << totalSegments << " for a percentage of " << QString::number(percent);
-    emit loadProjectUpdate(percent);
+    progress.index.doneSegments++;
+    emit loadProjectUpdate(progress);
 }
 
-void Project::indexVideoComplete(int doneVideos, int totalVideos)
+void Project::indexVideoComplete()
 {
-    float percent = ((float) doneVideos / (float) totalVideos)*100;
-    qDebug() << "New video indexed: " << doneVideos << " of " << totalVideos << " for a percentage of " << QString::number(percent);
-    emit loadProjectUpdate(percent);
+    progress.index.doneVideos++;
+    emit loadProjectUpdate(progress);
+}
+
+bool Project::copy(QString src, QString dst)
+{
+    QFile srcFile(src);
+    QFile dstFile(dst);
+
+    if (!srcFile.open(QFile::ReadOnly) || !dstFile.open(QFile::ReadWrite | QFile::Truncate)) {
+        qWarning() << "Cannot open src file (" << src << ") or dst file (" << dst << ")";
+        srcFile.close();
+        dstFile.close();
+        return false;
+    }
+
+    const int chunkSize = 1024;
+    int chunks = 0;
+
+    QElapsedTimer tmr;
+    tmr.start();
+    qint64 bytesStamp = 0;
+    while (!srcFile.atEnd()) {
+        QByteArray chunk = srcFile.read(chunkSize);
+        if (dstFile.write(chunk) == -1) {
+            qWarning() << "Error writing to dst file (" << dst << ")";
+            srcFile.close();
+            dstFile.close();
+            return false;
+        }
+        chunks++;
+        progress.copy.currentFile.bytesDone = chunks*chunkSize;
+        emit loadProjectUpdate(progress);
+        if (tmr.elapsed() >= 1000) {
+            double speed = (double) (progress.copy.currentFile.bytesDone - bytesStamp) / (double) (1024*1024);
+            progress.copy.currentFile.speed = speed;
+            emit loadProjectUpdate(progress);
+            bytesStamp = progress.copy.currentFile.bytesDone;
+            tmr.restart();
+        }
+    }
+
+    srcFile.close();
+    dstFile.close();
+
+    return true;
 }

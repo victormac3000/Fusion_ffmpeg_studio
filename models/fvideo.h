@@ -58,12 +58,6 @@ public:
 
     QString toString();
 
-signals:
-    void verifyError(QString error);
-
-private slots:
-    void segmentVerifyError(QString error);
-
 private:
     int id;
     QList<FSegment*> segments;

@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QQuickItem>
+#include <QFileDialog>
 
 namespace Ui {
 class ProjectCreatorFolder;

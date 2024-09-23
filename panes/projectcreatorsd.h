@@ -5,9 +5,8 @@
 #include <QStorageInfo>
 #include <QQuickItem>
 
-#include "utils/myqsysinfo.h"
-
 class MainWindow;
+struct VolumeInfo;
 
 namespace Ui {
 class ProjectCreatorSd;
@@ -27,16 +26,21 @@ signals:
     void changePane(QWidget *pane);
 
 private slots:
-    void checkFrontSelection();
-    void checkBackSelection();
+    void backButtonClicked();
+    void checkFrontSelection(QString selectedText);
+    void checkBackSelection(QString selectedText);
+    void createButtonClicked();
 
 private:
     Ui::ProjectCreatorSd *ui;
     MainWindow* mainWindow;
     QQuickItem *frontSDComboBox, *backSDComboBox;
     QQuickItem *frontSDRectangle, *backSDRectangle;
+    QQuickItem *createProjectSDButton;
     QList<VolumeInfo> mountedVolumes;
     bool initOk = false;
+
+    void validateSelections();
 };
 
 #endif // PROJECTCREATORSD_H
