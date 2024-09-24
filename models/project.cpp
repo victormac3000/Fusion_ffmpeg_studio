@@ -255,7 +255,7 @@ void Project::load(QString projectPath)
 
 void Project::create(LoadingInfo loadingInfo)
 {
-    progress.stepCount = loadingInfo.copyDCIM ? 3 : 4;
+    progress.stepCount = loadingInfo.copyDCIM ? 4 : 3;
     progress.stepID = CHECK_SOURCE_FOLDERS;
     progress.stepNumber = 1;
     emit loadProjectUpdate(progress);
@@ -470,7 +470,6 @@ bool Project::copyDCIM()
 {
     progress.stepID = COPY_DCIM_FOLDER;
     progress.stepNumber++;
-    emit loadProjectUpdate(progress);
 
     QDir projectDir(path);
 
@@ -490,7 +489,7 @@ bool Project::copyDCIM()
         progress.copy.currentFile.name = frontFileInfo.fileName();
         progress.copy.currentFile.bytesCount = frontFileInfo.size();
         progress.copy.fileNumber = i+1;
-        progress.copy.progress = i/progress.copy.fileCount;
+        emit loadProjectUpdate(progress);
         QString src = frontFileInfo.absoluteFilePath();
         QString dst = projectDir.absolutePath() + "/DCIM/100GFRNT/" + frontFileInfo.fileName();
         if (QFile::exists(dst) && !QFile::remove(dst)) {
@@ -506,12 +505,12 @@ bool Project::copyDCIM()
         i++;
     }
 
-    i=0;
+    i=progress.copy.fileNumber;
     for (const QFileInfo &backFileInfo: backFiles) {
         progress.copy.currentFile.name = backFileInfo.fileName();
         progress.copy.currentFile.bytesCount = backFileInfo.size();
         progress.copy.fileNumber = i+1;
-        progress.copy.progress = i/progress.copy.fileCount;
+        emit loadProjectUpdate(progress);
         QString src = backFileInfo.absoluteFilePath();
         QString dst = projectDir.absolutePath() + "/DCIM/100GBACK/" + backFileInfo.fileName();
         if (QFile::exists(dst) && !QFile::remove(dst)) {
@@ -519,8 +518,7 @@ bool Project::copyDCIM()
             emit loadProjectError("Could not copy the DCIM files");
             return false;
         }
-        qDebug() << src << dst;
-        if (!QFile(src).copy(dst)) {
+        if (!copy(src, dst)) {
             qWarning() << "Could not copy file "<< src << " to " << dst;
             emit loadProjectError("Could not copy the DCIM files");
             return false;
@@ -682,11 +680,13 @@ bool Project::copy(QString src, QString dst)
     }
 
     const int chunkSize = 1024;
-    int chunks = 0;
+    qint64 chunks = 0;
 
     QElapsedTimer tmr;
     tmr.start();
     qint64 bytesStamp = 0;
+    bool firstRun = true;
+
     while (!srcFile.atEnd()) {
         QByteArray chunk = srcFile.read(chunkSize);
         if (dstFile.write(chunk) == -1) {
@@ -697,15 +697,25 @@ bool Project::copy(QString src, QString dst)
         }
         chunks++;
         progress.copy.currentFile.bytesDone = chunks*chunkSize;
-        emit loadProjectUpdate(progress);
-        if (tmr.elapsed() >= 1000) {
+        if (firstRun && tmr.elapsed() >= 5) {
             double speed = (double) (progress.copy.currentFile.bytesDone - bytesStamp) / (double) (1024*1024);
+            speed *= tmr.elapsed();
+            progress.copy.currentFile.speed = speed;
+            firstRun = false;
+            emit loadProjectUpdate(progress);
+        }
+        if (tmr.elapsed() >= 100) {
+            double speed = (double) (progress.copy.currentFile.bytesDone - bytesStamp) / (double) (1024*1024);
+            speed *= tmr.elapsed();
             progress.copy.currentFile.speed = speed;
             emit loadProjectUpdate(progress);
             bytesStamp = progress.copy.currentFile.bytesDone;
             tmr.restart();
         }
     }
+
+    progress.copy.currentFile.bytesDone = progress.copy.currentFile.bytesCount;
+    emit loadProjectUpdate(progress);
 
     srcFile.close();
     dstFile.close();

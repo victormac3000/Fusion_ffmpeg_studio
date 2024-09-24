@@ -24,6 +24,7 @@ ProgressBar {
     }
 
     Label {
+        z: 1
         text: insideText
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
@@ -36,7 +37,7 @@ ProgressBar {
 
     Behavior on value {
         NumberAnimation {
-            duration: 1000
+            duration: 100
         }
     }
 }

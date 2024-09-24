@@ -36,13 +36,11 @@ struct LoadingProgress {
     struct copy {
         int fileCount;
         int fileNumber;
-        double progress;
         struct currentFile {
             QString name;
             qint64 bytesCount;
             qint64 bytesDone;
-            double progress;
-            double speed;   // In MB/s
+            float speed;   // In MB/s
         } currentFile;
     } copy;
 };

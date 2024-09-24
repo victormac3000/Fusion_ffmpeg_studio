@@ -104,8 +104,7 @@ void LoadingPane::loadProjectUpdate(LoadingProgress progress)
     QString message;
     progressBarGrid->setProperty("generalMessage", false);
     progressBarGrid->setProperty("specificMessage", false);
-
-    float mainPercent = (float) (progress.stepNumber / progress.stepCount);
+    float mainPercent = -1;
 
     switch(progress.stepID)
     {
@@ -121,61 +120,65 @@ void LoadingPane::loadProjectUpdate(LoadingProgress progress)
         progressBarGrid->setProperty("generalMessage", true);
         progressBarGrid->setProperty("specificMessage", true);
 
-        float filePercent = (float) progress.copy.currentFile.bytesDone / progress.copy.currentFile.bytesCount;
+        float filePercent = (float) progress.copy.currentFile.bytesDone / (float) progress.copy.currentFile.bytesCount;
 
         specificMessageTopText->setProperty(
             "text",
             "Copying " + progress.copy.currentFile.name +
                 " at " + QString::number(progress.copy.currentFile.speed) + "MB/s"
         );
-        specificMessageBar->setProperty("insideText", QString::number(filePercent*100) + "%");
+        specificMessageBar->setProperty("insideText", QString::number(filePercent*100, 10, 1) + "%");
         specificMessageBar->setProperty("value", filePercent*100);
 
-        float filesPercent = (float) progress.copy.fileNumber / progress.copy.fileCount;
-        if (filePercent > 0) filesPercent *= filePercent;
+        if (progress.copy.currentFile.name.isEmpty()) break;
+
+        float filesPercent = (float) (progress.copy.fileNumber + filePercent) / (float) progress.copy.fileCount;
+        if (filesPercent > 1) filesPercent = 1;
 
         generalMessageTopText->setProperty(
             "text",
             "Copied " + QString::number(progress.copy.fileNumber) +
-                " videos of " + QString::number(progress.copy.fileCount)
+                " files of " + QString::number(progress.copy.fileCount)
             );
-        generalMessageBar->setProperty("insideText", QString::number(filesPercent*100) + "%");
+        generalMessageBar->setProperty("insideText", QString::number(filesPercent*100, 10, 1) + "%");
         generalMessageBar->setProperty("value", filesPercent*100);
 
-        mainPercent *= filesPercent;
+        mainPercent = (float) (progress.stepNumber + filesPercent) / (float) progress.stepCount;
+        if (mainPercent > 1) mainPercent = 1;
 
         break;
     }
     case INDEX_VIDEOS:
     {
-        message = "Checking source folders";
+        message = "Indexing videos";
         progressBarGrid->setProperty("generalMessage", true);
         progressBarGrid->setProperty("specificMessage", true);
 
 
-        float segmentsPercent = (float) progress.index.doneSegments / progress.index.totalSegments;
+        float segmentsPercent = (float) progress.index.doneSegments / (float) progress.index.totalSegments;
 
         specificMessageTopText->setProperty(
             "text",
             "Indexed " + QString::number(progress.index.doneSegments) +
                 " videos of " + QString::number(progress.index.totalSegments)
             );
-        specificMessageBar->setProperty("insideText", QString::number(segmentsPercent*100) + "%");
+        specificMessageBar->setProperty("insideText", QString::number(segmentsPercent*100, 10, 1) + "%");
         specificMessageBar->setProperty("value", segmentsPercent*100);
 
 
-        float videosPercent = (float) progress.index.doneVideos / progress.index.totalVideos;
-        if (segmentsPercent > 0) videosPercent *= segmentsPercent;
+        float videosPercent = (float) (progress.index.doneVideos + segmentsPercent) / (float) progress.index.totalVideos;
+        if (videosPercent > 1) videosPercent = 1;
 
         generalMessageTopText->setProperty(
             "text",
             "Indexing video " + QString::number(progress.index.doneVideos) +
                 " videos of " + QString::number(progress.index.totalVideos)
         );
-        generalMessageBar->setProperty("insideText", QString::number(videosPercent*100) + "%");
+        generalMessageBar->setProperty("insideText", QString::number(videosPercent*100, 10, 1) + "%");
         generalMessageBar->setProperty("value", videosPercent*100);
 
-        mainPercent *= segmentsPercent;
+        mainPercent = (float) (progress.stepNumber + videosPercent) / (float) progress.stepCount;
+        if (mainPercent > 1) mainPercent = 1;
 
         break;
     }
@@ -185,35 +188,8 @@ void LoadingPane::loadProjectUpdate(LoadingProgress progress)
     }
 
     mainMessageTopText->setProperty("text", message);
-    mainMessageBar->setProperty("insideText", QString::number(mainPercent*100) + "%");
-    mainMessageBar->setProperty("value", mainPercent*100);
-
-    /*
-    #define CHECK_SOURCE_FOLDERS 0
-    #define CREATE_PROJECT_DIRS 1
-    #define COPY_DCIM_FOLDER 2
-    #define INDEX_VIDEOS 3
-    struct LoadingProgress {
-        QString stepMessage;
-        double stepProgress;  // 0-100
-        int stepNumber;
-        int stepCount;
-        struct index {
-            int doneVideos;
-            int totalVideos;
-            int doneSegments;
-            int totalSegments;
-        } index;
-        struct copy {
-            int fileCount;
-            int fileNumber;
-            struct currentFile {
-                QString name;
-                qint64 bytesCount;
-                qint64 bytesDone;
-                double progress;
-            } currentFile;
-        } copy;
-    };
-*/
+    if (mainPercent >= 0) {
+        mainMessageBar->setProperty("insideText", QString::number(mainPercent*100, 10, 1) + "%");
+        mainMessageBar->setProperty("value", mainPercent*100);
+    }
 }
