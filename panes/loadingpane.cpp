@@ -55,10 +55,7 @@ LoadingPane::LoadingPane(QWidget *parent, LoadingInfo loadingInfo) :
 
     this->worker = new Worker(nullptr, loadingInfo);
     this->workerThread = new QThread;
-    if (!worker->moveToThread(workerThread)) {
-        qWarning() << "Could not move worker to workerThread";
-        return;
-    }
+    worker->moveToThread(workerThread);
 
     connect(worker, SIGNAL(loadProjectFinished(Project*)), this, SLOT(loadProjectFinished(Project*)));
     connect(worker, SIGNAL(loadProjectError(QString)), this, SLOT(loadProjectError(QString)));
