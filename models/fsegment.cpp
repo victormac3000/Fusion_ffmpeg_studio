@@ -3,16 +3,14 @@
 #include "models/fformats.h"
 #include "utils/mediainfo.h"
 
-FSegment::FSegment(QObject *parent, int id, QFile *front_mp4, QFile *front_lrv, QFile *front_thm, QFile *back_mp4, QFile *back_lrv, QFile *back_thm, QFile *back_wav)
+FSegment::FSegment(QObject *parent, int id, QFile *front_mp4, QFile *front_lrv, QFile *back_mp4, QFile *back_lrv, QFile *back_wav)
     : QObject {parent}
 {
     this->id = id;
     this->frontMP4 = front_mp4;
     this->frontLRV = front_lrv;
-    this->frontTHM = front_thm;
     this->backMP4 = back_mp4;
     this->backLRV = back_lrv;
-    this->backTHM = back_thm;
     this->backWAV = back_wav;
 }
 
@@ -21,100 +19,122 @@ FSegment::~FSegment()
 
 }
 
-bool FSegment::verify()
+bool FSegment::verify(VerifyMode verifyMode)
 {
     FVideo *video = (FVideo*) this->parent();
     if (video == nullptr) {
-        qWarning() << "The segment has a nullptr video";
+        qWarning() << "The segment" << id << "has a nullptr video";
         return false;
     }
 
-    FFormats formats;
-
-    FFormat *frontMP4Format = formats.get(frontMP4, FUSION_VIDEO);
-    FFormat *frontLRVFormat = formats.get(frontLRV, FUSION_LOW_VIDEO);
-    FFormat *frontTHMFormat = formats.get(frontTHM, FUSION_THUMNAIL);
-    FFormat *backMP4Format = formats.get(backMP4, FUSION_VIDEO);
-    FFormat *backLRVFormat = formats.get(backLRV, FUSION_LOW_VIDEO);
-    FFormat *backTHMFormat = formats.get(backTHM, FUSION_THUMNAIL);
-    FFormat *backWAVFormat = formats.get(backWAV, FUSION_AUDIO);
-
-    if (frontMP4Format == nullptr)  {
-        qWarning() << "FrontMP4 file is invalid. Raw segment: " << toString();
+    if (frontMP4 == nullptr)  {
+        qWarning() << "FrontMP4 file is null. Raw segment: " << toString();
         return false;
     }
 
-    if (frontLRVFormat == nullptr)  {
-        qWarning() << "FrontLRV file is invalid. Raw segment: " + toString();
+    if (frontLRV == nullptr)  {
+        qWarning() << "FrontLRV file is null. Raw segment: " + toString();
         return false;
     }
 
-    if (frontTHMFormat == nullptr)  {
-        qWarning() << "FrontTHM file is invalid. Raw segment: " + toString();
+    if (backMP4 == nullptr)  {
+        qWarning() << "BackMP4 file is null. Raw segment: " + toString();
         return false;
     }
 
-    if (backMP4Format == nullptr)  {
-        qWarning() << "BackMP4 file is invalid. Raw segment: " + toString();
+    if (backLRV == nullptr)  {
+        qWarning() << "BackLRV file is null. Raw segment: " + toString();
         return false;
     }
 
-    if (backLRVFormat == nullptr)  {
-        qWarning() << "BackLRV file is invalid. Raw segment: " + toString();
+    if (backWAV == nullptr)  {
+        qWarning() << "BackWAV file is null. Raw segment: " + toString();
         return false;
     }
 
-    if (backTHMFormat == nullptr)  {
-        qWarning() << "BackTHM file is invalid. Raw segment: " + toString();
-        return false;
-    }
+    if (verifyMode == FULL) {
+        FFormats formats;
 
-    if (backWAVFormat == nullptr)  {
-        qWarning() << "BackWAV file is invalid. Raw segment: " + toString();
-        return false;
-    }
+        FFormat *frontMP4Format = formats.get(frontMP4, FUSION_VIDEO);
+        FFormat *frontLRVFormat = formats.get(frontLRV, FUSION_LOW_VIDEO);
+        FFormat *frontTHMFormat = formats.get(video->getFrontThumbnail(), FUSION_THUMNAIL);
+        FFormat *backMP4Format = formats.get(backMP4, FUSION_VIDEO);
+        FFormat *backLRVFormat = formats.get(backLRV, FUSION_LOW_VIDEO);
+        FFormat *backTHMFormat = formats.get(video->getBackThumbnail(), FUSION_THUMNAIL);
+        FFormat *backWAVFormat = formats.get(backWAV, FUSION_AUDIO);
 
-    if (!MediaInfo::isSameLength(frontMP4, backMP4)) {
-        qWarning() << "FrontMP4 and BackMP4 are not the same length. Raw segment: " + toString();
-        return false;
-    }
+        if (frontMP4Format == nullptr)  {
+            qWarning() << "FrontMP4 file is invalid. Raw segment: " << toString();
+            return false;
+        }
 
-    this->format = *frontMP4Format;
+        if (frontLRVFormat == nullptr)  {
+            qWarning() << "FrontLRV file is invalid. Raw segment: " + toString();
+            return false;
+        }
+
+        if (frontTHMFormat == nullptr)  {
+            qWarning() << "FrontTHM file is invalid. Raw segment: " + toString();
+            return false;
+        }
+
+        if (backMP4Format == nullptr)  {
+            qWarning() << "BackMP4 file is invalid. Raw segment: " + toString();
+            return false;
+        }
+
+        if (backLRVFormat == nullptr)  {
+            qWarning() << "BackLRV file is invalid. Raw segment: " + toString();
+            return false;
+        }
+
+        if (backTHMFormat == nullptr)  {
+            qWarning() << "BackTHM file is invalid. Raw segment: " + toString();
+            return false;
+        }
+
+        if (backWAVFormat == nullptr)  {
+            qWarning() << "BackWAV file is invalid. Raw segment: " + toString();
+            return false;
+        }
+
+        if (!MediaInfo::isSameLength(frontMP4, backMP4)) {
+            qWarning() << "FrontMP4 and BackMP4 are not the same length. Raw segment: " + toString();
+            return false;
+        }
+
+        this->format = *frontMP4Format;
+    } else {
+        if (format.name.isEmpty()) {
+            qWarning() << "Format name is empty. Raw segment: " + toString();
+            return false;
+        }
+    }
 
     return true;
 }
 
-QFile *FSegment::getFrontMP4() const
+QFile *FSegment::getFrontMP4()
 {
     return frontMP4;
 }
 
-QFile *FSegment::getFrontLRV() const
+QFile *FSegment::getFrontLRV()
 {
     return frontLRV;
 }
 
-QFile *FSegment::getFrontTHM() const
-{
-    return frontTHM;
-}
-
-QFile *FSegment::getBackMP4() const
+QFile *FSegment::getBackMP4()
 {
     return backMP4;
 }
 
-QFile *FSegment::getBackLRV() const
+QFile *FSegment::getBackLRV()
 {
     return backLRV;
 }
 
-QFile *FSegment::getBackTHM() const
-{
-    return backTHM;
-}
-
-QFile *FSegment::getBackWAV() const
+QFile *FSegment::getBackWAV()
 {
     return backWAV;
 }
@@ -139,22 +159,33 @@ QFile *FSegment::getDualFisheyeLow()
     return this->dualFisheyeLow;
 }
 
-bool FSegment::isDualFisheyeValid()
+void FSegment::setFormat(FFormat format)
 {
-    if (dualFisheye == nullptr) return false;
-    QTime a = MediaInfo::getLength(dualFisheye);
-    QTime b = getLength();
-    return a.minute() == b.minute()
-           && (abs(a.second()-b.second()) < 3);
+    this->format = format;
 }
 
-bool FSegment::isDualFisheyeLowValid()
+qint64 FSegment::isDualFisheyeValid()
 {
-    if (dualFisheyeLow == nullptr) return false;
+    if (dualFisheye == nullptr) return -1;
+    QTime a = MediaInfo::getLength(dualFisheye);
+    QTime b = getLength();
+    if (a.minute() == b.minute()
+        && (abs(a.second()-b.second()) < 3)) {
+        return dualFisheyeLow->size();
+    }
+    return -1;
+}
+
+qint64 FSegment::isDualFisheyeLowValid()
+{
+    if (dualFisheyeLow == nullptr) return -1;
     QTime a = MediaInfo::getLength(dualFisheyeLow);
     QTime b = getLength();
-    return a.minute() == b.minute()
-           && (abs(a.second()-b.second()) < 3);
+    if (a.minute() == b.minute()
+        && (abs(a.second()-b.second()) < 3)) {
+        return dualFisheyeLow->size();
+    }
+    return -1;
 }
 
 FFormat FSegment::getFormat()
@@ -198,17 +229,44 @@ QString FSegment::getIdString()
     return idString;
 }
 
+QJsonObject FSegment::toJson()
+{
+    qint64 frontMP4Size = (frontMP4 != nullptr) ? frontMP4->size() : -1;
+    qint64 frontLRVSize = (frontLRV != nullptr) ? frontLRV->size() : -1;
+    qint64 backMP4Size = (backMP4 != nullptr) ? backMP4->size() : -1;
+    qint64 backLRVSize = (backLRV != nullptr) ? backLRV->size() : -1;
+    qint64 backWAVSize = (backWAV != nullptr) ? backWAV->size() : -1;
+
+    QJsonObject segmentObject;
+    segmentObject.insert("id", id);
+    segmentObject.insert("dualFisheye", isDualFisheyeValid());
+    segmentObject.insert("dualFisheyeLow", isDualFisheyeLowValid());
+    segmentObject.insert("frontMP4", frontMP4Size);
+    segmentObject.insert("frontLRV", frontLRVSize);
+    segmentObject.insert("backMP4", backMP4Size);
+    segmentObject.insert("backLRV", backLRVSize);
+    segmentObject.insert("backWAV", backWAVSize);
+    segmentObject.insert("format", format.name);
+    return segmentObject;
+}
+
 QString FSegment::toString()
 {
     FVideo* video = (FVideo*) this->parent();
+    QString videoId = (video != nullptr) ? QString::number(video->getId()) : "NULL";
+    QString frontMP4Path = (frontMP4 != nullptr) ? frontMP4->fileName() : "NULL";
+    QString frontLRVPath = (frontLRV != nullptr) ? frontLRV->fileName() : "NULL";
+    QString backMP4Path = (backMP4 != nullptr) ? backMP4->fileName() : "NULL";
+    QString backLRVPath = (backLRV != nullptr) ? backLRV->fileName() : "NULL";
+    QString backWAVPath = (backWAV != nullptr) ? backWAV->fileName() : "NULL";
+
     return  "ID: " + QString::number(id) +
-           "VIDEO ID: " + QString::number(video->getId())  +
-           "FRONT MP4: " + frontMP4->fileName() +
-           "FRONT LRV: " + frontLRV->fileName() +
-           "FRONT THM: " + frontTHM->fileName() +
-           "BACK MP4: " + backMP4->fileName() +
-           "BACK LRV: " + backLRV->fileName() +
-           "BACK THM: " + backTHM->fileName() +
-           "BACK WAV: " + backWAV->fileName();
+            "VIDEO ID: " + videoId  + "\n" +
+            "FRONT MP4: " + frontMP4Path + "\n" +
+            "FRONT LRV: " + frontLRVPath + "\n" +
+            "BACK MP4: " + backMP4Path + "\n" +
+            "BACK LRV: " + backLRVPath + "\n" +
+            "BACK WAV: " + backWAVPath + "\n" +
+            "FORMAT NAME: " + format.name;
 
 }

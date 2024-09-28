@@ -2,15 +2,9 @@
 
 #include "utils/mediainfo.h"
 
-FFormats::FFormats(QObject *parent)
-    : QObject{parent}
-{
-    formats.append(FFormat {"3K@50", 1504, 1568, 50} );
-
-    if (this->formats.length() < 1) {
-        qCritical() << "No supported video formats defined in the FusionFormats.json file";
-    }
-}
+QList<FFormat> FFormats::formats = {
+    FFormat {"3K@50", 1504, 1568, 50}
+};
 
 FFormat* FFormats::get(QFile *media, int type)
 {
@@ -72,4 +66,14 @@ FFormat* FFormats::get(QFile *media, int type)
 
     qWarning() << "The media type specified" << type << "is not an audio, video or thumnail file: " << media->fileName();
     return nullptr;
+}
+
+FFormat FFormats::getByName(QString name)
+{
+    for (FFormat format: formats) {
+        if (format.name == name) {
+            return format;
+        }
+    }
+    return FFormat{};
 }

@@ -21,10 +21,14 @@ void Worker::work()
     if (loadingInfo.type == CREATE_PROJECT_FOLDER ||
         loadingInfo.type == CREATE_PROJECT_SD) {
         createProject();
+        return;
     }
     if (loadingInfo.type == LOAD_PROJECT) {
         loadProject();
+        return;
     }
+    qWarning() << "Worker LoadingInfo got an unknown type:" << loadingInfo.type;
+    emit loadProjectError("General error with the loader");
 }
 
 void Worker::createProject()
@@ -40,7 +44,7 @@ void Worker::createProject()
 
 void Worker::loadProject()
 {
-    project->load(loadingInfo.projectPath);
+    project->load(loadingInfo);
 
     if (project->isValid()) {
         emit loadProjectFinished(project);

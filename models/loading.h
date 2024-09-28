@@ -14,12 +14,12 @@
 #include <QString>
 
 struct LoadingInfo {
-    int type = LOAD_PROJECT;
+    int type = -1;
     QString rootProjectPath;    // Root folder of project. Example: /Users/username/Documents
     QString projectPath;        // Base folder of project. Example: /Users/username/Documents/Project1
+    QString projectName;        // Only used on create type
     QString dcimPath;
     QString dcimFrontPath, dcimBackPath;
-    QString projectName;
     bool copyDCIM = false;
 };
 

@@ -76,18 +76,21 @@ WelcomePane::~WelcomePane()
 void WelcomePane::openProjectButtonClicked()
 {
     QString proposedProjectFile = QFileDialog::getOpenFileName(
-        this, tr("Select the project file"), QSettings().value("defaultProjectPath").toString() + "/Mi proyecto", tr("Fusion FFmpeg studio project (*.ffs)")
+        this, tr("Select the project file"), "/Users/victor/Documents/Untitled/project.json", tr("Fusion FFmpeg studio project (*.ffs)")
     );
     if (proposedProjectFile.isEmpty()) return;
 
-    /*
-    LoadingInfo loadingInfo{
-        LOAD_PROJECT, proposedProjectFile
-    };
+    LoadingInfo loadingInfo;
+    loadingInfo.type = LOAD_PROJECT;
+    loadingInfo.projectPath = QFileInfo(proposedProjectFile).absolutePath();
+    loadingInfo.rootProjectPath = QFileInfo(loadingInfo.projectPath).absolutePath();
 
-    LoadingPane *loader = new LoadingPane(mainWindow, QFileInfo(proposedProjectFile).absolutePath());
-    emit changePane(loader);
-    */
+    LoadingPane* loader = new LoadingPane(mainWindow, loadingInfo);
+    if (loader->getInit()) {
+        emit changePane(loader);
+    } else {
+        Dialogs::warning("Could not load the next menu");
+    }
 }
 
 void WelcomePane::newProjectButtonClicked()
@@ -107,15 +110,23 @@ void WelcomePane::recentProjectClicked(QVariant rectangle)
         qWarning() << "Could not cast the recent project clicked to a QObject";
         return;
     }
-    QString path = object->property("path").toString();
-    if (path.isEmpty()) {
+    QString projectPath = object->property("path").toString();
+    if (projectPath.isEmpty()) {
         qWarning() << "The recent project clicked path is empty";
         return;
     }
-/*
-    LoadingPane *loader = new LoadingPane(mainWindow, path);
-    emit changePane(loader);
-*/
+
+    LoadingInfo loadingInfo;
+    loadingInfo.type = LOAD_PROJECT;
+    loadingInfo.projectPath = projectPath;
+    loadingInfo.rootProjectPath = QDir(projectPath).absolutePath();
+
+    LoadingPane* loader = new LoadingPane(mainWindow, loadingInfo);
+    if (loader->getInit()) {
+        emit changePane(loader);
+    } else {
+        Dialogs::warning("Could not load the next menu");
+    }
 }
 
 void WelcomePane::aboutButtonClicked()
@@ -146,7 +157,7 @@ void WelcomePane::settingsButtonClicked()
 
 void WelcomePane::searchRecentProjects(QString text)
 {
-    for (const QPair<RecentProject, QFrame*> &pair: recentProjectsList) {
+    for (const QPair<RecentProject,QFrame*> &pair: recentProjectsList) {
         bool contains = text.isEmpty() ? true : pair.first.name.contains(text, Qt::CaseInsensitive);
         pair.second->setVisible(contains);
     }
@@ -185,7 +196,6 @@ void WelcomePane::loadRecentProjects()
         }
     }
 
-    // Order recent projects. The most recent should be at the top. Plain simple bubble sort.
     bool swapped;
     for (int i=0; i<recentProjects.size()-1; i++) {
         swapped = false;
