@@ -121,6 +121,7 @@ void Project::load(LoadingInfo loadingInfo)
     QStringList versionParts = version.split(".");
 
     if (appVersionParts.length() != versionParts.length()) {
+        valid = false;
         qWarning() << "The application version parts length is not the same as the project version parts";
         return;
     }
@@ -157,9 +158,8 @@ void Project::load(LoadingInfo loadingInfo)
 
     //emit loadProjectUpdate(0, "Indexing videos");
 
+    bool validVideo = false;
     for (const QJsonValue &videoArray: videosArray) {
-        bool valid = true;
-
         if (!videoArray.isObject()) {
             qWarning() << "Found a non object in video array parsing project file";
             continue;
@@ -258,6 +258,7 @@ void Project::load(LoadingInfo loadingInfo)
 
         if (!frontThumbnailExists || !backThumbnailExists) {
             qWarning() << "Thumnails size not found for video " << vid;
+            valid = false;
             badVideos.append({vid, "Thumbnails size not found in project file"});
             delete video;
             continue;
@@ -414,12 +415,13 @@ void Project::load(LoadingInfo loadingInfo)
             if (!video->addSegment(segment, FILES_ONLY)) {
                 qDebug() << "Segment invalid" << sid << "for video" << vid;
                 badVideos.append({vid, "A segment ID was invalid in project file. View the logs for more information"});
-                valid = false;
                 break;
             }
+
+            validVideo = true;
         }
 
-        if (valid) this->videos.append(video);
+        if (validVideo) this->videos.append(video);
         progress.index.doneVideos++;
         emit loadProjectUpdate(progress);
     }
