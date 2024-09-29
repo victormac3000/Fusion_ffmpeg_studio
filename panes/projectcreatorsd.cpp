@@ -63,9 +63,13 @@ ProjectCreatorSd::ProjectCreatorSd(QWidget *parent)
     QStringList volumeLabels;
 
     for (const VolumeInfo &volume: mountedVolumes) {
-        //if (volume.isExternal) {
+        #ifdef QT_DEBUG
+        volumeLabels.append(volume.label);
+        #else
+        if (volume.isExternal) {
             volumeLabels.append(volume.label);
-        //}
+        }
+        #endif
     }
 
     if (volumeLabels.length() > 0) {
