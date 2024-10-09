@@ -248,7 +248,9 @@ void ProjectCreatorSd::browseProjectLocationClicked()
 {
     QString proposedProjectFolder = QFileDialog::getExistingDirectory(
         this, tr("Select the project directory"), "/Users/victor/Documents", QFileDialog::ShowDirsOnly
-        );
+    );
+
+    if (proposedProjectFolder.isEmpty()) return;
 
     QFileInfo dirInfo(proposedProjectFolder);
     if (!dirInfo.isWritable()) {
