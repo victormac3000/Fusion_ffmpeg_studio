@@ -101,6 +101,8 @@ void ProjectCreatorFolder::browseProjectLocationClicked()
         this, tr("Select the project directory"), "/Users/victor/Documents", QFileDialog::ShowDirsOnly
     );
 
+    if (proposedProjectFolder.isEmpty()) return;
+
     QFileInfo dirInfo(proposedProjectFolder);
     if (!dirInfo.isWritable()) {
         Dialogs::warning("You must select a writable directory");
@@ -117,6 +119,8 @@ void ProjectCreatorFolder::browseDCIMFolderClicked()
     QString proposedDCIMFolder = QFileDialog::getExistingDirectory(
         this, tr("Select the DCIM directory"), "/Volumes/MAQUINAS/Archivos/Test Fusion/DCIM", QFileDialog::ShowDirsOnly
     );
+
+    if (proposedDCIMFolder.isEmpty()) return;
 
     if (!QFileInfo(proposedDCIMFolder).isReadable()) {
         Dialogs::warning("You must select a readable directory");
