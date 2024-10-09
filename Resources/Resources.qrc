@@ -36,6 +36,8 @@
         <file>Qml/CreateProjectFolder.qml</file>
         <file>Qml/CreateProjectSd.qml</file>
         <file>Qml/LoadingPane.qml</file>
+        <file>Qml/MyRangeSlider.qml</file>
+        <file>Qml/MySlider.qml</file>
     </qresource>
     <qresource prefix="/Qml">
         <file>Icons/VideoPlayer/Left.png</file>
