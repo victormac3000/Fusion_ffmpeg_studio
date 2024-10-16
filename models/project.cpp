@@ -841,6 +841,7 @@ void Project::addToRecent()
     QJsonArray docArray;
     QJsonObject obj;
 
+    obj.insert("name", QFileInfo(this->path).fileName());
     obj.insert("path", this->path);
     obj.insert("last_opened", this->lastSaved.toString(Qt::RFC2822Date));
 

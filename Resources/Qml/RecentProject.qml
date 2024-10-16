@@ -58,7 +58,25 @@ Rectangle {
             function getText() {
                 let parts = rectangle.name.toUpperCase().trim().split(" ")
                 if (parts.length < 2) {
-                    return "EX"
+                    let first = -1;
+                    let second = -1;
+                    for (let i=0; i<rectangle.name.length; i++) {
+                        let character = rectangle.name.charAt(i);
+                        if (character == character.toUpperCase()) {
+                            if (first >= 0) {
+                                second = i;
+                                break;
+                            }
+                            first = i;
+                            continue;
+                        }
+                    }
+
+                    if (first >= 0 && second >= 0) {
+                        return rectangle.name.charAt(first) + rectangle.name.charAt(second)
+                    } else {
+                        return rectangle.name.toUpperCase().slice(0,2)
+                    }
                 }
                 return parts[0].charAt(0) + parts[1].charAt(0)
             }
