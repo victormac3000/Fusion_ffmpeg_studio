@@ -50,7 +50,6 @@ Rectangle {
                 Layout.fillWidth: true
                 placeholderText: qsTr("Project name")
                 placeholderTextColor: "grey"
-                text: "wrong"
             }
         }
 

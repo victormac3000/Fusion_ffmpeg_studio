@@ -25,7 +25,7 @@ public:
     explicit Project(QObject *parent = nullptr);
     ~Project();
 
-    void load(QString projectPath);
+    void load(LoadingInfo loadingInfo);
     void create(LoadingInfo loadingInfo);
 
     bool isValid();
@@ -36,6 +36,7 @@ public:
     QString getPath();
     void setVideos(QList<FVideo*> videos);
     QList<FVideo*> getVideos();
+    QList<QPair<int,QString>> getBadVideos();
 
 signals:
     void loadProjectUpdate(LoadingProgress progress);
@@ -47,9 +48,9 @@ public slots:
 private:
     bool valid;
     QDir dcim;
+    bool dcimLinked = true;
     QString path;
     QString rootPath;
-    QString name;
     QString version;
     QFile *file;
     QList<FVideo*> videos;

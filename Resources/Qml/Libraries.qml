@@ -5,6 +5,7 @@ import QtQuick.Layouts
 Rectangle {
     property string qtVersion: "Unknown"
     property string ffmpegVersion: "Unknown"
+    property string ffprobeVersion: "Unknown"
 
     color: "lightgrey"
 
@@ -95,6 +96,47 @@ Rectangle {
                     fontSizeMode: Text.Fit
                     font.family: "Arial"
                     text: ffmpegVersion
+                    padding: 5
+                }
+
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.maximumHeight: 50
+                Layout.alignment: Qt.AlignTop
+                Layout.maximumWidth: 200
+                border.width: 3
+                border.color: "green"
+
+                Text {
+                    Layout.fillWidth: true
+                    font.pointSize: 20
+                    minimumPointSize: 10
+                    fontSizeMode: Text.Fit
+                    font.family: "Arial"
+                    text: "FFprobe version"
+                    padding: 5
+                }
+            }
+
+
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.maximumHeight: 50
+                Layout.alignment: Qt.AlignTop
+                border.color: "green"
+                border.width: 3
+
+                Text {
+                    Layout.fillWidth: true
+                    font.pointSize: 20
+                    minimumPointSize: 10
+                    fontSizeMode: Text.Fit
+                    font.family: "Arial"
+                    text: ffprobeVersion
                     padding: 5
                 }
 

@@ -4,6 +4,8 @@
 #include <QDialog>
 #include <QFile>
 #include <QSysInfo>
+#include <QQuickItem>
+#include <QProcess>
 
 #define LICENSE_MAIN 0
 #define LICENSE_LIBRARIES 1
@@ -21,9 +23,15 @@ public:
     ~About();
     bool getInit();
 
+private slots:
+    void ffmpegVersionDone(int exitCode, QProcess::ExitStatus exitStatus);
+    void ffprobeVersionDone(int exitCode, QProcess::ExitStatus exitStatus);
+
 private:
     Ui::About *ui;
+    QQuickItem* librariesInfoGrid;
     QString getLicenseText(int name = LICENSE_MAIN);
+    QProcess ffmpegProc, ffprobeProc;
     bool init = false;
 };
 

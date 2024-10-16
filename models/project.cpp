@@ -1,6 +1,7 @@
 #include "project.h"
 #include "fvideo.h"
 #include "loading.h"
+#include "models/fformats.h"
 
 Project::Project(QObject *parent)
     : QObject{parent}
@@ -54,10 +55,15 @@ QList<FVideo*> Project::getVideos()
     return videos;
 }
 
-void Project::load(QString projectPath)
+QList<QPair<int,QString>> Project::getBadVideos()
 {
-    this->path = projectPath;
-    this->file = new QFile(projectPath + "/project.ffs");
+    return badVideos;
+}
+
+void Project::load(LoadingInfo loadingInfo)
+{
+    this->path = loadingInfo.projectPath;
+    this->file = new QFile(loadingInfo.projectPath + "/project.ffs");
 
     if (!file->exists()) {
         qWarning() << "ProjectFile QFile does not exist" << file->fileName();
@@ -69,12 +75,12 @@ void Project::load(QString projectPath)
         return;
     }
 
-    QJsonParseError error;
-    QJsonDocument jsonDoc = QJsonDocument::fromJson(file->readAll(), &error);
+    QJsonParseError jsonError;
+    QJsonDocument jsonDoc = QJsonDocument::fromJson(file->readAll(), &jsonError);
 
-    if (error.error != QJsonParseError::NoError) {
+    if (jsonError.error != QJsonParseError::NoError) {
         file->close();
-        qWarning() << "Could not parse project file" << error.errorString();
+        qWarning() << "Could not parse project file" << jsonError.errorString();
         return;
     }
 
@@ -86,11 +92,11 @@ void Project::load(QString projectPath)
 
     QJsonObject mainObj = jsonDoc.object();
 
-    if (mainObj.value("info").toObject().value("name").toString().isEmpty()
-        || mainObj.value("info").toObject().value("dcim").toString().isEmpty()
-        || mainObj.value("info").toObject().value("version").toString().isEmpty()) {
+    if (mainObj.value("info").toObject().value("dcim").toString().isEmpty() ||
+        !mainObj.value("info").toObject().contains("dcimLinked") ||
+        mainObj.value("info").toObject().value("version").toString().isEmpty()) {
         file->close();
-        qWarning() << "Info object: one of its children (name, info or version) not found or empty";
+        qWarning() << "Info object: one of its children (dcim, dcimLinked or version) not found or empty";
         return;
     }
 
@@ -100,9 +106,12 @@ void Project::load(QString projectPath)
         return;
     }
 
-    this->name = mainObj.value("info").toObject().value("name").toString();
     this->dcim = mainObj.value("info").toObject().value("dcim").toString();
+    this->dcimLinked = mainObj.value("info").toObject().value("dcimLinked").toBool();
 
+    if (!this->dcimLinked) {
+        this->dcim = this->path + "/DCIM";
+    }
 
     // Check if the project version is compatible
 
@@ -112,7 +121,9 @@ void Project::load(QString projectPath)
     QStringList versionParts = version.split(".");
 
     if (appVersionParts.length() != versionParts.length()) {
+        valid = false;
         qWarning() << "The application version parts length is not the same as the project version parts";
+        return;
     }
 
     bool compatibleVersion = true;
@@ -121,17 +132,25 @@ void Project::load(QString projectPath)
             compatibleVersion = false;
         }
     }
+
     if (!compatibleVersion) {
         qWarning() << "The project version" << version
                    << "is not compatible with the application version"
                    << QCoreApplication::applicationVersion();
+        return;
     }
 
     if (!QDir(path).exists("DFSegments") || !QDir(path).exists("DFLowSegments") ||
         !QDir(path).exists("DFVideos") || !QDir(path).exists("DFLowVideos") ||
-        !QDir(path).exists("EVideos") || !QDir(path).exists("ELowVideos")) {
+        !QDir(path).exists("EVideos") || !QDir(path).exists("ELowVideos") ||
+        (!dcimLinked && !QDir(path).exists("DCIM"))) {
         file->close();
         qWarning() << "Project folder invalid, required folders not found" << path;
+        return;
+    }
+
+    if (!mainObj.value("videos").isArray()) {
+        qWarning() << "Videos array not found in project file";
         return;
     }
 
@@ -139,114 +158,272 @@ void Project::load(QString projectPath)
 
     //emit loadProjectUpdate(0, "Indexing videos");
 
-    int totalVideos = videosArray.size();
-    int doneVideos = 0;
-
+    bool validVideo = false;
     for (const QJsonValue &videoArray: videosArray) {
-        bool valid = true;
-        if (!videoArray.isObject()) continue;
+        if (!videoArray.isObject()) {
+            qWarning() << "Found a non object in video array parsing project file";
+            continue;
+        }
+
         QJsonObject videoObject = videoArray.toObject();
         int vid = videoObject.value("id").toInt(-1);
-        if (vid<0) continue;
-        bool dualFisheye = videoObject.value("dualFisheye").toBool();
-        bool dualFisheyeLow = videoObject.value("dualFisheyeLow").toBool();
-        bool equirectangular = videoObject.value("equirectangular").toBool();
-        bool equirectangularLow = videoObject.value("equirectangularLow").toBool();
-        if (!videoObject.value("segments").isArray()) continue;
+        if (vid<0) {
+            qWarning() << "Found a video object with a non integer ID parsing project file";
+            continue;
+        }
+
+        if (!videoObject.value("segments").isArray()) {
+            qWarning() << "Found a video object with no segments array parsing project file";
+            badVideos.append({vid, "No segments array found"});
+            continue;
+        }
         QJsonArray segmentsArray = videoObject.value("segments").toArray();
-        if (segmentsArray.isEmpty()) continue;
+        if (segmentsArray.isEmpty()) {
+            qWarning() << "Found a video object with no segments parsing project file";
+            badVideos.append({vid, "No segments found"});
+            continue;
+        }
+
+        bool dualFisheyeExists = videoObject.contains("dualFisheye");
+        bool dualFisheyeLowExists = videoObject.contains("dualFisheyeLow");
+        bool equirectangularExists = videoObject.contains("equirectangular");
+        bool equirectangularLowExists = videoObject.contains("equirectangularLow");
+        bool frontThumbnailExists = videoObject.contains("frontThumbnail");
+        bool backThumbnailExists = videoObject.contains("backThumbnail");
+
+        qint64 dualFisheye = videoObject.value("dualFisheye").toInteger(-1);
+        qint64 dualFisheyeLow = videoObject.value("dualFisheyeLow").toInteger(-1);
+        qint64 equirectangular = videoObject.value("equirectangular").toInteger(-1);
+        qint64 equirectangularLow = videoObject.value("equirectangularLow").toInteger(-1);
+        qint64 frontThumbnail = videoObject.value("frontThumbnail").toInteger(-1);
+        qint64 backThumbnail = videoObject.value("backThumbnail").toInteger(-1);
+
         FVideo *video = new FVideo(vid);
-        if (dualFisheye) {
-            QString dualFisheyePath = path + "/DFVideos/" + QString::number(vid) + ".MP4";
-            if (QFile::exists(dualFisheyePath)) {
-                video->setDualFisheye(new QFile(dualFisheyePath));
-            } else {
-                qDebug() << "Dual fisheye exists for video" << vid << "but not found in fs" << dualFisheyePath;
+
+        if (dualFisheyeExists && dualFisheye >= 0) {
+            QFile* dualFisheyeFile = new QFile(path + "/DFVideos/" + QString::number(vid) + ".MP4");
+            if (!dualFisheyeFile->exists()) {
+                qDebug() << "Dual fisheye exists for video"
+                         << vid << "but not found in fs"
+                         << dualFisheyeFile->fileName();
             }
-        }
-        if (dualFisheyeLow) {
-            QString dualFisheyeLowPath = path + "/DFLowVideos/" + QString::number(vid) + ".MP4";
-            if (QFile::exists(dualFisheyeLowPath)) {
-                video->setDualFisheyeLow(new QFile(dualFisheyeLowPath));
-            } else {
-                qDebug() << "Dual fisheye low exists for video" << vid << "but not found in fs" << dualFisheyeLowPath;
+            if (dualFisheye != dualFisheyeFile->size()) {
+                qDebug() << "Dual fisheye filesize does not match for video"
+                         << vid << dualFisheye << dualFisheyeFile->size();
             }
+            video->setDualFisheye(dualFisheyeFile);
         }
-        if (equirectangular) {
-            QString equirectangularPath = path + "/EVideos/" + QString::number(vid) + ".MP4";
-            if (QFile::exists(equirectangularPath)) {
-                video->setEquirectangular(new QFile(equirectangularPath));
-            } else {
-                qDebug() << "Equirectangular exists for video" << vid << "but not found in fs" << equirectangularPath;
+
+        if (dualFisheyeLowExists && dualFisheyeLow >= 0) {
+            QFile* dualFisheyeLowFile = new QFile(path + "/DFLowVideos/" + QString::number(vid) + ".MP4");
+            if (!dualFisheyeLowFile->exists()) {
+                qDebug() << "Dual fisheye low exists for video"
+                         << vid << "but not found in fs"
+                         << dualFisheyeLowFile->fileName();
             }
-        }
-        if (equirectangularLow) {
-            QString equirectangularLowPath = path + "/ELowVideos/" + QString::number(vid) + ".MP4";
-            if (QFile::exists(equirectangularLowPath)) {
-                video->setEquirectangularLow(new QFile(equirectangularLowPath));
-            } else {
-                qDebug() << "Equirectangular preview exists for video" << vid << "but not found in fs" << equirectangularLowPath;
+            if (dualFisheyeLow != dualFisheyeLowFile->size()) {
+                qDebug() << "Dual fisheye low filesize does not match for video"
+                         << vid << dualFisheyeLow << dualFisheyeLowFile->size();
             }
+            video->setDualFisheyeLow(dualFisheyeLowFile);
         }
-        video->setFrontThumbnail(new QFile(dcim.absolutePath() + "/100GFRNT/GPFR" + video->getIdString() + ".THM"));
-        video->setBackThumbnail(new QFile(dcim.absolutePath() + "/100GBACK/GPBK" + video->getIdString() + ".THM"));
+
+        if (equirectangularExists && equirectangular >= 0) {
+            QFile* equirectangularFile = new QFile(path + "/EVideos/" + QString::number(vid) + ".MP4");
+            if (!equirectangularFile->exists()) {
+                qDebug() << "Equirectangular exists for video"
+                         << vid << "but not found in fs"
+                         << equirectangularFile->fileName();
+            }
+            if (equirectangular != equirectangularFile->size()) {
+                qDebug() << "Equirectangular filesize does not match for video"
+                         << vid << equirectangular << equirectangularFile->size();
+            }
+            video->setEquirectangular(equirectangularFile);
+        }
+
+        if (equirectangularLowExists && equirectangularLow >= 0) {
+            QFile* equirectangularLowFile = new QFile(path + "/ELowVideos/" + QString::number(vid) + ".MP4");
+            if (!equirectangularLowFile->exists()) {
+                qDebug() << "Equirectangular low exists for video"
+                         << vid << "but not found in fs"
+                         << equirectangularLowFile->fileName();
+            }
+            if (equirectangularLow != equirectangularLowFile->size()) {
+                qDebug() << "Equirectangular low filesize does not match for video"
+                         << vid << equirectangularLow << equirectangularLowFile->size();
+            }
+            video->setEquirectangularLow(equirectangularLowFile);
+        }
+
+        if (!frontThumbnailExists || !backThumbnailExists) {
+            qWarning() << "Thumnails size not found for video " << vid;
+            valid = false;
+            badVideos.append({vid, "Thumbnails size not found in project file"});
+            delete video;
+            continue;
+        }
+
+        QFile* frontThumbnailFile = new QFile(dcim.absolutePath() + "/100GFRNT/GPFR" + video->getIdString() + ".THM");
+        QFile* backThumbnailFile = new QFile(dcim.absolutePath() + "/100GBACK/GPBK" + video->getIdString() + ".THM");
+
+        if (!frontThumbnailFile->exists() || !backThumbnailFile->exists()) {
+            qWarning() << "Thumnails not for "
+                       << vid << "but not found in fs"
+                       << "FRONT (" << frontThumbnailFile->fileName()
+                       << ") BACK (" << backThumbnailFile->fileName()
+                       << ")";
+            badVideos.append({vid, "No thumnails found in DCIM folder"});
+            continue;
+        }
+
+        if (frontThumbnail != frontThumbnailFile->size() ||
+            backThumbnail != backThumbnailFile->size()) {
+            qDebug() << "Thumnails filesize does not match for video"
+                     << vid << frontThumbnail << frontThumbnailFile->size()
+                     << backThumbnail << backThumbnailFile->size();
+            badVideos.append({vid, "Thumnails size does not match"});
+            continue;
+        }
+
+        video->setFrontThumbnail(frontThumbnailFile);
+        video->setBackThumbnail(backThumbnailFile);
+
         for (const QJsonValue &segmentArray: segmentsArray) {
-            if (!segmentArray.isObject()) continue;
+            if (!segmentArray.isObject()) {
+                qWarning() << "A non object item found in segmentArray in project file for video"
+                           << vid;
+                badVideos.append({vid, "A segment was not an object in project file"});
+                break;
+            }
+
             QJsonObject segmentObject = segmentArray.toObject();
             int sid = segmentObject.value("id").toInt(-1);
+
+            if (sid < 0) {
+                qWarning() << "Segment ID invalid for video" << vid;
+                badVideos.append({vid, "A segment ID was invalid in project file"});
+                break;
+            }
+
             QString sidString = QString::number(sid);
             while (sidString.length() < 2) sidString.insert(0, "0");
-            bool dualFisheye = segmentObject.value("dualFisheye").toBool();
-            bool dualFisheyeLow = segmentObject.value("dualFisheyeLow").toBool();
-            FSegment *segment;
+
+
+            QString format = segmentObject.value("format").toString();
+
+            if (format.isEmpty()) {
+                qWarning() << "A segment format is empty for video"
+                           << vid;
+                badVideos.append({vid, "A segment format was not found in project file"});
+                break;
+            }
+
+            FFormat formatGet = FFormats::getByName(format);
+
+            if (formatGet.name.isEmpty()) {
+                qWarning() << "A segment format is invalid for video"
+                           << vid;
+                badVideos.append({vid, "A segment format was not found in project file"});
+                break;
+            }
+
+            qint64 dualFisheye = segmentObject.value("dualFisheye").toInteger(-1);
+            qint64 dualFisheyeLow = segmentObject.value("dualFisheyeLow").toInteger(-1);
+
+            FSegment* segment;
             if (sid == 0) {
                 segment = new FSegment(
                     video, sid,
                     new QFile(dcim.absolutePath() + "/100GFRNT/GPFR" + video->getIdString() + ".MP4"),
                     new QFile(dcim.absolutePath() + "/100GFRNT/GPFR" + video->getIdString() + ".LRV"),
-                    new QFile(dcim.absolutePath() + "/100GFRNT/GPFR" + video->getIdString() + ".THM"),
                     new QFile(dcim.absolutePath() + "/100GBACK/GPBK" + video->getIdString() + ".MP4"),
                     new QFile(dcim.absolutePath() + "/100GBACK/GPBK" + video->getIdString() + ".LRV"),
-                    new QFile(dcim.absolutePath() + "/100GBACK/GPBK" + video->getIdString() + ".THM"),
                     new QFile(dcim.absolutePath() + "/100GBACK/GPBK" + video->getIdString() + ".WAV")
-                    );
+                );
             } else {
                 segment = new FSegment(
                     video, sid,
                     new QFile(dcim.absolutePath() + "/100GFRNT/GF" + sidString + video->getIdString() + ".MP4"),
                     new QFile(dcim.absolutePath() + "/100GFRNT/GF" + sidString + video->getIdString() + ".LRV"),
-                    new QFile(dcim.absolutePath() + "/100GFRNT/GPFR" + video->getIdString() + ".THM"),
                     new QFile(dcim.absolutePath() + "/100GBACK/GB" + sidString + video->getIdString() + ".MP4"),
                     new QFile(dcim.absolutePath() + "/100GBACK/GB" + sidString + video->getIdString() + ".LRV"),
-                    new QFile(dcim.absolutePath() + "/100GBACK/GPBK" + video->getIdString() + ".THM"),
                     new QFile(dcim.absolutePath() + "/100GBACK/GB" + sidString + video->getIdString() + ".WAV")
-                    );
+                );
             }
-            if (dualFisheye) {
-                QString dualFisheyePath = path + "/DFSegments/" + QString::number(vid) + "_" + QString::number(sid) + ".MP4";
-                if (QFile::exists(dualFisheyePath)) {
-                    segment->setDualFisheye(new QFile(dualFisheyePath));
-                } else {
-                    qDebug() << "Dual fisheye exists for seg" << sid << "of video" << vid << "but not found in fs" << dualFisheyePath;
-                }
-            }
-            if (dualFisheyeLow) {
-                QString dualFisheyeLowPath = path + "/DFLowSegments/" + QString::number(vid) + "_" + QString::number(sid) + ".MP4";
-                if (QFile::exists(dualFisheyeLowPath)) {
-                    segment->setDualFisheyeLow(new QFile(dualFisheyeLowPath));
-                } else {
-                    qDebug() << "Dual fisheye exists for seg" << sid << "of video" << vid << "but not found in fs" << dualFisheyeLowPath;
-                }
-            }
-            if (!video->addSegment(segment, false)) {
-                qDebug() << "Segment invalid" << sid << "for video" << vid;
-                valid = false;
+
+            bool dualFisheyeExists = segmentObject.contains("dualFisheye");
+            bool dualFisheyeLowExists = segmentObject.contains("dualFisheyeLow");
+            bool frontMP4Exists = segmentObject.contains("frontMP4");
+            bool frontLRVExists = segmentObject.contains("frontLRV");
+            bool backMP4Exists = segmentObject.contains("backMP4");
+            bool backLRVExists = segmentObject.contains("backLRV");
+            bool backWAVExists = segmentObject.contains("backWAV");
+
+            qint64 dualFisheyeSize = segmentObject.value("dualFisheye").toInteger(-1);
+            qint64 dualFisheyeLowSize = segmentObject.value("dualFisheyeLow").toInteger(-1);
+            qint64 frontMP4Size = frontMP4Exists ? segment->getFrontMP4()->size() : -1;
+            qint64 frontLRVSize = frontLRVExists ? segment->getFrontLRV()->size() : -1;
+            qint64 backMP4Size = backMP4Exists ? segment->getBackMP4()->size() : -1;
+            qint64 backLRVSize = backLRVExists ? segment->getBackLRV()->size() : -1;
+            qint64 backWAVSize = backWAVExists ? segment->getBackWAV()->size() : -1;
+
+            if (frontMP4Size < 0 || frontLRVSize < 0 || backMP4Size < 0 ||
+                backLRVSize < 0 || backWAVSize < 0) {
+                qWarning() << "A segment" << sid
+                           << "does not match size for video"
+                           << vid;
+                badVideos.append({vid, "One of the segment components size does not match the project file"});
+                delete segment;
                 break;
             }
+
+            segment->setFormat(formatGet);
+
+            if (dualFisheyeExists && dualFisheyeSize > 0) {
+                QFile* dualFisheyeFile = new QFile(path + "/DFSegments/" + QString::number(vid) + "_" + QString::number(sid) + ".MP4");
+                if (!dualFisheyeFile->exists()) {
+                    qDebug() << "Dual fisheye exists for segment"
+                             << sid << "of video" << vid
+                             << "but not found in fs"
+                             << dualFisheyeFile->fileName();
+                }
+                if (dualFisheye != dualFisheyeFile->size()) {
+                    qDebug() << "Dual fisheye filesize does not match for segment"
+                             << sid << "of video" << vid
+                             << dualFisheye << dualFisheyeFile->size();
+                }
+                segment->setDualFisheye(dualFisheyeFile);
+            }
+
+            if (dualFisheyeLowExists && dualFisheyeLowSize > 0) {
+                QFile* dualFisheyeLowFile = new QFile(path + "/DFLowSegments/" + QString::number(vid) + "_" + QString::number(sid) + ".MP4");
+                if (!dualFisheyeLowFile->exists()) {
+                    qDebug() << "Dual fisheye low exists for segment "
+                             << sid << "of video" << vid
+                             << "but not found in fs"
+                             << dualFisheyeLowFile->fileName();
+                }
+                if (dualFisheyeLow != dualFisheyeLowFile->size()) {
+                    qDebug() << "Dual fisheye low filesize does not match for segment"
+                             << sid << "of video" << vid
+                             << dualFisheyeLow << dualFisheyeLowFile->size();
+                }
+                segment->setDualFisheye(dualFisheyeLowFile);
+            }
+
+            if (!video->addSegment(segment, FILES_ONLY)) {
+                qDebug() << "Segment invalid" << sid << "for video" << vid;
+                badVideos.append({vid, "A segment ID was invalid in project file. View the logs for more information"});
+                break;
+            }
+
+            validVideo = true;
         }
-        if (valid) this->videos.append(video);
-        doneVideos++;
-        emit indexVideoComplete();
+
+        if (validVideo) this->videos.append(video);
+        progress.index.doneVideos++;
+        emit loadProjectUpdate(progress);
     }
 
     file->close();
@@ -298,7 +475,7 @@ void Project::create(LoadingInfo loadingInfo)
     progress.stepNumber++;
     emit loadProjectUpdate(progress);
 
-    QDir projectFolder(loadingInfo.rootProjectPath + "/" + loadingInfo.projectName);
+    QDir projectFolder(loadingInfo.projectPath);
 
     if ((!projectFolder.mkdir("DFSegments")) ||
         (!projectFolder.mkdir("DFVideos")) ||
@@ -316,154 +493,20 @@ void Project::create(LoadingInfo loadingInfo)
         this->front = QDir(loadingInfo.dcimPath + "/100GFRNT");
         this->back = QDir(loadingInfo.dcimPath + "/100GBACK");
     } else {
-        this->front = loadingInfo.dcimFrontPath;
-        this->back = loadingInfo.dcimBackPath;
+        this->front = QDir(loadingInfo.dcimFrontPath);
+        this->back = QDir(loadingInfo.dcimBackPath);
     }
 
     this->rootPath = loadingInfo.rootProjectPath;
     this->path = loadingInfo.projectPath;
-    this->name = loadingInfo.projectName;
     this->file = new QFile(path + "/project.ffs");
+    this->dcim = QFileInfo(this->front.absolutePath()).absolutePath();
 
     if (loadingInfo.copyDCIM && !copyDCIM()) return;
     if (!indexVideos()) return;
 
     this->save();
     this->valid = true;
-}
-
-void Project::save()
-{
-    qDebug() << "Trying to save to project file" << file->fileName();
-
-    if (file == nullptr) {
-        qWarning() << "Project file pointer is null";
-        return;
-    }
-
-    if (file->isOpen()) file->close();
-
-    if (!file->open(QFile::ReadWrite)) {
-        qWarning() << "Could not open project file" << file->fileName();
-        return;
-    }
-
-    QJsonDocument jsonDoc;
-    QJsonObject mainObj;
-
-    QJsonObject info;
-
-    info.insert("name", name);
-    info.insert("dcim", dcim.absolutePath());
-    info.insert("version", QCoreApplication::applicationVersion());
-
-    mainObj.insert("info", info);
-
-    QJsonArray videosArray;
-
-    for (FVideo *video: videos) {
-        QJsonObject videoObject;
-        videoObject.insert("id", video->getId());
-        videoObject.insert("dualFisheye", video->isDualFisheyeValid());
-        videoObject.insert("dualFisheyeLow", video->isDualFisheyeLowValid());
-        videoObject.insert("equirectangular", video->isEquirectangularValid());
-        videoObject.insert("equirectangularLow", video->isEquirectangularLowValid());
-        QJsonArray segmentsArray;
-        QList<FSegment*> segments = video->getSegments();
-        for (FSegment* segment: segments) {
-            QJsonObject segmentObject;
-            segmentObject.insert("id", segment->getId());
-            segmentObject.insert("dualFisheye", segment->isDualFisheyeValid());
-            segmentObject.insert("dualFisheyeLow", segment->isDualFisheyeLowValid());
-            segmentsArray.append(segmentObject);
-        }
-        videoObject.insert("segments", segmentsArray);
-        videosArray.append(videoObject);
-    }
-
-    mainObj.insert("videos", videosArray);
-    jsonDoc.setObject(mainObj);
-
-    int written = file->write(jsonDoc.toJson(QJsonDocument::Indented));
-    if (written < 0) {
-        file->close();
-        qWarning() << "Could not save the project" << path;
-        return;
-    }
-
-    file->close();
-
-    lastSaved = QDateTime::currentDateTime();
-    addToRecent();
-}
-
-void Project::addToRecent()
-{
-    QSettings settings;
-    QFile recentProjectsFile = QFile(settings.value("appData").toString() + "/recent_projects.json");
-
-    bool fileExists = recentProjectsFile.exists();
-
-    if (!recentProjectsFile.open(QFile::ReadWrite)) {
-        qWarning() << "Could not open recent projects file";
-        return;
-    }
-
-    QJsonDocument doc;
-    QJsonArray docArray;
-    QJsonObject obj;
-
-    obj.insert("name", this->name);
-    obj.insert("path", this->path);
-    obj.insert("last_opened", this->lastSaved.toString(Qt::RFC2822Date));
-
-    if (fileExists) {
-        QJsonParseError parseError;
-        doc = QJsonDocument::fromJson(recentProjectsFile.readAll(), &parseError);
-
-        if (parseError.error != QJsonParseError::NoError) {
-            qWarning() << "Could not parse the recent projects file";
-            return;
-        }
-
-        if (!doc.isArray()) {
-            qWarning() << "Could not parse the recent projects file. The main object is not an array";
-            return;
-        }
-
-        docArray = doc.array();
-
-        recentProjectsFile.close();
-
-        if (!recentProjectsFile.open(QFile::ReadWrite | QFile::Truncate)) {
-            qWarning() << "Could not truncate the recent projects file";
-            return;
-        }
-    }
-
-
-    bool projectExists = false;
-    for (int i=0; i<docArray.size(); i++) {
-        QJsonObject obj = docArray.at(i).toObject();
-
-        if (obj.value("path").toString() == this->path) {
-            projectExists = true;
-            obj["name"] = this->name;
-            obj["path"] = this->path;
-            obj["last_opened"] = this->lastSaved.toString(Qt::RFC2822Date);
-        }
-    }
-    if (!projectExists) docArray.append(obj);
-
-    doc.setArray(docArray);
-
-    int written = recentProjectsFile.write(doc.toJson());
-
-    if (written < 0) {
-        qWarning() << "Recent projects could not be written";
-    }
-
-    recentProjectsFile.close();
 }
 
 bool Project::copyDCIM()
@@ -528,6 +571,7 @@ bool Project::copyDCIM()
 
     this->front = QDir(projectDir.absolutePath() + "/DCIM/100GFRNT");
     this->back = QDir(projectDir.absolutePath() + "/DCIM/100GBACK");
+    this->dcimLinked = false;
 
     return true;
 }
@@ -582,8 +626,22 @@ bool Project::indexVideos()
 
         FVideo *video = new FVideo(vid);
 
-        video->setFrontThumbnail(new QFile(front.path() + "/GPFR" + video->getIdString() + ".THM"));
-        video->setBackThumbnail(new QFile(back.path() + "/GPBK" + video->getIdString() + ".THM"));
+        QFile* frontThumnailFile = new QFile(front.path() + "/GPFR" + video->getIdString() + ".THM");
+        QFile* backThumnailFile = new QFile(back.path() + "/GPBK" + video->getIdString() + ".THM");
+
+        if (!frontThumnailFile->exists() || !backThumnailFile->exists()) {
+            qWarning() << "Front or back thumnails do not exist for video"
+                       << vid << frontThumnailFile->fileName()
+                       << backThumnailFile->fileName();
+            badVideos.append({vid, "Front or back thumnails do not exist"});
+            delete frontThumnailFile;
+            delete backThumnailFile;
+            delete video;
+            continue;
+        }
+
+        video->setFrontThumbnail(frontThumnailFile);
+        video->setBackThumbnail(backThumnailFile);
 
         if (!video->verify()) {
             badVideos.append({vid, "Invalid thumnails"});
@@ -595,10 +653,8 @@ bool Project::indexVideos()
             video, 0,
             new QFile(front.path() + "/GPFR" + video->getIdString() + ".MP4"),
             new QFile(front.path() + "/GPFR" + video->getIdString() + ".LRV"),
-            new QFile(front.path() + "/GPFR" + video->getIdString() + ".THM"),
             new QFile(back.path() + "/GPBK" + video->getIdString() + ".MP4"),
             new QFile(back.path() + "/GPBK" + video->getIdString() + ".LRV"),
-            new QFile(back.path() + "/GPBK" + video->getIdString() + ".THM"),
             new QFile(back.path() + "/GPBK" + video->getIdString() + ".WAV")
         );
         if (!video->addSegment(mainSegment)) {
@@ -627,10 +683,8 @@ bool Project::indexVideos()
                 video, segId,
                 new QFile(front.path() + "/GF" + segIdString + video->getIdString() + ".MP4"),
                 new QFile(front.path() + "/GF" + segIdString + video->getIdString() + ".LRV"),
-                new QFile(front.path() + "/GPFR" + video->getIdString() + ".THM"),
                 new QFile(back.path() + "/GB" + segIdString + video->getIdString() + ".MP4"),
                 new QFile(back.path() + "/GB" + segIdString + video->getIdString() + ".LRV"),
-                new QFile(back.path() + "/GPBK" + video->getIdString() + ".THM"),
                 new QFile(back.path() + "/GB" + segIdString + video->getIdString() + ".WAV")
             );
 
@@ -721,4 +775,120 @@ bool Project::copy(QString src, QString dst)
     dstFile.close();
 
     return true;
+}
+
+void Project::save()
+{
+    if (file == nullptr) {
+        qWarning() << "Project file pointer is null";
+        return;
+    }
+
+    qDebug() << "Trying to save to project file" << file->fileName();
+
+    if (file->isOpen()) file->close();
+
+    if (!file->open(QFile::ReadWrite | QFile::Truncate)) {
+        qWarning() << "Could not open project file" << file->fileName();
+        return;
+    }
+
+    QJsonDocument jsonDoc;
+    QJsonObject mainObj;
+
+    QJsonObject info;
+
+    info.insert("dcim", dcimLinked ? dcim.absolutePath() : path + "/DCIM");
+    info.insert("dcimLinked", dcimLinked);
+    info.insert("version", QCoreApplication::applicationVersion());
+
+    mainObj.insert("info", info);
+
+    QJsonArray videosArray;
+
+    for (FVideo *video: videos) {
+        videosArray.append(video->toJson());
+    }
+
+    mainObj.insert("videos", videosArray);
+
+    jsonDoc.setObject(mainObj);
+
+    qint64 written = file->write(jsonDoc.toJson(QJsonDocument::Indented));
+    if (written < 0) {
+        file->close();
+        qWarning() << "Could not save the project" << path;
+        return;
+    }
+
+    file->close();
+
+    lastSaved = QDateTime::currentDateTime();
+    addToRecent();
+}
+
+void Project::addToRecent()
+{
+    QSettings settings;
+    QFile recentProjectsFile = QFile(settings.value("appData").toString() + "/recent_projects.json");
+
+    if (!recentProjectsFile.open(QFile::ReadWrite)) {
+        qWarning() << "Could not open recent projects file";
+        return;
+    }
+
+    QJsonDocument doc;
+    QJsonArray docArray;
+    QJsonObject obj;
+
+    obj.insert("name", QFileInfo(this->path).fileName());
+    obj.insert("path", this->path);
+    obj.insert("last_opened", this->lastSaved.toString(Qt::RFC2822Date));
+
+    if (recentProjectsFile.exists()) {
+        QJsonParseError parseError;
+        doc = QJsonDocument::fromJson(recentProjectsFile.readAll(), &parseError);
+
+        if (parseError.error != QJsonParseError::NoError) {
+            qWarning() << "Could not parse the recent projects file";
+            return;
+        }
+
+        if (!doc.isArray()) {
+            qWarning() << "Could not parse the recent projects file. The main object is not an array";
+            return;
+        }
+
+        docArray = doc.array();
+
+        recentProjectsFile.close();
+
+        if (!recentProjectsFile.open(QFile::ReadWrite | QFile::Truncate)) {
+            qWarning() << "Could not truncate the recent projects file";
+            return;
+        }
+    }
+
+
+    bool projectExists = false;
+    for (int i=0; i<docArray.size(); i++) {
+        QJsonObject obj = docArray.at(i).toObject();
+
+        if (obj.value("path").toString() == this->path) {
+            projectExists = true;
+            obj["path"] = this->path;
+            obj["last_opened"] = this->lastSaved.toString(Qt::RFC2822Date);
+        }
+    }
+    if (!projectExists) docArray.append(obj);
+
+    doc.setArray(docArray);
+
+    int written = recentProjectsFile.write(doc.toJson());
+
+    if (written < 0) {
+        qWarning() << "Recent projects could not be written";
+    }
+
+    recentProjectsFile.close();
 }

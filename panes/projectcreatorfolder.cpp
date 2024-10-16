@@ -101,6 +101,8 @@ void ProjectCreatorFolder::browseProjectLocationClicked()
         this, tr("Select the project directory"), "/Users/victor/Documents", QFileDialog::ShowDirsOnly
     );
 
+    if (proposedProjectFolder.isEmpty()) return;
+
     QFileInfo dirInfo(proposedProjectFolder);
     if (!dirInfo.isWritable()) {
         Dialogs::warning("You must select a writable directory");
@@ -117,6 +119,8 @@ void ProjectCreatorFolder::browseDCIMFolderClicked()
     QString proposedDCIMFolder = QFileDialog::getExistingDirectory(
         this, tr("Select the DCIM directory"), "/Volumes/MAQUINAS/Archivos/Test Fusion/DCIM", QFileDialog::ShowDirsOnly
     );
+
+    if (proposedDCIMFolder.isEmpty()) return;
 
     if (!QFileInfo(proposedDCIMFolder).isReadable()) {
         Dialogs::warning("You must select a readable directory");
@@ -143,6 +147,11 @@ void ProjectCreatorFolder::createButtonClicked()
         return;
     }
 
+    if (QDir(rootProjectFolder).exists(projectName)) {
+        Dialogs::warning("The project name already exists");
+        return;
+    }
+
     if (dcimFolder.isEmpty()) {
         Dialogs::warning("The project DCIM folder cannot be empty");
         return;
@@ -165,9 +174,9 @@ void ProjectCreatorFolder::createButtonClicked()
     LoadingInfo loadingInfo;
     loadingInfo.type = CREATE_PROJECT_FOLDER;
     loadingInfo.rootProjectPath = rootProjectFolder;
+    loadingInfo.projectName = projectName;
     loadingInfo.projectPath = rootProjectFolder + "/" + projectName;
     loadingInfo.dcimPath = dcimFolder;
-    loadingInfo.projectName = projectName;
     loadingInfo.copyDCIM = copyDCIM;
 
     LoadingPane* loader = new LoadingPane(mainWindow, loadingInfo);

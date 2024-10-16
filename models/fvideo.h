@@ -25,7 +25,7 @@ public:
     explicit FVideo(int id = -1);
     ~FVideo();
 
-    bool addSegment(FSegment *segment, bool fileVerify = true);
+    bool addSegment(FSegment *segment, VerifyMode verifyMode = FULL);
     bool verify();
     int getId();
     QDateTime getDate();
@@ -47,16 +47,21 @@ public:
     QFile *getDualFisheye();
     void setDualFisheyeLow(QFile *dualFisheyeLow);
     QFile *getDualFisheyeLow();
-    bool isDualFisheyeValid();
-    bool isDualFisheyeLowValid();
     QFile *getEquirectangular();
     void setEquirectangular(QFile *equirectangular);
-    bool isEquirectangularValid();
+
     QFile *getEquirectangularLow();
     void setEquirectangularLow(QFile *equirectangularLow);
-    bool isEquirectangularLowValid();
+
+    qint64 isDualFisheyeValid();
+    qint64 isDualFisheyeLowValid();
+    qint64 isEquirectangularValid();
+    qint64 isEquirectangularLowValid();
+    qint64 isFrontThumbnailValid();
+    qint64 isBackThumbnailValid();
 
     QString toString();
+    QJsonObject toJson();
 
 private:
     int id;

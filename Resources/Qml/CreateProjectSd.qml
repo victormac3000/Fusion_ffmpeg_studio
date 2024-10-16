@@ -34,6 +34,47 @@ Rectangle {
         RowLayout {
             Layout.fillHeight: true
             Layout.fillWidth: true
+            Layout.maximumHeight: 30
+            Layout.margins: 5
+
+            TextField {
+                objectName: "projectNameField"
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+                placeholderText: qsTr("Project name")
+                placeholderTextColor: "grey"
+            }
+        }
+
+
+        RowLayout {
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            Layout.maximumHeight: 30
+            Layout.margins: 5
+
+            TextField {
+                objectName: "projectPathField"
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+                placeholderText: qsTr("Project path")
+                placeholderTextColor: "grey"
+                readOnly: true
+            }
+
+            MyButton {
+                objectName: "projectPathButton"
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+                Layout.minimumWidth: 30
+                Layout.maximumHeight: 30
+                text: qsTr("Browse")
+            }
+        }
+
+        RowLayout {
+            Layout.fillHeight: true
+            Layout.fillWidth: true
             Layout.margins: 5
 
             Rectangle {

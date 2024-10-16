@@ -12,10 +12,12 @@
 #include <QDir>
 #include <QSize>
 
-const int FUSION_VIDEO = 0;
-const int FUSION_LOW_VIDEO = 1;
-const int FUSION_AUDIO = 2;
-const int FUSION_THUMNAIL = 3;
+enum FusionFormats {
+    FUSION_VIDEO,
+    FUSION_LOW_VIDEO,
+    FUSION_AUDIO,
+    FUSION_THUMNAIL
+};
 
 #include "fformat.h"
 
@@ -23,16 +25,18 @@ class FFormats : public QObject
 {
     Q_OBJECT
 public:
-    explicit FFormats(QObject *parent = nullptr);
-
-    FFormat* get(QFile *media, int type);
+    static FFormat* get(QFile *media, int type);
+    static FFormat getByName(QString name);
 
 signals:
 
 private:
-    QList<FFormat> formats;
-    int thumbHeight = 120, thumbWidth = 160;
-    int lowVideoHeight = 720, lowVideoWidth = 736, lowVideoFps = 25;
+    static QList<FFormat> formats;
+    static const int thumbHeight = 120;
+    static const int thumbWidth = 160;
+    static const int lowVideoHeight = 720;
+    static const int lowVideoWidth = 736;
+    static const int lowVideoFps = 25;
 
 };
 

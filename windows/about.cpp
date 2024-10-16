@@ -1,6 +1,7 @@
 #include "about.h"
 #include "QtQuick/qquickitem.h"
 #include "ui_about.h"
+#include "utils/settings.h"
 
 About::About(QWidget *parent) :
     QDialog(parent),
@@ -17,7 +18,7 @@ About::About(QWidget *parent) :
 
     QQuickItem* versionText = root->findChild<QQuickItem*>("versionText");
     QQuickItem* licenseTextArea = root->findChild<QQuickItem*>("licenseTextArea");
-    QQuickItem* librariesInfoGrid = root->findChild<QQuickItem*>("librariesInfoGrid");
+    librariesInfoGrid = root->findChild<QQuickItem*>("librariesInfoGrid");
     QQuickItem* buildInfoGrid = root->findChild<QQuickItem*>("buildInfoGrid");
 
 
@@ -33,12 +34,20 @@ About::About(QWidget *parent) :
     compilationType = "Debug";
     #endif
 
-    // TODO obtain ffmpeg version
+    QString ffmpegPath = Settings::getFFmpegPath();
+    QString ffprobePath = Settings::getFFprobePath();
+
+    connect(&ffmpegProc, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(ffmpegVersionDone(int,QProcess::ExitStatus)));
+    connect(&ffprobeProc, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(ffprobeVersionDone(int,QProcess::ExitStatus)));
+
+    ffmpegProc.start(ffmpegPath, {"-version"});
+    ffprobeProc.start(ffprobePath, {"-version"});
 
     versionText->setProperty("text", QCoreApplication::applicationVersion());
     licenseTextArea->setProperty("areaText", getLicenseText());
     librariesInfoGrid->setProperty("qtVersion", QT_VERSION_STR);
     librariesInfoGrid->setProperty("ffmpegVersion", "N/A");
+    librariesInfoGrid->setProperty("ffprobeVersion", "N/A");
     buildInfoGrid->setProperty("compilationDate", buildDatetime);
     buildInfoGrid->setProperty("compilationType", compilationType);
     buildInfoGrid->setProperty("compilationOSName", QSysInfo::productType());
@@ -55,6 +64,62 @@ About::~About()
 bool About::getInit()
 {
     return init;
+}
+
+void About::ffmpegVersionDone(int exitCode, QProcess::ExitStatus exitStatus)
+{
+    if (exitCode > 0) {
+        qWarning() << "Could not get ffmpeg version. Exit code was" << exitCode;
+        return;
+    }
+
+    if (exitStatus == QProcess::CrashExit) {
+        qWarning() << "Could not get ffmpeg version. Process crashed";
+        return;
+    }
+
+    QString consoleOut = ffmpegProc.readAllStandardOutput();
+    QString consoleErrorOut = ffmpegProc.readAllStandardError();
+
+    static const QRegularExpression regex("ffmpeg version (\\d+\\.\\d+\\.\\d+)");
+    QRegularExpressionMatch match = regex.match(consoleOut); // Match against consoleOut
+
+    if (!match.hasMatch()) {
+        qWarning() << "FFmpeg process out could not find version"
+                   << consoleOut << consoleErrorOut;
+        return;
+    }
+
+    QString version = match.captured(1);  // Captured group 1 contains the version
+    librariesInfoGrid->setProperty("ffmpegVersion", version);
+}
+
+void About::ffprobeVersionDone(int exitCode, QProcess::ExitStatus exitStatus)
+{
+    if (exitCode > 0) {
+        qWarning() << "Could not get ffprobe version. Exit code was" << exitCode;
+        return;
+    }
+
+    if (exitStatus == QProcess::CrashExit) {
+        qWarning() << "Could not get ffprobe version. Process crashed";
+        return;
+    }
+
+    QString consoleOut = ffprobeProc.readAllStandardOutput();
+    QString consoleErrorOut = ffprobeProc.readAllStandardError();
+
+    static const QRegularExpression regex("ffprobe version (\\d+\\.\\d+\\.\\d+)");
+    QRegularExpressionMatch match = regex.match(consoleOut); // Match against consoleOut
+
+    if (!match.hasMatch()) {
+        qWarning() << "FFprobe process out could not find version"
+                   << consoleOut << consoleErrorOut;
+        return;
+    }
+
+    QString version = match.captured(1);  // Captured group 1 contains the version
+    librariesInfoGrid->setProperty("ffprobeVersion", version);
 }
 
 QString About::getLicenseText(int license)

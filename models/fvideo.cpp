@@ -17,27 +17,16 @@ FVideo::~FVideo()
     delete equirectangularLow;
 }
 
-bool FVideo::addSegment(FSegment *segment, bool fileVerify)
+bool FVideo::addSegment(FSegment *segment, VerifyMode verifyMode)
 {
-    if (fileVerify && !segment->verify()) return false;
+    if (segment == nullptr) return false;
+    if (!segment->verify(verifyMode)) return false;
     this->segments.append(segment);
     return true;
 }
 
 bool FVideo::verify()
 {
-    if (this->frontThumbnail == nullptr ||
-        !MediaInfo::isImage(frontThumbnail)) {
-        qWarning() << "Front video thumnail is null or not an image";
-        return false;
-    }
-
-    if (this->backThumbnail == nullptr ||
-        !MediaInfo::isImage(frontThumbnail)) {
-        qWarning() << "Back video thumnail is null or not an image";
-        return false;
-    }
-
     for (FSegment *segment: this->segments) {
         qDebug() << "Verifying segment " << getIdString() + segment->getIdString();
         if (!segment->verify()) return false;
@@ -150,22 +139,66 @@ QFile *FVideo::getDualFisheyeLow()
     return dualFisheyeLow;
 }
 
-bool FVideo::isDualFisheyeValid()
+qint64 FVideo::isDualFisheyeValid()
 {
-    if (dualFisheye == nullptr) return false;
+    if (dualFisheye == nullptr) return -1;
     QTime a = MediaInfo::getLength(dualFisheye);
     QTime b = getLength();
-    return a.minute() == b.minute()
-        && a.second() == b.second();
+    if (a.minute() == b.minute()
+        && a.second() == b.second()) {
+        return dualFisheye->size();
+    }
+    return -1;
 }
 
-bool FVideo::isDualFisheyeLowValid()
+qint64 FVideo::isDualFisheyeLowValid()
 {
-    if (dualFisheyeLow == nullptr) return false;
+    if (dualFisheyeLow == nullptr) return -1;
     QTime a = MediaInfo::getLength(dualFisheyeLow);
     QTime b = getLength();
-    return a.minute() == b.minute()
-           && a.second() == b.second();
+    if (a.minute() == b.minute()
+        && a.second() == b.second()) {
+        return dualFisheyeLow->size();
+    }
+    return -1;
+}
+
+qint64 FVideo::isEquirectangularValid()
+{
+    if (equirectangular == nullptr) return -1;
+    QTime a = MediaInfo::getLength(equirectangular);
+    QTime b = getLength();
+    if (a.minute() == b.minute()
+        && a.second() == b.second()) {
+        return equirectangular->size();
+    }
+    return -1;
+}
+
+qint64 FVideo::isEquirectangularLowValid()
+{
+    if (equirectangularLow == nullptr) return -1;
+    QTime a = MediaInfo::getLength(equirectangularLow);
+    QTime b = getLength();
+    if (a.minute() == b.minute()
+        && a.second() == b.second()) {
+        return equirectangularLow->size();
+    }
+    return -1;
+}
+
+qint64 FVideo::isFrontThumbnailValid()
+{
+    if (frontThumbnail == nullptr) return -1;
+    return frontThumbnail->size();
+    return -1;
+}
+
+qint64 FVideo::isBackThumbnailValid()
+{
+    if (backThumbnail == nullptr) return -1;
+    return backThumbnail->size();
+    return -1;
 }
 
 QFile *FVideo::getEquirectangular()
@@ -178,15 +211,6 @@ void FVideo::setEquirectangular(QFile *equirectangular)
     this->equirectangular = equirectangular;
 }
 
-bool FVideo::isEquirectangularValid()
-{
-    if (equirectangular == nullptr) return false;
-    QTime a = MediaInfo::getLength(equirectangular);
-    QTime b = getLength();
-    return a.minute() == b.minute()
-           && a.second() == b.second();
-}
-
 QFile* FVideo::getEquirectangularLow()
 {
     return equirectangularLow;
@@ -197,22 +221,31 @@ void FVideo::setEquirectangularLow(QFile *equirectangularLow)
     this->equirectangularLow = equirectangularLow;
 }
 
-bool FVideo::isEquirectangularLowValid()
-{
-    if (equirectangularLow == nullptr) return false;
-    QTime a = MediaInfo::getLength(equirectangularLow);
-    QTime b = getLength();
-    return a.minute() == b.minute()
-           && a.second() == b.second();
-}
-
 QString FVideo::toString()
 {
     QString ret;
     for (FSegment *segment: this->segments) {
-        ret.append("NUEVO SEGMENTO");
-        ret.append(segment->toString());
-        ret.append("FIN SEGMENTO");
+        ret.append("NUEVO SEGMENTO\n");
+        ret.append(segment->toString() + "\n");
+        ret.append("FIN SEGMENTO\n");
     }
     return ret;
+}
+
+QJsonObject FVideo::toJson()
+{
+    QJsonObject videoObject;
+    videoObject.insert("id", id);
+    videoObject.insert("dualFisheye", isDualFisheyeValid());
+    videoObject.insert("dualFisheyeLow", isDualFisheyeLowValid());
+    videoObject.insert("equirectangular", isEquirectangularValid());
+    videoObject.insert("equirectangularLow", isEquirectangularLowValid());
+    videoObject.insert("frontThumbnail", isFrontThumbnailValid());
+    videoObject.insert("backThumbnail", isBackThumbnailValid());
+    QJsonArray segmentsArray;
+    for (FSegment* segment: segments) {
+        segmentsArray.append(segment->toJson());
+    }
+    videoObject.insert("segments", segmentsArray);
+    return videoObject;
 }
