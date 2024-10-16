@@ -492,6 +492,62 @@ QList<VolumeInfo> MyQSysInfo::mountedVolumes()
 {
     QList<VolumeInfo> mountedVolumes;
 
+    #ifdef Q_OS_WIN
+    wchar_t driveStrings[256];
+    DWORD driveCount = GetLogicalDriveStrings(sizeof(driveStrings) / sizeof(driveStrings[0]), driveStrings);
+
+    if (driveCount == 0) {
+        qWarning() << "Failed to retrieve drive strings";
+        return {};
+    }
+
+    for (wchar_t* drive = driveStrings; *drive != '\0'; drive += 4) {
+        VolumeInfo volumeInfo;
+        volumeInfo.mountPath = QString::fromWCharArray(drive);
+
+        UINT driveType = GetDriveType(drive);
+        if (driveType == DRIVE_REMOVABLE) {
+            volumeInfo.isExternal = true; // Automatically mark removable drives as external
+        } else if (driveType == DRIVE_FIXED) {
+            // Check if the drive is connected via USB
+            volumeInfo.isExternal = isDriveUSB(drive);
+        } else {
+            volumeInfo.isExternal = false;
+        }
+
+        wchar_t volumeName[MAX_PATH + 1] = { 0 };
+        wchar_t fileSystemName[MAX_PATH + 1] = { 0 };
+        DWORD serialNumber = 0, maxComponentLen = 0, fileSystemFlags = 0;
+
+        if (GetVolumeInformation(
+                drive,
+                volumeName,
+                sizeof(volumeName) / sizeof(volumeName[0]),
+                &serialNumber,
+                &maxComponentLen,
+                &fileSystemFlags,
+                fileSystemName,
+                sizeof(fileSystemName) / sizeof(fileSystemName[0])
+                )) {
+            volumeInfo.label = QString::fromWCharArray(volumeName);
+            volumeInfo.fileSystemType = QString::fromWCharArray(fileSystemName);
+        } else {
+            volumeInfo.label = "Unknown";
+            volumeInfo.fileSystemType = "Unknown";
+        }
+
+        wchar_t devicePath[MAX_PATH] = { 0 };
+        if (QueryDosDevice(&drive[0], devicePath, sizeof(devicePath) / sizeof(devicePath[0])) != 0) {
+            volumeInfo.deviceName = QString::fromWCharArray(devicePath);
+        } else {
+            volumeInfo.deviceName = "Unknown";
+        }
+
+        mountedVolumes.append(volumeInfo);
+    }
+
+    #endif
+
     #ifdef Q_OS_MAC
     struct statfs *mounts;
     int numMounts = getmntinfo(&mounts, MNT_NOWAIT);
@@ -528,6 +584,43 @@ QList<VolumeInfo> MyQSysInfo::mountedVolumes()
 
     return mountedVolumes;
 }
+
+#ifdef Q_OS_WIN
+bool MyQSysInfo::isDriveUSB(const std::wstring &mountPath)
+{
+    bool isUSB = false;
+    HDEVINFO hDevInfo = SetupDiGetClassDevs(&GUID_DEVINTERFACE_DISK, NULL, NULL, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
+    if (hDevInfo == INVALID_HANDLE_VALUE) return false;
+
+    SP_DEVICE_INTERFACE_DATA deviceInterfaceData = {};
+    deviceInterfaceData.cbSize = sizeof(SP_DEVICE_INTERFACE_DATA);
+
+    for (DWORD i = 0; SetupDiEnumDeviceInterfaces(hDevInfo, NULL, &GUID_DEVINTERFACE_DISK, i, &deviceInterfaceData); ++i) {
+        DWORD requiredSize = 0;
+        SetupDiGetDeviceInterfaceDetail(hDevInfo, &deviceInterfaceData, NULL, 0, &requiredSize, NULL);
+        if (requiredSize == 0) continue;
+
+        std::vector<BYTE> detailDataBuffer(requiredSize);
+        SP_DEVICE_INTERFACE_DETAIL_DATA* deviceInterfaceDetailData = reinterpret_cast<SP_DEVICE_INTERFACE_DETAIL_DATA*>(detailDataBuffer.data());
+        deviceInterfaceDetailData->cbSize = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA);
+
+        SP_DEVINFO_DATA deviceInfoData = {};
+        deviceInfoData.cbSize = sizeof(SP_DEVINFO_DATA);
+
+        if (SetupDiGetDeviceInterfaceDetail(hDevInfo, &deviceInterfaceData, deviceInterfaceDetailData, requiredSize, NULL, &deviceInfoData)) {
+            TCHAR devicePath[MAX_PATH];
+            if (SetupDiGetDeviceRegistryProperty(hDevInfo, &deviceInfoData, SPDRP_LOCATION_INFORMATION, NULL, (BYTE*)devicePath, sizeof(devicePath), NULL)) {
+                if (_tcsstr(devicePath, _T("USB")) != NULL) {
+                    isUSB = true;
+                    break;
+                }
+            }
+        }
+    }
+    SetupDiDestroyDeviceInfoList(hDevInfo);
+    return isUSB;
+}
+#endif
 
 #ifdef Q_OS_MAC
 QString MyQSysInfo::getVolumeLabel(const char* deviceName)

@@ -21,8 +21,12 @@
 #include <dxgi.h>
 #include <comdef.h>
 #include <Wbemidl.h>
+#include <setupapi.h>
+#include <devguid.h>
+#include <tchar.h>
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "wbemuuid.lib")
+#pragma comment(lib, "Setupapi.lib")
 #endif
 
 #ifdef Q_OS_LINUX
@@ -47,6 +51,9 @@ public:
     static QList<VolumeInfo> mountedVolumes();
 
 private:
+#ifdef Q_OS_WIN
+    static bool isDriveUSB(const std::wstring& mountPath);
+#endif
 #ifdef Q_OS_LINUX
     static std::string readFile(const std::string& path);
 #endif
