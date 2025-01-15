@@ -33,13 +33,12 @@ void Dialogs::critical(QString userMsg, QString logMsg)
     exit(ERROR_CRITICAL);
 }
 
-void Dialogs::criticalStart(QString logMsg)
+void Dialogs::criticalStart(QString userMsg)
 {
-    qCritical() << "Critical start error" << logMsg;
     QMessageBox box;
-    box.setWindowTitle("Critical error");
+    box.setWindowTitle(QCoreApplication::applicationName() + " could not start");
     box.setIcon(QMessageBox::Critical);
-    box.setText("There was an internal error starting the application\nCheck the logs for more information");
+    box.setText("There was critical error starting the application\n" + userMsg);
     box.exec();
     QCoreApplication::exit(ERROR_CRITICAL);
     exit(ERROR_CRITICAL);
