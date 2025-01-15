@@ -209,10 +209,9 @@ void Settings::setupDefaultProjectPath()
     if (documentsPath.isEmpty() || !QDir(documentsPath).exists() || !QFileInfo(documentsPath).isWritable()) {
         qDebug() << "Default project path not set, setting default";
         if (!QDir(osDocumentsPath).exists() || !QFileInfo(osDocumentsPath).isWritable()) {
-            Dialogs::criticalStart(
-                "The os default documents path does not exist or is not writable. The path is: " +
-                osDocumentsPath
-            );
+            qCritical() <<  "The os default documents path does not exist or is not writable. The path is: " +
+                            osDocumentsPath;
+            Dialogs::criticalStart("Some file operations failed. View the log for more information");
         }
         settings.setValue("defaultProjectPath", osDocumentsPath);
     }
@@ -231,6 +230,10 @@ void Settings::setupBinaries()
 {
     QSettings settings;
 
+    QString corruptInstallMsg = "A corrupt installation was detected. Try to reinstall the application";
+
+    qDebug() << settings.value("ffmpegPath").toString();
+
     if (QFileInfo(settings.value("ffmpegPath").toString()).isExecutable() &&
         QFileInfo(settings.value("ffprobePath").toString()).isExecutable()) {
         return;
@@ -242,27 +245,21 @@ void Settings::setupBinaries()
     QDir binariesFolder = QDir(QCoreApplication::applicationDirPath());
 
     if (!binariesFolder.cd("Binaries")) {
-        Dialogs::criticalStart(
-            "The binary resources dir does not exist. The path is: " +
-            binariesFolder.absolutePath()
-            );
+        qCritical() << "The binary resources dir does not exist in " + binariesFolder.absolutePath();
+        Dialogs::criticalStart(corruptInstallMsg);
     }
 
     QFileInfo ffmpegInfo(binariesFolder.absolutePath() + "/ffmpeg.exe");
     QFileInfo ffprobeInfo(binariesFolder.absolutePath() + "/ffprobe.exe");
 
-    if (!ffmpegInfo.exists() || !ffmpegInfo.isExecutable()) {
-        Dialogs::criticalStart(
-            "The ffmpeg binary does not exist or is not executable. The path is: " +
-            ffmpegInfo.absolutePath()
-            );
+    if (!ffmpegInfo.isExecutable()) {
+        qCritical() << "The ffmpeg binary does not exist or is not executable in " + ffmpegInfo.absolutePath());
+        Dialogs::criticalStart(corruptInstallMsg);
     }
 
-    if (!ffprobeInfo.exists() || !ffprobeInfo.isExecutable()) {
-        Dialogs::criticalStart(
-            "The ffprobe binary does not exist or is not executable. The path is: " +
-            ffmpegInfo.absolutePath()
-            );
+    if (!ffprobeInfo.isExecutable()) {
+        qCritical() << "The ffprobe binary does not exist or is not executable in " + ffprobeInfo.absolutePath());
+        Dialogs::criticalStart(corruptInstallMsg);
     }
 
     ffmpegPath = ffmpegInfo.absoluteFilePath();
@@ -270,9 +267,20 @@ void Settings::setupBinaries()
     #endif
 
     #ifdef Q_OS_MAC
-    // TODO find included binaries
-    ffmpegPath = "/usr/local/bin/ffmpeg";
-    ffprobePath = "/usr/local/bin/ffprobe";
+    QString execPath = QCoreApplication::applicationDirPath();
+
+    if (!QFileInfo(execPath + "/ffmpeg").isExecutable()) {
+        qCritical() << "Embedded FFmpeg binary not found or non executable on " + execPath + "/ffmpeg";
+        Dialogs::criticalStart(corruptInstallMsg);
+    }
+
+    if (!QFileInfo(execPath + "/ffprobe").isExecutable()) {
+        qCritical() << "Embedded FFprobe binary not found or non executable on " + execPath + "/ffprobe";
+        Dialogs::criticalStart(corruptInstallMsg);
+    }
+
+    ffmpegPath = execPath + "/ffmpeg";
+    ffprobePath = execPath + "/ffprobe";
     #endif
 
     #ifdef Q_OS_LINUX
@@ -280,18 +288,6 @@ void Settings::setupBinaries()
     ffmpegPath = "/usr/bin/ffmpeg";
     ffprobePath = "/usr/bin/ffprobe";
     #endif
-
-    if (ffmpegPath.isEmpty() || !QFile(ffmpegPath).exists() || !QFileInfo(ffmpegPath).isExecutable()) {
-        Dialogs::criticalStart(
-            "FFmpeg not found on system"
-        );
-    }
-
-    if (ffprobePath.isEmpty() || !QFile(ffprobePath).exists() || !QFileInfo(ffprobePath).isExecutable()) {
-        Dialogs::criticalStart(
-            "FFprobe not found on system"
-        );
-    }
 
     settings.setValue("ffmpegPath", ffmpegPath);
     settings.setValue("ffprobePath", ffprobePath);
@@ -316,8 +312,10 @@ void Settings::setupEncoders()
     }
 
     QProcess p;
-    p.start(getFFprobePath(), {"-loglevel", "panic", "-codecs"});
 
+    QString ffprobePath = getFFprobePath();
+
+    p.start(ffprobePath, {"-loglevel", "panic", "-codecs"});
 
     bool finished = p.waitForFinished(3000);
 
@@ -330,6 +328,10 @@ void Settings::setupEncoders()
             "STDERR: " + p.readAllStandardError() + "\n" +
             "STDOUT: " + p.readAllStandardOutput()
         );
+    }
+
+    if (p.exitCode() != 0) {
+        Dialogs::critical("Setting up encoders command error: " + p.readAllStandardError());
     }
 
     QString rawOutput = p.readAllStandardOutput();

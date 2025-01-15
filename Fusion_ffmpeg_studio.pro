@@ -81,6 +81,11 @@ win32 {
     QMAKE_LFLAGS -= -lwbemuuid -ladvapi32
 }
 
+macx {
+    BINARIES_FOLDER = "$$OUT_PWD/$$shell_quote($${TARGET}.app)/Contents/MacOS"
+    QMAKE_POST_LINK += "$$QMAKE_COPY_DIR $$PWD/resources/Embedded/macOS/*" "$$BINARIES_FOLDER"
+}
+
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
