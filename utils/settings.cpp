@@ -232,8 +232,6 @@ void Settings::setupBinaries()
 
     QString corruptInstallMsg = "A corrupt installation was detected. Try to reinstall the application";
 
-    qDebug() << settings.value("ffmpegPath").toString();
-
     if (QFileInfo(settings.value("ffmpegPath").toString()).isExecutable() &&
         QFileInfo(settings.value("ffprobePath").toString()).isExecutable()) {
         return;
