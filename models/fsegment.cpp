@@ -164,28 +164,28 @@ void FSegment::setFormat(FFormat format)
     this->format = format;
 }
 
-qint64 FSegment::isDualFisheyeValid()
+bool FSegment::isDualFisheyeValid()
 {
-    if (dualFisheye == nullptr) return -1;
+    if (dualFisheye == nullptr) return false;
     QTime a = MediaInfo::getLength(dualFisheye);
     QTime b = getLength();
     if (a.minute() == b.minute()
         && (abs(a.second()-b.second()) < 3)) {
-        return dualFisheyeLow->size();
+        return true;
     }
-    return -1;
+    return false;
 }
 
-qint64 FSegment::isDualFisheyeLowValid()
+bool FSegment::isDualFisheyeLowValid()
 {
-    if (dualFisheyeLow == nullptr) return -1;
+    if (dualFisheyeLow == nullptr) return false;
     QTime a = MediaInfo::getLength(dualFisheyeLow);
     QTime b = getLength();
     if (a.minute() == b.minute()
         && (abs(a.second()-b.second()) < 3)) {
-        return dualFisheyeLow->size();
+        return true;
     }
-    return -1;
+    return false;
 }
 
 FFormat FSegment::getFormat()

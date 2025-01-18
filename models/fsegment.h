@@ -45,8 +45,8 @@ public:
 
     void setFormat(FFormat format);
 
-    qint64 isDualFisheyeValid();
-    qint64 isDualFisheyeLowValid();
+    bool isDualFisheyeValid();
+    bool isDualFisheyeLowValid();
 
     FFormat getFormat();
     float getFPS();

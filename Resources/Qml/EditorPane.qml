@@ -36,6 +36,7 @@ Rectangle {
             objectName: "videoPlayerRoot"
             SplitView.fillHeight: true
             SplitView.fillWidth: true
+            SplitView.minimumWidth: 650
             color: "#666666"
         }
 

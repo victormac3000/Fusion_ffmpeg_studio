@@ -2,6 +2,7 @@
 #include "models/project.h"
 #include "models/fvideo.h"
 #include "models/renderwork.h"
+#include "utils/settings.h"
 
 FFmpeg::FFmpeg(QObject *parent)
     : QObject{parent}
@@ -13,7 +14,7 @@ FFmpeg::FFmpeg(QObject *parent)
     connect(process, SIGNAL(readyReadStandardOutput()), this, SLOT(processReadyReadOut()));
     connect(process, SIGNAL(stateChanged(QProcess::ProcessState)), this, SLOT(processStateChanged(QProcess::ProcessState)));
 
-    QString ffmpegPath = QSettings().value("ffmpeg").toString();
+    QString ffmpegPath = Settings::getFFmpegPath();
 
     if (ffmpegPath.isEmpty()) {
         qWarning() << "FFMpeg binary path not found:" << ffmpegPath;
@@ -21,7 +22,7 @@ FFmpeg::FFmpeg(QObject *parent)
 
     this->encoder = "hevc_nvenc";
     #ifdef Q_OS_MAC
-        this->encoder = "hevc_videotoolbox";
+    this->encoder = "hevc_videotoolbox";
     #endif
 
     this->process->setProgram(ffmpegPath);
@@ -150,7 +151,7 @@ bool FFmpeg::renderPreviewStep1()
 {
     // STEP 1: MERGE ALL SEGMENTS FRONT AND BACK LOW RES VIDEOS
     emit work->updateRenderStatusString("Step 1 of 3: Merging front and back of each segment");
-    FVideo *video = work->getVideo();
+    FVideo* video = work->getVideo();
     int numSegments = video->getNumSegments();
 
     for (int i=0; i<numSegments; i++) {

@@ -1,4 +1,5 @@
 #include "mediainfo.h"
+#include "utils/settings.h"
 
 
 bool MediaInfo::isVideo(QFile *media)
@@ -12,13 +13,7 @@ VideoInfo MediaInfo::getVideoInfo(QFile *video)
     tmr.start();
 
     QProcess *process = new QProcess;
-
-    QString ffprobePath = QSettings().value("ffprobe").toString();
-
-    if (ffprobePath.isEmpty()) {
-        qWarning() << "FFProbe binary path not found:" << ffprobePath;
-        return VideoInfo();
-    }
+    QString ffprobePath = Settings::getFFprobePath();
 
     process->setProgram(ffprobePath);
     QStringList params;

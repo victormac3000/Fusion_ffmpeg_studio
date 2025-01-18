@@ -8,10 +8,6 @@
         <file>Qml/QueueItem.qml</file>
         <file>Qml/VideoItem.qml</file>
         <file>Qml/VideoPlayer.qml</file>
-        <file>Qml/VideoPlayerControls.qml</file>
-        <file>Qml/VideoPlayerCutMode.qml</file>
-        <file>Qml/VideoPlayerViewMode.qml</file>
-        <file>Qml/VideoPlayerSeeker.qml</file>
         <file>Qml/NiceProgressBar.qml</file>
         <file>Qml/RenderOptions.qml</file>
         <file>Qml/VideosGrid.qml</file>
@@ -38,6 +34,7 @@
         <file>Qml/LoadingPane.qml</file>
         <file>Qml/MyRangeSlider.qml</file>
         <file>Qml/MySlider.qml</file>
+        <file>Qml/VideoPlayerSeekerBar.qml</file>
     </qresource>
     <qresource prefix="/Qml">
         <file>Icons/VideoPlayer/Left.png</file>
@@ -54,5 +51,6 @@
         <file>Images/folder.png</file>
         <file>Images/sd-card.png</file>
         <file>Images/Snow.jpg</file>
+        <file>Images/red_triangle.svg</file>
     </qresource>
 </RCC>

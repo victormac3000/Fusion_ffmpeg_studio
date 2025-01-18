@@ -54,9 +54,13 @@ private slots:
     void renderWorkFinished(RenderWork *renderWork, bool error);
 
 private:
-    Ui::EditorPane *ui;
-    Project *project;
-    QQuickItem *videosGridLayout, *videoPlayer, *queueGridLayout;
+    Ui::EditorPane* ui;
+    Project* project;
+    QQuickItem* videosGridLayout;
+    QQuickItem* videoPlayer;
+    QQuickItem* queueColumnLayout;
+    QQuickItem* videoPreviewSlider;
+    QQuickItem* videoPlayerSeekerBar;
     QList<FVideo*> videos;
     int selectedVideo = 0;
     int activeQueueItem = 0;

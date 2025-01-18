@@ -2,7 +2,6 @@
 #include "ui_editorpane.h"
 #include "windows/mainwindow.h"
 #include "models/fvideo.h"
-#include "models/fsegment.h"
 #include "models/project.h"
 #include "models/renderwork.h"
 #include "utils/dialogs.h"
@@ -19,17 +18,12 @@ EditorPane::EditorPane(QWidget* parent, Project* project) :
 
     MainWindow* mainWindow = (MainWindow*) parent;
 
-    if (mainWindow != nullptr) {
-        mainWindow->setWindowTitle("Editing studio");
-        /*
-
-        QMenuBar* menuBar = mainWindow->getMenuBar();
-        QMenu* testMenu = new QMenu("Test");
-        menuBar->addMenu(testMenu);
-        */
-    } else {
+    if (mainWindow == nullptr) {
         qWarning() << "MainWindow not found";
+        return;
     }
+
+    mainWindow->setWindowTitle("Editing studio");
 
     // On load
     // If previews are not available -> Add work to queue and start it
@@ -39,15 +33,20 @@ EditorPane::EditorPane(QWidget* parent, Project* project) :
 
     QQuickItem* rootObject = ui->qmlWidget->rootObject();
 
+    if (rootObject == nullptr) {
+        qWarning() << "Could not found quickWidget element root QML object";
+        return;
+    }
+
+    this->videoPlayerSeekerBar = rootObject->findChild<QQuickItem*>("videoPlayerSeekerBar");
     this->videosGridLayout = rootObject->findChild<QQuickItem*>("videosGridLayout");
     this->videoPlayer = rootObject->findChild<QQuickItem*>("videoPlayerRoot");
-    this->queueGridLayout = rootObject->findChild<QQuickItem*>("queueColumnLayout");
+    this->queueColumnLayout = rootObject->findChild<QQuickItem*>("queueColumnLayout");
 
-    if (videosGridLayout == nullptr || videoPlayer == nullptr || queueGridLayout == nullptr) {
-        Dialogs::critical(
-            "Error loading the editor pane",
-            "Could not found videosGridLayout, videoPlayerRoot or queueColumnLayout QML elements"
-        );
+    if (videosGridLayout == nullptr || videoPlayer == nullptr ||
+        queueColumnLayout == nullptr || videoPlayerSeekerBar == nullptr) {
+        qWarning() << "Could not found some of the QML elements";
+        return;
     }
 
     QQuickItem* renderPreviewButton = rootObject->findChild<QQuickItem*>("renderPreviewButton");
@@ -73,7 +72,6 @@ EditorPane::EditorPane(QWidget* parent, Project* project) :
     for (FVideo* video: videos) {
         QVariant returnedValue;
 
-
         QFile* fThumb = video->getFrontThumbnail();
         QString fThumbPath = fThumb->fileName();
 
@@ -83,7 +81,7 @@ EditorPane::EditorPane(QWidget* parent, Project* project) :
 
         if (thumbnail.isNull()) {
             qDebug() << "Error reading thumbnail:" << thumbnailReader.errorString();
-            // Handle the error accordingly
+            // TODO Handle the error accordingly
         }
 
         QByteArray byteArray;
@@ -164,7 +162,7 @@ void EditorPane::renderPreviewClicked()
     connect(renderWork, SIGNAL(updateRenderStatus(FFmpegStatus*)), this, SLOT(renderWorkUpdated(FFmpegStatus*)));
 
     bool sucess = QMetaObject::invokeMethod(
-        queueGridLayout, "addQueueItem",
+        queueColumnLayout, "addQueueItem",
         Q_ARG(QVariant, video->getIdString()),
         Q_ARG(QVariant, "RENDERING PREVIEW")
     );
@@ -180,7 +178,7 @@ void EditorPane::renderPreviewClicked()
 void EditorPane::renderWorkUpdated(FFmpegStatus *status)
 {
     bool sucess = QMetaObject::invokeMethod(
-        queueGridLayout, "updateQueueItemProgress",
+        queueColumnLayout, "updateQueueItemProgress",
         Q_ARG(QVariant, status->frame),
         Q_ARG(QVariant, "0"),
         Q_ARG(QVariant, status->fps),
@@ -196,7 +194,6 @@ void EditorPane::renderWorkUpdated(FFmpegStatus *status)
         qWarning() << "Could update the active job progress";
     }
 }
-
 
 void EditorPane::renderWorkFinished(RenderWork *renderWork, bool error)
 {

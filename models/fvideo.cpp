@@ -139,66 +139,62 @@ QFile *FVideo::getDualFisheyeLow()
     return dualFisheyeLow;
 }
 
-qint64 FVideo::isDualFisheyeValid()
+bool FVideo::isDualFisheyeValid()
 {
-    if (dualFisheye == nullptr) return -1;
+    if (dualFisheye == nullptr) return false;
     QTime a = MediaInfo::getLength(dualFisheye);
     QTime b = getLength();
     if (a.minute() == b.minute()
         && a.second() == b.second()) {
-        return dualFisheye->size();
+        return true;
     }
-    return -1;
+    return false;
 }
 
-qint64 FVideo::isDualFisheyeLowValid()
+bool FVideo::isDualFisheyeLowValid()
 {
-    if (dualFisheyeLow == nullptr) return -1;
+    if (dualFisheyeLow == nullptr) return false;
     QTime a = MediaInfo::getLength(dualFisheyeLow);
     QTime b = getLength();
     if (a.minute() == b.minute()
         && a.second() == b.second()) {
-        return dualFisheyeLow->size();
+        return true;
     }
-    return -1;
+    return false;
 }
 
-qint64 FVideo::isEquirectangularValid()
+bool FVideo::isEquirectangularValid()
 {
-    if (equirectangular == nullptr) return -1;
+    if (equirectangular == nullptr) return false;
     QTime a = MediaInfo::getLength(equirectangular);
     QTime b = getLength();
     if (a.minute() == b.minute()
         && a.second() == b.second()) {
-        return equirectangular->size();
+        return true;
     }
-    return -1;
+    return false;
 }
 
-qint64 FVideo::isEquirectangularLowValid()
+bool FVideo::isEquirectangularLowValid()
 {
-    if (equirectangularLow == nullptr) return -1;
+    if (equirectangularLow == nullptr) return false;
     QTime a = MediaInfo::getLength(equirectangularLow);
     QTime b = getLength();
     if (a.minute() == b.minute()
         && a.second() == b.second()) {
-        return equirectangularLow->size();
+        return true;
     }
-    return -1;
+    return false;
 }
 
-qint64 FVideo::isFrontThumbnailValid()
+bool FVideo::isFrontThumbnailValid()
 {
-    if (frontThumbnail == nullptr) return -1;
-    return frontThumbnail->size();
-    return -1;
+    return (frontThumbnail == nullptr);
 }
 
-qint64 FVideo::isBackThumbnailValid()
+bool FVideo::isBackThumbnailValid()
 {
-    if (backThumbnail == nullptr) return -1;
-    return backThumbnail->size();
-    return -1;
+    return (backThumbnail == nullptr);
 }
 
 QFile *FVideo::getEquirectangular()

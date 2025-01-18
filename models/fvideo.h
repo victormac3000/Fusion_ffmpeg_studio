@@ -53,12 +53,12 @@ public:
     QFile *getEquirectangularLow();
     void setEquirectangularLow(QFile *equirectangularLow);
 
-    qint64 isDualFisheyeValid();
-    qint64 isDualFisheyeLowValid();
-    qint64 isEquirectangularValid();
-    qint64 isEquirectangularLowValid();
-    qint64 isFrontThumbnailValid();
-    qint64 isBackThumbnailValid();
+    bool isDualFisheyeValid();
+    bool isDualFisheyeLowValid();
+    bool isEquirectangularValid();
+    bool isEquirectangularLowValid();
+    bool isFrontThumbnailValid();
+    bool isBackThumbnailValid();
 
     QString toString();
     QJsonObject toJson();
