@@ -1,10 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "panes/welcomepane.h"
-#include "preferences.h"
-#include "about.h"
-#include "utils/dialogs.h"
-#include "worker.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -45,7 +41,7 @@ void MainWindow::setTitle(QString title)
 bool MainWindow::changePane(QWidget* pane)
 {
     if (pane == nullptr) {
-        qWarning() << "Tried to change to a nullptr pane";
+        qCritical() << "Tried to change to a nullptr pane";
         return false;
     }
     clearLayout(ui->paneHolder);
