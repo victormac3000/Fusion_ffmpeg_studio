@@ -66,6 +66,11 @@ WelcomePane::~WelcomePane()
     delete ui;
 }
 
+bool WelcomePane::getInit()
+{
+    return this->initOk;
+}
+
 void WelcomePane::openProjectButtonClicked()
 {
     QString proposedProjectFile = QFileDialog::getOpenFileName(
