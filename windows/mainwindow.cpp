@@ -1,13 +1,19 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "panes/welcomepane.h"
+#include "utils/dialogs.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    this->changePane(new WelcomePane(this));
+    WelcomePane* welcomePane = new WelcomePane(this);
+    if (!welcomePane->getInit()) {
+        Dialogs::criticalStart("Could not load the main window");
+        return;
+    }
+    this->changePane(welcomePane);
 }
 
 MainWindow::~MainWindow()
