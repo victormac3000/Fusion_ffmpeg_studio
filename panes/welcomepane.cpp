@@ -16,10 +16,7 @@ WelcomePane::WelcomePane(QWidget *parent) :
     this->mainWindow = (MainWindow*) parent;
 
     if (mainWindow == nullptr) {
-        Dialogs::critical(
-            "Error loading the application",
-            "MainWindow pointer is null"
-        );
+        qCritical() << "MainWindow pointer is null";
         return;
     }
 
@@ -29,10 +26,7 @@ WelcomePane::WelcomePane(QWidget *parent) :
     QQuickItem* rootObject = ui->qmlWidget->rootObject();
 
     if (rootObject == nullptr) {
-        Dialogs::critical(
-            "Error loading the application",
-            "The rootObject of welcomepane is null"
-        );
+        qCritical() << "The rootObject of welcomepane is null";
         return;
     }
 
@@ -46,10 +40,7 @@ WelcomePane::WelcomePane(QWidget *parent) :
 
     if (appTitleLabel == nullptr || appVersionLabel == nullptr || settingsButton == nullptr || aboutButton == nullptr ||
         loadProjectButton == nullptr || newProjectButton == nullptr || recentProjectsLayout == nullptr) {
-        Dialogs::critical(
-            "Error loading the application",
-            "Any of the required QML objects are null"
-        );
+        qCritical() << "Any of the required QML objects are null";
         return;
     }
 
@@ -66,6 +57,8 @@ WelcomePane::WelcomePane(QWidget *parent) :
     connect(recentProjectsLayout, SIGNAL(recentProjectClicked(QVariant)), this, SLOT(recentProjectClicked(QVariant)));
     connect(settingsButton, SIGNAL(clicked()), this, SLOT(settingsButtonClicked()));
     connect(aboutButton, SIGNAL(clicked()), this, SLOT(aboutButtonClicked()));
+
+    this->initOk = true;
 }
 
 WelcomePane::~WelcomePane()

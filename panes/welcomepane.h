@@ -36,6 +36,8 @@ public:
     explicit WelcomePane(QWidget *parent = nullptr);
     ~WelcomePane();
 
+    bool getInit();
+
 signals:
     void changePane(QWidget *pane);
 
@@ -50,6 +52,7 @@ private slots:
 private:
     Ui::WelcomePane *ui;
     MainWindow* mainWindow;
+    bool initOk;
     QSettings settings;
     QList<QPair<RecentProject,QFrame*>> recentProjectsList;
     QQuickItem* recentProjectsLayout;
