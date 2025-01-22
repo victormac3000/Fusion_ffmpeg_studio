@@ -2,6 +2,7 @@
 #include "fvideo.h"
 #include "loading.h"
 #include "models/fformats.h"
+#include "utils/settings.h"
 
 Project::Project(QObject *parent)
     : QObject{parent}
@@ -829,66 +830,64 @@ void Project::save()
 
 void Project::addToRecent()
 {
-    QSettings settings;
-    QFile recentProjectsFile = QFile(settings.value("appData").toString() + "/recent_projects.json");
+    QSqlDatabase db = Settings::getLocalDb();
 
-    if (!recentProjectsFile.open(QFile::ReadWrite)) {
-        qWarning() << "Could not open recent projects file";
+    if (!db.isValid()) {
+        qWarning() << "Could not add project to recent projects. Invalid database";
         return;
     }
 
-    QJsonDocument doc;
-    QJsonArray docArray;
-    QJsonObject obj;
+    QString sqlQuery = R"(
+        SELECT COUNT(*) FROM recent_projects
+        WHERE path = :path
+    )";
 
-    obj.insert("name", QFileInfo(this->path).fileName());
-    obj.insert("path", this->path);
-    obj.insert("last_opened", this->lastSaved.toString(Qt::RFC2822Date));
+    QSqlQuery query(db);
 
-    if (recentProjectsFile.exists()) {
-        QJsonParseError parseError;
-        doc = QJsonDocument::fromJson(recentProjectsFile.readAll(), &parseError);
-
-        if (parseError.error != QJsonParseError::NoError) {
-            qWarning() << "Could not parse the recent projects file";
-            return;
-        }
-
-        if (!doc.isArray()) {
-            qWarning() << "Could not parse the recent projects file. The main object is not an array";
-            return;
-        }
-
-        docArray = doc.array();
-
-        recentProjectsFile.close();
-
-        if (!recentProjectsFile.open(QFile::ReadWrite | QFile::Truncate)) {
-            qWarning() << "Could not truncate the recent projects file";
-            return;
-        }
+    if (!query.prepare(sqlQuery)) {
+        qWarning() << "Could not add project to recent projects. Count query failed to prepare" << query.lastError().text();
+        return;
     }
 
+    query.bindValue(":path", this->path);
 
-    bool projectExists = false;
-    for (int i=0; i<docArray.size(); i++) {
-        QJsonObject obj = docArray.at(i).toObject();
-
-        if (obj.value("path").toString() == this->path) {
-            projectExists = true;
-            obj["path"] = this->path;
-            obj["last_opened"] = this->lastSaved.toString(Qt::RFC2822Date);
-        }
-    }
-    if (!projectExists) docArray.append(obj);
-
-    doc.setArray(docArray);
-
-    int written = recentProjectsFile.write(doc.toJson());
-
-    if (written < 0) {
-        qWarning() << "Recent projects could not be written";
+    if (!query.exec()) {
+        qWarning() << "Could not add project to recent projects. Count query failed with error" << query.lastError().text();
+        return;
     }
 
-    recentProjectsFile.close();
+    sqlQuery = R"(
+        UPDATE recent_projects
+        SET path = :path,
+            name = :name,
+            saved_on = :saved_on
+        WHERE path = :path;
+    )";
+
+    if (query.size() < 1) {
+        sqlQuery = R"(
+            INSERT INTO recent_projects
+                (path, name, saved_on)
+            VALUES
+                (:path, :name, :saved_on);
+        )";
+    }
+
+    query = QSqlQuery(db);
+
+    if (!query.prepare(sqlQuery)) {
+        qWarning() << "Could not add project to recent projects. Insert/Update query failed to prepare" << query.lastError().text();
+        return;
+    }
+
+    query.bindValue(":path", this->path);
+    query.bindValue(":name", QFileInfo(this->path).fileName());
+    query.bindValue(":saved_on", this->lastSaved.toMSecsSinceEpoch());
+
+    if (!query.exec()) {
+        qWarning() << "Could not add project to recent projects. Insert/Update query failed with error" << query.lastError().text();
+        return;
+    }
+
+    db.close();
 }

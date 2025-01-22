@@ -22,12 +22,6 @@ namespace Ui {
 class WelcomePane;
 }
 
-struct RecentProject {
-    QString name;
-    QString path;
-    QDateTime lastOpened;
-};
-
 class WelcomePane : public QWidget
 {
     Q_OBJECT
@@ -54,7 +48,6 @@ private:
     MainWindow* mainWindow;
     bool initOk;
     QSettings settings;
-    QList<QPair<RecentProject,QFrame*>> recentProjectsList;
     QQuickItem* recentProjectsLayout;
 
     void loadRecentProjects();

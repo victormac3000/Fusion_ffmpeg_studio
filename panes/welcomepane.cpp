@@ -3,6 +3,7 @@
 #include "windows/preferences.h"
 #include "windows/about.h"
 #include "utils/dialogs.h"
+#include "utils/settings.h"
 #include "panes/projectcreator.h"
 #include "panes/loadingpane.h"
 #include "windows/mainwindow.h"
@@ -155,66 +156,88 @@ void WelcomePane::settingsButtonClicked()
 
 void WelcomePane::searchRecentProjects(QString text)
 {
-    for (const QPair<RecentProject,QFrame*> &pair: recentProjectsList) {
-        bool contains = text.isEmpty() ? true : pair.first.name.contains(text, Qt::CaseInsensitive);
-        pair.second->setVisible(contains);
+    QSqlDatabase db = Settings::getLocalDb();
+
+    if (!db.isValid()) {
+        qWarning() << "Could not search recent projects. Invalid database";
+        return;
     }
+
+    QString sqlQuery = R"(
+        SELECT name,path FROM recent_projects
+        WHERE name = :name
+        ORDER BY last_open DESC;
+    )";
+
+    QSqlQuery query(db);
+
+    if (!query.prepare(sqlQuery)) {
+        qWarning() << "Could not search recent projects. Query failed prepare" << query.lastError().text();
+        return;
+    }
+
+    query.bindValue(":name", text);
+
+    if (!query.exec()) {
+        qWarning() << "Could not search recent projects. Query failed with error" << query.lastError().text();
+        return;
+    }
+
+    while (query.next()) {
+        QString name = query.value("name").toString();
+        QString path = query.value("path").toString();
+
+        bool addRecentProject = QMetaObject::invokeMethod(
+            recentProjectsLayout, "addRecentProject",
+            Q_ARG(QVariant, name),
+            Q_ARG(QVariant, path)
+        );
+
+        if (!addRecentProject) {
+            qWarning() << "Could add the recent project "
+                       << name << " to the preview pane";
+        }
+    }
+
+    db.close();
 }
 
 void WelcomePane::loadRecentProjects()
 {
-    qDebug() << settings.value("appData").toString() + "/recent_projects.json";
+    QSqlDatabase db = Settings::getLocalDb();
 
-    QFile recentProjectsFile = QFile(settings.value("appData").toString() + "/recent_projects.json");
-    QList<RecentProject> recentProjects;
-
-
-    if (recentProjectsFile.exists() && recentProjectsFile.open(QFile::ReadOnly)) {
-        QJsonParseError error;
-        QJsonDocument doc = QJsonDocument::fromJson(recentProjectsFile.readAll(), &error);
-        if (error.error == QJsonParseError::NoError && doc.isArray()) {
-            QJsonArray mArray = doc.array();
-            for (const QJsonValueRef &valueRef: mArray) {
-                if (valueRef.isObject()) {
-                    QJsonObject obj = valueRef.toObject();
-                    if (obj.contains("name") && obj.contains("path") && obj.contains("last_opened")) {
-                        QString name = obj.value("name").toString();
-                        QString path = obj.value("path").toString();
-                        QDateTime lastOpened = QDateTime::fromString(obj.value("last_opened").toString(), Qt::RFC2822Date);
-                        if (QFile::exists(path)) {
-                            RecentProject rp;
-                            rp.name = name;
-                            rp.path = path;
-                            rp.lastOpened = lastOpened;
-                            recentProjects.append(rp);
-                        }
-                    }
-                }
-            }
-        }
+    if (!db.isValid()) {
+        qWarning() << "Could not load recent projects. Invalid database";
+        return;
     }
 
-    bool swapped;
-    for (int i=0; i<recentProjects.size()-1; i++) {
-        swapped = false;
-        for (int j=0; j<recentProjects.size()-i-1; j++) {
-            if (recentProjects.at(j).lastOpened < recentProjects.at(j+1).lastOpened) {
-                recentProjects.swapItemsAt(j, j+1);
-                swapped = true;
-            }
-        }
-        if (swapped == false) break;
+    QString sqlQuery = R"(
+        SELECT name,path FROM recent_projects
+        ORDER BY saved_on DESC;
+    )";
+
+    QSqlQuery query(db);
+
+    if (!query.exec(sqlQuery)) {
+        qWarning() << "Could not load recent projects. Query failed with error" << query.lastError().text();
+        return;
     }
 
-    for (const RecentProject &rp: recentProjects) {
+    while (query.next()) {
+        QString name = query.value("name").toString();
+        QString path = query.value("path").toString();
+
         bool addRecentProject = QMetaObject::invokeMethod(
             recentProjectsLayout, "addRecentProject",
-            Q_ARG(QVariant, rp.name),
-            Q_ARG(QVariant, rp.path)
+            Q_ARG(QVariant, name),
+            Q_ARG(QVariant, path)
         );
 
         if (!addRecentProject) {
-            qWarning() << "Could add the recent project " << rp.name << " to the preview pane";
+            qWarning() << "Could add the recent project "
+                       << name << " to the preview pane";
         }
     }
+
+    db.close();
 }

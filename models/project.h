@@ -8,7 +8,6 @@ struct LoadingInfo;
 
 #include <QObject>
 #include <QList>
-#include <QDomDocument>
 #include <QCoreApplication>
 #include <QDir>
 #include <QJsonDocument>
@@ -17,6 +16,9 @@ struct LoadingInfo;
 #include <QJsonObject>
 #include <QSettings>
 #include <QThread>
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlError>
 
 class Project : public QObject
 {

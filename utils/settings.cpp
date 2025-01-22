@@ -10,6 +10,7 @@ QMap<QString,QStringList> Settings::compatibleFormats = {
     {"mpeg4", {"mp4", "mkv", "avi", "mov"}},
     {"prores", {"mov", "mxf"}}
 };
+QSqlDatabase Settings::db;
 
 void Settings::setup()
 {
@@ -17,6 +18,7 @@ void Settings::setup()
     setupDefaultProjectName();
     setupBinaries();
     setupEncoders();
+    setupLocalDb();
 }
 
 QString Settings::getAppDataPath()
@@ -180,6 +182,15 @@ QStringList Settings::getAvailableEncoders(QString codec)
 QStringList Settings::getAvailableFormats(QString codec)
 {
     return compatibleFormats.value(codec);
+}
+
+QSqlDatabase Settings::getLocalDb()
+{
+    if (!db.open()) {
+        qCritical() << "Could not open local database on " + db.hostName();
+        return QSqlDatabase();
+    }
+    return db;
 }
 
 void Settings::setupAppData()
@@ -395,6 +406,44 @@ void Settings::setupEncoders()
     settings.setValue("defaultFormat", compatibleFormats.value(defaultCodec).first());
 
     settings.setValue("hardwareId", hardwareId);
+}
+
+void Settings::setupLocalDb()
+{
+    QString dbPath = getAppDataPath() + "/local.db";
+
+    if (!QSqlDatabase::drivers().contains("QSQLITE")) {
+        qWarning() << "Sqlite driver not found. Cannot use local database";
+        return;
+    }
+
+    db = QSqlDatabase::addDatabase("QSQLITE");
+
+    db.setDatabaseName(dbPath);
+    if (!db.open()) {
+        qWarning() << "Could not open local database on " + dbPath;
+        return;
+    }
+
+    QString sqlQuery;
+
+    QString createRecentProjectsTableSQL = R"(
+        CREATE TABLE IF NOT EXISTS recent_projects (
+            path TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            saved_on INTEGER NOT NULL
+        )
+    )";
+
+    sqlQuery.append(createRecentProjectsTableSQL);
+
+
+    QSqlQuery query(sqlQuery, db);
+    if (!query.exec()) {
+        qWarning() << "Could not create database initial structure" << query.lastError().text();
+    }
+
+    db.close();
 }
 
 void Settings::qexit(int code)

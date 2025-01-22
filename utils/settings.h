@@ -9,6 +9,9 @@
 #include <QProcess>
 #include <QRegularExpression>
 #include <QMap>
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlError>
 
 class Settings
 {
@@ -34,16 +37,20 @@ public:
     static QStringList getAvailableEncoders(QString codec);
     static QStringList getAvailableFormats(QString codec);
 
+    static QSqlDatabase getLocalDb();
+
 private:
     static void setupAppData();
     static void setupDefaultProjectPath();
     static void setupDefaultProjectName();
     static void setupBinaries();
     static void setupEncoders();
+    static void setupLocalDb();
 
     static void qexit(int code);
 
     static QMap<QString, QStringList> compatibleFormats;
+    static QSqlDatabase db;
 
 };
 
