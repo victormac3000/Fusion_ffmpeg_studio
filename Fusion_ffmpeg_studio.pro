@@ -1,4 +1,4 @@
-QT += core gui xml multimedia multimediawidgets quick quickwidgets quickcontrols2
+QT += core gui sql multimedia multimediawidgets quick quickwidgets quickcontrols2
 
 greaterThan(QT_MAJOR_VERSION, 5): QT += widgets
 
