@@ -2,9 +2,8 @@
 #include "models/project.h"
 
 Worker::Worker(QObject *parent, LoadingInfo loadingInfo)
-    : QObject{parent}
+    : QThread{parent}
 {
-    qDebug() << "Worker thread started";
     this->loadingInfo = loadingInfo;
     this->project = new Project();
     connect(project, SIGNAL(loadProjectUpdate(LoadingProgress)), this, SIGNAL(loadProjectUpdate(LoadingProgress)));
@@ -16,7 +15,7 @@ Worker::~Worker()
     qDebug() << "Worker thread destroyed";
 }
 
-void Worker::work()
+void Worker::run()
 {
     if (loadingInfo.type == CREATE_PROJECT_FOLDER ||
         loadingInfo.type == CREATE_PROJECT_SD) {
@@ -38,7 +37,7 @@ void Worker::createProject()
     if (project->isValid()) {
         emit loadProjectFinished(project);
     } else {
-        emit loadProjectError("Could not create the project, see the logs for more information");
+        emit loadProjectError("Could not create the project");
     }
 }
 
@@ -49,7 +48,7 @@ void Worker::loadProject()
     if (project->isValid()) {
         emit loadProjectFinished(project);
     } else {
-        emit loadProjectError("Could not load the project, see the logs for more information");
+        emit loadProjectError("Could not load the project");
     }
 }
 

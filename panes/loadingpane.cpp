@@ -54,16 +54,13 @@ LoadingPane::LoadingPane(QWidget *parent, LoadingInfo loadingInfo) :
         return;
     }
 
-    this->worker = new Worker(nullptr, loadingInfo);
-    this->workerThread = new QThread;
-    worker->moveToThread(workerThread);
+    this->workerThread = new Worker(nullptr, loadingInfo);
 
-    connect(worker, SIGNAL(loadProjectFinished(Project*)), this, SLOT(loadProjectFinished(Project*)));
-    connect(worker, SIGNAL(loadProjectError(QString)), this, SLOT(loadProjectError(QString)));
-    connect(worker, SIGNAL(loadProjectUpdate(LoadingProgress)), this, SLOT(loadProjectUpdate(LoadingProgress)));
+    connect(this->workerThread, SIGNAL(loadProjectFinished(Project*)), this, SLOT(loadProjectFinished(Project*)));
+    connect(this->workerThread, SIGNAL(loadProjectError(QString)), this, SLOT(loadProjectError(QString)));
+    connect(this->workerThread, SIGNAL(loadProjectUpdate(LoadingProgress)), this, SLOT(loadProjectUpdate(LoadingProgress)));
+
     this->workerThread->start();
-
-    QMetaObject::invokeMethod(worker, "work");
 
     initOk = true;
 }
@@ -73,7 +70,6 @@ LoadingPane::~LoadingPane()
     workerThread->quit();
     workerThread->wait();
     delete workerThread;
-    delete worker;
     delete ui;
 }
 
@@ -102,9 +98,7 @@ void LoadingPane::loadProjectFinished(Project* project)
 
 void LoadingPane::loadProjectError(QString error)
 {
-    workerThread->quit();
-    workerThread->wait();
-    Dialogs::warning("Could not load the project, see the logs for more information", "loadProjectError: " + error);
+    Dialogs::warning(error);
     emit changePane(new WelcomePane(mainWindow));
 }
 

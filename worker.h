@@ -11,15 +11,15 @@
 struct LoadingProgress;
 class Project;
 
-class Worker : public QObject
+class Worker : public QThread
 {
     Q_OBJECT
 public:
     explicit Worker(QObject *parent = nullptr, LoadingInfo loadingInfo = {});
     ~Worker();
 
-public slots:
-    void work();
+protected:
+    void run();
 
 signals:
     void loadProjectUpdate(LoadingProgress progress);

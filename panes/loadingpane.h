@@ -36,8 +36,7 @@ private slots:
 private:
     Ui::LoadingPane *ui;
     MainWindow* mainWindow;
-    Worker* worker;
-    QThread *workerThread;
+    Worker* workerThread;
     bool initOk = false;
     QQuickItem* progressBarGrid;
     QQuickItem* mainMessageTopText;
