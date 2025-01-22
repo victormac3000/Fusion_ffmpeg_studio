@@ -227,6 +227,8 @@ void WelcomePane::loadRecentProjects()
         QString name = query.value("name").toString();
         QString path = query.value("path").toString();
 
+        if (!QDir(path).exists()) return;
+
         bool addRecentProject = QMetaObject::invokeMethod(
             recentProjectsLayout, "addRecentProject",
             Q_ARG(QVariant, name),
