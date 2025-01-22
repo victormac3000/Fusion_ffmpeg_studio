@@ -21,8 +21,7 @@ WelcomePane::WelcomePane(QWidget *parent) :
         return;
     }
 
-    mainWindow->setWindowTitle("Welcome to Fusion FFmpeg Studio");
-    //mainWindow->getMenuBar()->clear();
+    mainWindow->setWindowTitle("Welcome to " + QCoreApplication::applicationName());
 
     QQuickItem* rootObject = ui->qmlWidget->rootObject();
 
@@ -45,12 +44,10 @@ WelcomePane::WelcomePane(QWidget *parent) :
         return;
     }
 
-
     appTitleLabel->setProperty("text", QCoreApplication::applicationName());
     appVersionLabel->setProperty("text", QCoreApplication::applicationVersion());
 
     this->loadRecentProjects();
-
 
     // Buttons connections
     connect(loadProjectButton, SIGNAL(clicked()), this, SLOT(openProjectButtonClicked()));
@@ -75,7 +72,9 @@ bool WelcomePane::getInit()
 void WelcomePane::openProjectButtonClicked()
 {
     QString proposedProjectFile = QFileDialog::getOpenFileName(
-        this, tr("Select the project file"), "/Users/victor/Documents/Untitled/project.json", tr("Fusion FFmpeg studio project (*.ffs)")
+        this, tr("Select the project file"),
+        "/Users/victor/Documents/Untitled/project.json",
+        tr("Fusion FFmpeg studio project (*.ffs)")
     );
     if (proposedProjectFile.isEmpty()) return;
 
@@ -98,7 +97,7 @@ void WelcomePane::newProjectButtonClicked()
     if (creator->getInit()) {
         emit changePane(creator);
     } else {
-        Dialogs::warning("Could not load menu");
+        Dialogs::warning("Could not load the next menu");
     }
 }
 
@@ -109,6 +108,7 @@ void WelcomePane::recentProjectClicked(QVariant rectangle)
         qWarning() << "Could not cast the recent project clicked to a QObject";
         return;
     }
+
     QString projectPath = object->property("path").toString();
     if (projectPath.isEmpty()) {
         qWarning() << "The recent project clicked path is empty";
