@@ -1,17 +1,20 @@
 #ifndef LOADING_H
 #define LOADING_H
 
-#define CREATE_PROJECT_FOLDER 0
-#define CREATE_PROJECT_SD 1
-#define LOAD_PROJECT 2
-
-#define CHECK_SOURCE_FOLDERS 0
-#define CREATE_PROJECT_DIRS 1
-#define COPY_DCIM_FOLDER 2
-#define INDEX_VIDEOS 3
-
-
 #include <QString>
+
+enum {
+    CREATE_PROJECT_FOLDER,
+    CREATE_PROJECT_SD,
+    LOAD_PROJECT
+};
+
+enum {
+    CHECK_SOURCE_FOLDERS,
+    CREATE_PROJECT_DIRS,
+    COPY_DCIM_FOLDER,
+    INDEX_VIDEOS
+};
 
 struct LoadingInfo {
     int type = -1;
