@@ -21,11 +21,10 @@ enum FusionFormats {
 
 #include "fformat.h"
 
-class FFormats : public QObject
+class FFormats
 {
-    Q_OBJECT
 public:
-    static FFormat* get(QFile *media, int type);
+    static FFormat get(QFile *media, int type);
     static FFormat getByName(QString name);
 
 signals:

@@ -43,8 +43,6 @@ public:
     void setDualFisheyeLow(QFile *dualFisheyeLow);
     QFile *getDualFisheyeLow();
 
-    void setFormat(FFormat format);
-
     bool isDualFisheyeValid();
     bool isDualFisheyeLowValid();
 
@@ -73,7 +71,7 @@ private:
     QFile *equirectangular = nullptr;
     QFile *equirectangularLow = nullptr;
 
-    FFormat format;
+    FFormat format{};
     float fps;
     QSize resolution;
     QTime length;
