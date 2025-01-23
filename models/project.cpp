@@ -457,8 +457,8 @@ void Project::create(LoadingInfo loadingInfo)
             return;
         }
         if (!QFileInfo(loadingInfo.dcimBackPath).isReadable()) {
-            emit loadProjectError("Could not read the front folder of the SD card");
-            qWarning() << "front folder of sd card invalid, not readable" << loadingInfo.dcimBackPath
+            emit loadProjectError("Could not read the back folder of the SD card");
+            qWarning() << "back folder of sd card invalid, not readable" << loadingInfo.dcimBackPath
                        << "The permissions on the back folder are " << QFileInfo(loadingInfo.dcimBackPath).permissions();
             return;
         }
