@@ -11,14 +11,14 @@
 struct LoadingProgress;
 class Project;
 
-class Worker : public QThread
+class Worker : public QObject
 {
     Q_OBJECT
 public:
     explicit Worker(QObject *parent = nullptr, LoadingInfo loadingInfo = {});
     ~Worker();
 
-protected:
+public slots:
     void run();
 
 signals:

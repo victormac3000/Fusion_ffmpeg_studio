@@ -54,7 +54,7 @@ private:
     QString path;
     QString rootPath;
     QString version;
-    QFile *file;
+    QFile* file;
     QList<FVideo*> videos;
     QDateTime lastSaved;
     QDir front, back;
@@ -67,7 +67,6 @@ private:
     void indexSegmentComplete();
     void indexVideoComplete();
     bool copy(QString src, QString dst);
-
 
 };
 

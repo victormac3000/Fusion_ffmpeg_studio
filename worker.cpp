@@ -2,7 +2,7 @@
 #include "models/project.h"
 
 Worker::Worker(QObject *parent, LoadingInfo loadingInfo)
-    : QThread{parent}
+    : QObject{parent}
 {
     this->loadingInfo = loadingInfo;
     this->project = new Project();

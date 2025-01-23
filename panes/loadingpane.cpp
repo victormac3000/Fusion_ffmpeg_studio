@@ -54,22 +54,26 @@ LoadingPane::LoadingPane(QWidget *parent, LoadingInfo loadingInfo) :
         return;
     }
 
-    this->workerThread = new Worker(nullptr, loadingInfo);
+    this->workerThread = new QThread();
+    this->worker = new Worker(nullptr, loadingInfo);
+    this->worker->moveToThread(workerThread);
 
-    connect(this->workerThread, SIGNAL(loadProjectFinished(Project*)), this, SLOT(loadProjectFinished(Project*)));
-    connect(this->workerThread, SIGNAL(loadProjectError(QString)), this, SLOT(loadProjectError(QString)));
-    connect(this->workerThread, SIGNAL(loadProjectUpdate(LoadingProgress)), this, SLOT(loadProjectUpdate(LoadingProgress)));
+    connect(this->worker, SIGNAL(loadProjectFinished(Project*)), this, SLOT(loadProjectFinished(Project*)));
+    connect(this->worker, SIGNAL(loadProjectError(QString)), this, SLOT(loadProjectError(QString)));
+    connect(this->worker, SIGNAL(loadProjectUpdate(LoadingProgress)), this, SLOT(loadProjectUpdate(LoadingProgress)));
+
+    connect(workerThread, &QThread::finished, worker, &QObject::deleteLater);
+    connect(workerThread, &QThread::finished, workerThread, &QObject::deleteLater);
 
     this->workerThread->start();
+
+    QMetaObject::invokeMethod(worker, "run");
 
     initOk = true;
 }
 
 LoadingPane::~LoadingPane()
 {
-    workerThread->quit();
-    workerThread->wait();
-    delete workerThread;
     delete ui;
 }
 
