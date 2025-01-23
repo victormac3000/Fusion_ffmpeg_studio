@@ -22,8 +22,10 @@ class FVideo : public QObject
 {
     Q_OBJECT
 public:
-    explicit FVideo(int id = -1);
+    explicit FVideo(QObject* parent = nullptr, int id = -1);
     ~FVideo();
+
+    void moveToNewThread(QThread* newThread);
 
     bool addSegment(FSegment *segment, VerifyMode verifyMode = FULL);
     bool verify();

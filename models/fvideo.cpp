@@ -1,8 +1,8 @@
 #include "fvideo.h"
 #include "utils/mediainfo.h"
 
-FVideo::FVideo(int id)
-    : QObject{nullptr}
+FVideo::FVideo(QObject* parent, int id)
+    : QObject{parent}
 {
     this->id = id;
 }
@@ -15,6 +15,17 @@ FVideo::~FVideo()
     delete dualFisheyeLow;
     delete equirectangular;
     delete equirectangularLow;
+}
+
+void FVideo::moveToNewThread(QThread *newThread)
+{
+    this->moveToThread(newThread);
+
+    for (FSegment* segment : segments) {
+        if (segment) {
+            segment->moveToThread(newThread);
+        }
+    }
 }
 
 bool FVideo::addSegment(FSegment *segment, VerifyMode verifyMode)
