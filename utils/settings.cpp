@@ -437,7 +437,6 @@ void Settings::setupLocalDb()
 
     sqlQuery.append(createRecentProjectsTableSQL);
 
-
     QSqlQuery query(sqlQuery, db);
     if (!query.exec()) {
         qWarning() << "Could not create database initial structure" << query.lastError().text();
