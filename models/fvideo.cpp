@@ -11,6 +11,8 @@ FVideo::~FVideo()
 {
     qDeleteAll(segments);
     segments.clear();
+    delete frontThumbnail;
+    delete backThumbnail;
     delete dualFisheye;
     delete dualFisheyeLow;
     delete equirectangular;
@@ -28,7 +30,7 @@ void FVideo::moveToNewThread(QThread *newThread)
     }
 }
 
-bool FVideo::addSegment(FSegment *segment, VerifyMode verifyMode)
+bool FVideo::addSegment(FSegment* segment, VerifyMode verifyMode)
 {
     if (segment == nullptr) return false;
     if (!segment->verify(verifyMode)) return false;
@@ -120,14 +122,46 @@ QTime FVideo::getLength()
     return totalLength.addMSecs(totalMs);
 }
 
-void FVideo::setFrontThumbnail(QFile *thumbnail)
+bool FVideo::setFrontThumbnail(QString thumbnailPath)
 {
-    this->frontThumbnail = thumbnail;
+    QFile* proposedThumbnail = new QFile(thumbnailPath);
+
+    if (!proposedThumbnail->exists()) {
+        qWarning() << "Tried to set a front thumbnail for video"
+                   << getIdString() << "which path does not exist in"
+                   << thumbnailPath;
+        return false;
+    }
+
+    if (!MediaInfo::isImage(proposedThumbnail)) {
+        qWarning() << "Tried to set a front thumbnail for video"
+                   << getIdString() << "that is not an image";
+        return false;
+    }
+
+    this->frontThumbnail = proposedThumbnail;
+    return true;
 }
 
-void FVideo::setBackThumbnail(QFile *thumbnail)
+bool FVideo::setBackThumbnail(QString thumbnailPath)
 {
-    this->backThumbnail = thumbnail;
+    QFile* proposedThumbnail = new QFile(thumbnailPath);
+
+    if (!proposedThumbnail->exists()) {
+        qWarning() << "Tried to set a back thumbnail for video"
+                   << getIdString() << "which path does not exist in"
+                   << thumbnailPath;
+        return false;
+    }
+
+    if (!MediaInfo::isImage(proposedThumbnail)) {
+        qWarning() << "Tried to set a back thumbnail for video"
+                   << getIdString() << "that is not an image";
+        return false;
+    }
+
+    this->backThumbnail = proposedThumbnail;
+    return true;
 }
 
 void FVideo::setDualFisheye(QFile *dualFisheye)

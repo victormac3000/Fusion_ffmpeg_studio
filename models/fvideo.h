@@ -27,7 +27,7 @@ public:
 
     void moveToNewThread(QThread* newThread);
 
-    bool addSegment(FSegment *segment, VerifyMode verifyMode = FULL);
+    bool addSegment(FSegment* segment, VerifyMode verifyMode = FULL);
     bool verify();
     int getId();
     QDateTime getDate();
@@ -39,10 +39,10 @@ public:
     FFormat getFormat();
     QTime getLength();
 
-    void setFrontThumbnail(QFile *thumnail);
+    bool setFrontThumbnail(QString thumbnailPath);
     QFile *getFrontThumbnail();
 
-    void setBackThumbnail(QFile *thumnail);
+    bool setBackThumbnail(QString thumbnailPath);
     QFile *getBackThumbnail();
 
     void setDualFisheye(QFile *dualFisheye);
