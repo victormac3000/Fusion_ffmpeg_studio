@@ -30,14 +30,10 @@ private slots:
 
 private:
     LoadingInfo loadingInfo;
-    int doneSegments = 0;
-    int totalSegments = 0;
     Project* project = nullptr;
 
     void createProject();
     void loadProject();
-
-    void segmentComplete();
 
 };
 

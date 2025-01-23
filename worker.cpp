@@ -17,17 +17,19 @@ Worker::~Worker()
 
 void Worker::run()
 {
-    if (loadingInfo.type == CREATE_PROJECT_FOLDER ||
-        loadingInfo.type == CREATE_PROJECT_SD) {
-        createProject();
-        return;
+    switch (loadingInfo.type)
+    {
+        case CREATE_PROJECT_FOLDER:
+        case CREATE_PROJECT_SD:
+            createProject();
+            break;
+        case LOAD_PROJECT:
+            loadProject();
+            break;
+        default:
+            qWarning() << "Worker LoadingInfo got an unknown type:" << loadingInfo.type;
+            emit loadProjectError("General error with the loader");
     }
-    if (loadingInfo.type == LOAD_PROJECT) {
-        loadProject();
-        return;
-    }
-    qWarning() << "Worker LoadingInfo got an unknown type:" << loadingInfo.type;
-    emit loadProjectError("General error with the loader");
 }
 
 void Worker::createProject()
@@ -50,9 +52,4 @@ void Worker::loadProject()
     } else {
         emit loadProjectError("Could not load the project");
     }
-}
-
-void Worker::segmentComplete()
-{
-
 }
