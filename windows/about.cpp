@@ -81,8 +81,8 @@ void About::ffmpegVersionDone(int exitCode, QProcess::ExitStatus exitStatus)
     QString consoleOut = ffmpegProc.readAllStandardOutput();
     QString consoleErrorOut = ffmpegProc.readAllStandardError();
 
-    static const QRegularExpression regex("ffmpeg version (\\d+\\.\\d+\\.\\d+)");
-    QRegularExpressionMatch match = regex.match(consoleOut); // Match against consoleOut
+    static const QRegularExpression regex("^ffmpeg version ([A-Za-z0-9\\-]+)");
+    QRegularExpressionMatch match = regex.match(consoleOut);
 
     if (!match.hasMatch()) {
         qWarning() << "FFmpeg process out could not find version"
@@ -90,7 +90,7 @@ void About::ffmpegVersionDone(int exitCode, QProcess::ExitStatus exitStatus)
         return;
     }
 
-    QString version = match.captured(1);  // Captured group 1 contains the version
+    QString version = match.captured(1);
     librariesInfoGrid->setProperty("ffmpegVersion", version);
 }
 
@@ -109,8 +109,8 @@ void About::ffprobeVersionDone(int exitCode, QProcess::ExitStatus exitStatus)
     QString consoleOut = ffprobeProc.readAllStandardOutput();
     QString consoleErrorOut = ffprobeProc.readAllStandardError();
 
-    static const QRegularExpression regex("ffprobe version (\\d+\\.\\d+\\.\\d+)");
-    QRegularExpressionMatch match = regex.match(consoleOut); // Match against consoleOut
+    static const QRegularExpression regex("^ffprobe version ([A-Za-z0-9\\-]+)");
+    QRegularExpressionMatch match = regex.match(consoleOut);
 
     if (!match.hasMatch()) {
         qWarning() << "FFprobe process out could not find version"
@@ -118,7 +118,7 @@ void About::ffprobeVersionDone(int exitCode, QProcess::ExitStatus exitStatus)
         return;
     }
 
-    QString version = match.captured(1);  // Captured group 1 contains the version
+    QString version = match.captured(1);
     librariesInfoGrid->setProperty("ffprobeVersion", version);
 }
 
