@@ -11,6 +11,7 @@
 int main(int argc, char *argv[])
 {
     QGuiApplication a(argc, argv);
+
     QQuickStyle::setStyle("Imagine");
 
     a.setApplicationVersion("0.0.1");
@@ -50,8 +51,7 @@ int main(int argc, char *argv[])
 
             if (!obj)
                 QCoreApplication::exit(-1);
-        },
-        Qt::DirectConnection
+        }
     );
 
     engine.load(url);
