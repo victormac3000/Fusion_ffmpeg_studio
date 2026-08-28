@@ -37,8 +37,6 @@ public:
     static QStringList getAvailableEncoders(QString codec);
     static QStringList getAvailableFormats(QString codec);
 
-    static QSqlDatabase getLocalDb();
-
 private:
     static void setupAppData();
     static void setupDefaultProjectPath();
@@ -50,7 +48,6 @@ private:
     static void qexit(int code);
 
     static QMap<QString, QStringList> compatibleFormats;
-    static QSqlDatabase db;
 
 };
 

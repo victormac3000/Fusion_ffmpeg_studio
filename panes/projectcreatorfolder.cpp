@@ -98,7 +98,7 @@ void ProjectCreatorFolder::projectNameChanged()
 void ProjectCreatorFolder::browseProjectLocationClicked()
 {
     QString proposedProjectFolder = QFileDialog::getExistingDirectory(
-        this, tr("Select the project directory"), "/Users/victor/Documents", QFileDialog::ShowDirsOnly
+        this, tr("Select the project directory"), "/Users/victor", QFileDialog::ShowDirsOnly
     );
 
     if (proposedProjectFolder.isEmpty()) return;
@@ -117,7 +117,7 @@ void ProjectCreatorFolder::browseProjectLocationClicked()
 void ProjectCreatorFolder::browseDCIMFolderClicked()
 {
     QString proposedDCIMFolder = QFileDialog::getExistingDirectory(
-        this, tr("Select the DCIM directory"), "/Volumes/MAQUINAS/Archivos/Test Fusion/DCIM", QFileDialog::ShowDirsOnly
+        this, tr("Select the DCIM directory"), "/Users/victor", QFileDialog::ShowDirsOnly
     );
 
     if (proposedDCIMFolder.isEmpty()) return;

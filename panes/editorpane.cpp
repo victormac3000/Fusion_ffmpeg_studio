@@ -7,6 +7,7 @@
 #include "utils/dialogs.h"
 #include "utils/ffmpeg.h"
 #include "utils/renderer.h"
+#include <QElapsedTimer>
 
 EditorPane::EditorPane(QWidget* parent, Project* project) :
     QWidget(parent),

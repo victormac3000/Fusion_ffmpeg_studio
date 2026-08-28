@@ -5,6 +5,7 @@ import QtQuick.Layouts
 Rectangle {
     width: 800
     height: 600
+    anchors.fill: parent
 
     ColumnLayout {
         anchors.fill: parent
@@ -22,7 +23,7 @@ Rectangle {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     Layout.maximumWidth: 60
-                    source: "Images/AppIcon.png"
+                    source: "../Images/AppIcon.png"
                 }
 
                 ColumnLayout {
@@ -96,7 +97,8 @@ Rectangle {
                 placeholderTextColor: "grey"
 
                 onTextChanged: {
-                    recentProjectsLayout.filter(text)
+                    console.log("Text changed: " + text)
+                    //recentProjectsLayout.filter(text)
                 }
             }
 
@@ -131,13 +133,13 @@ Rectangle {
                             id: recentProjectsLayout
                             objectName: "recentProjectsLayout"
                             width: parent.width
-
+                            /*
                             Component.onCompleted: {
-/*
-                                for (var i = 0; i < 10; i++) {
-                                    addRecentProject("Project " + (i + 1), "/test/x" + i + ".ffs")
-                                }
-*/
+
+                                //for (var i = 0; i < 10; i++) {
+                                //    addRecentProject("Project " + (i + 1), "/test/x" + i + ".ffs")
+                                //}
+
                                 if (recentProjectsLayout.children.length < 1) {
                                     borderRectangle.color = "lightgrey"
                                 } else {
@@ -168,7 +170,7 @@ Rectangle {
                                     console.error("Failed to load RecentProject.qml:", recentProjectComponent.errorString())
                                 }
                             }
-
+                            */
                             signal recentProjectClicked(var recentProject)
                         }
 
@@ -199,6 +201,7 @@ Rectangle {
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignLeft
                 text: "About"
+                onClicked: mainController.onAboutClicked()
             }
 
             MyButton {
@@ -207,6 +210,7 @@ Rectangle {
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignLeft
                 text: "Settings"
+                onClicked: mainController.onSettingsClicked()
             }
 
 

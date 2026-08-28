@@ -1,0 +1,29 @@
+{
+    "configGeneratorVersion": "1.6.1",
+    "main_cpp_file": "main.cpp",
+    "main_qml_file": "Resources/Qml/Main.qml",
+    "project_file": "/Users/victor/Cpp/Fusion_ffmpeg_studio/CMakeLists.txt",
+    "project_name": "Fusion_ffmpeg_studio",
+    "qml_module_paths": [
+        "Resources/Qml",
+        {
+            "compiler": "macos",
+            "path": "Resources",
+            "qrc_path": "Resources/Resources.qrc",
+            "qt_version": "6.11.1",
+            "resource_prefix": "/",
+            "target_path": "."
+        },
+        {
+            "compiler": "macos",
+            "path": "Resources",
+            "qrc_path": "Resources/Resources.qrc",
+            "qt_version": "6.11.1",
+            "resource_prefix": "/qml",
+            "target_path": "qml/"
+        }
+    ],
+    "qml_plugin_paths": [
+    ],
+    "use_local_plugins": false
+}

@@ -3,72 +3,60 @@ import QtQuick.Controls 2.15
 
 Button {
     id: root
+
     property color disabledColor: "#000eb2"
     property color backgroundDefaultColor: "#4E5BF2"
+    property color backgroundHoverColor: "#6571F5"
     property color backgroundPressedColor: Qt.darker(backgroundDefaultColor, 1.2)
     property color contentItemTextColor: "white"
 
+    property int cornerRadius: 3
+    property int textPixelSize: 20
+
     text: "Button"
 
-    MouseArea {
-        anchors.fill: parent
-        hoverEnabled: true
+    hoverEnabled: true
 
-        onEntered: {
-            if (parent.enabled) {
-                parent.background.color = backgroundPressedColor
-            }
-        }
+    contentItem: Text {
+        id: buttonText
 
-        onExited: {
-            if (parent.enabled) {
-                parent.background.color = backgroundDefaultColor
-            }
-        }
+        text: root.text
+        color: root.contentItemTextColor
 
-        onClicked: {
-            root.clicked()
-        }
-    }
+        font.family: "Arial"
+        font.weight: Font.Thin
+        font.pixelSize: root.textPixelSize
 
-    contentItem: Item {
-        width: parent.width
-        height: parent.height
-        anchors.centerIn: parent
+        horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignVCenter
 
-        Text {
-            id: buttonText
-            text: root.text
-            color: root.contentItemTextColor
-            font.family: "Arial"
-            font.weight: Font.Thin
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
-            elide: Text.ElideRight
-            anchors.centerIn: parent
-            wrapMode: Text.Wrap
+        elide: Text.ElideRight
+        wrapMode: Text.Wrap
 
-            // Adjust font size to fit within the button
-            font.pixelSize: Math.min(parent.width, parent.height) * 0.5
-            // Ensure font size is not less than a minimum value
-            minimumPixelSize: 10
-        }
+        // Don't use anchors.fill here.
+        // Let the Button manage the content item's size.
     }
 
     background: Rectangle {
-        width: 83
-        height: 37
-        color: {
-            if (!root.enabled) {
-                return root.disabledColor
-            }
-            return root.down ? root.backgroundPressedColor : root.backgroundDefaultColor
-        }
-        radius: 3
+        radius: root.cornerRadius
 
-        Rectangle {
-            anchors.fill: parent
-            color: "transparent"
+        color: {
+            if (!root.enabled)
+                return root.disabledColor
+
+            if (root.down)
+                return root.backgroundPressedColor
+
+            if (root.hovered)
+                return root.backgroundHoverColor
+
+            return root.backgroundDefaultColor
+        }
+
+        Behavior on color {
+            ColorAnimation {
+                duration: 100
+            }
         }
     }
 }

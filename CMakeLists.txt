@@ -111,6 +111,8 @@ qt_add_executable(FusionFFmpegStudio
     ${HEADERS}
     ${FORMS}
     ${RESOURCES}
+    utils/maincontroller.h utils/maincontroller.cpp
+
 )
 
 target_include_directories(FusionFFmpegStudio PRIVATE

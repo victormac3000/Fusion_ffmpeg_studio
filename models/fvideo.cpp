@@ -40,8 +40,15 @@ bool FVideo::addSegment(FSegment* segment, VerifyMode verifyMode)
 
 bool FVideo::verify()
 {
+    if (this->segments.empty()) {
+        qDebug() << "Verifying video " << getIdString()
+                 << "failed. No segments found";
+        return false;
+    }
     for (FSegment *segment: this->segments) {
-        qDebug() << "Verifying segment " << getIdString() + segment->getIdString();
+        qDebug() << "Verifying video " << getIdString()
+                 << "failed. Segment " << segment->getIdString()
+                 << " invalid";
         if (!segment->verify()) return false;
     }
     return true;

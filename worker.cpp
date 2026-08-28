@@ -17,7 +17,6 @@ void Worker::run()
     this->project = new Project();
 
     connect(project, SIGNAL(loadProjectUpdate(LoadingProgress)), this, SIGNAL(loadProjectUpdate(LoadingProgress)));
-    connect(project, SIGNAL(loadProjectError(QString)), this, SIGNAL(loadProjectError(QString)));
 
     switch (loadingInfo.type)
     {

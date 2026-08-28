@@ -1,5 +1,6 @@
 #include "mediainfo.h"
 #include "utils/settings.h"
+#include <QElapsedTimer>
 
 
 bool MediaInfo::isVideo(QFile *media)

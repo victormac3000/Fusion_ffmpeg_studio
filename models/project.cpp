@@ -4,6 +4,8 @@
 #include "models/fformats.h"
 #include "utils/settings.h"
 
+#include <QElapsedTimer>
+
 Project::Project(QObject *parent)
     : QObject{parent}
 {
@@ -12,13 +14,35 @@ Project::Project(QObject *parent)
 
 Project::~Project()
 {
+    qDeleteAll(videos);
+    videos.clear();
     this->save();
-    delete file;
+}
+
+void Project::moveToNewThread(QThread *newThread)
+{
+    this->moveToThread(newThread);
+
+    for (FVideo* video : videos) {
+        if (video) {
+            video->moveToThread(newThread);
+        }
+    }
 }
 
 bool Project::isValid()
 {
     return valid;
+}
+
+QStringList Project::getErrors()
+{
+    return errors;
+}
+
+QStringList Project::getWarnings()
+{
+    return warnings;
 }
 
 QDir Project::getDcim()
@@ -56,7 +80,7 @@ QList<FVideo*> Project::getVideos()
     return videos;
 }
 
-QList<QPair<int,QString>> Project::getBadVideos()
+QList<QPair<QString,QString>> Project::getBadVideos()
 {
     return badVideos;
 }
@@ -64,91 +88,122 @@ QList<QPair<int,QString>> Project::getBadVideos()
 void Project::load(LoadingInfo loadingInfo)
 {
     this->path = loadingInfo.projectPath;
-    this->file = new QFile(loadingInfo.projectPath + "/project.ffs");
+    this->rootPath = loadingInfo.rootProjectPath;
 
-    if (!file->exists()) {
-        qWarning() << "ProjectFile QFile does not exist" << file->fileName();
+    QString connectionName = "load_connection";
+
+    if (QSqlDatabase::contains(connectionName)) {
+        QSqlDatabase::removeDatabase(connectionName);
+    }
+
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", connectionName);
+    db.setDatabaseName(this->path + "/project.ffs");
+
+    if (!db.open()) {
+        qWarning() << "Could not open project: Could not open the project database on "
+                          + this->path + "/project.ffs : " + db.lastError().text();
         return;
     }
 
-    if (!file->open(QFile::ReadWrite | QFile::ExistingOnly)) {
-        qWarning() << "Could not open project file" << file->fileName();
+    QString sqlQuery = R"(
+        SELECT * FROM project_info
+    )";
+
+    QSqlQuery query(db);
+
+    if (!query.exec(sqlQuery)) {
+        qWarning() << "Could not open project: select project_info Query failed with error"
+                   << query.lastError().text();
         return;
     }
 
-    QJsonParseError jsonError;
-    QJsonDocument jsonDoc = QJsonDocument::fromJson(file->readAll(), &jsonError);
-
-    if (jsonError.error != QJsonParseError::NoError) {
-        file->close();
-        qWarning() << "Could not parse project file" << jsonError.errorString();
+    if (!query.next()) {
+        qWarning() << "Could not open project: Project info not found on database"
+                   << this->path + "/project.ffs";
         return;
     }
 
-    if (!jsonDoc.isObject()) {
-        file->close();
-        qWarning() << "The project file is not a json object";
-        return;
+    QString uuid = query.value("uuid").toString();
+    QString dcim = query.value("dcim").toString();
+    bool dcimLinked = query.value("dcimLinked").toBool();
+
+    if (uuid.isEmpty()) {
+
     }
 
-    QJsonObject mainObj = jsonDoc.object();
 
-    if (mainObj.value("info").toObject().value("dcim").toString().isEmpty() ||
-        !mainObj.value("info").toObject().contains("dcimLinked") ||
-        mainObj.value("info").toObject().value("version").toString().isEmpty()) {
-        file->close();
-        qWarning() << "Info object: one of its children (dcim, dcimLinked or version) not found or empty";
-        return;
+    this->uuid = uuid;
+    this->dcim = dcim;
+    this->dcimLinked = dcimLinked;
+
+    QList<int> savedVersionNumbers = {
+        query.value("version_major").toInt(),
+        query.value("version_mid").toInt(),
+        query.value("version_minor").toInt()
+    };
+    QList<int> versionNumbers = getVersionNumbers();
+
+    if (savedVersionNumbers.at(0) < versionNumbers.at(0) ||
+        savedVersionNumbers.at(1) < versionNumbers.at(1) ||
+        savedVersionNumbers.at(2) < versionNumbers.at(2)) {
+        QString warn("Project file has outdated version"
+                    + QString::number(savedVersionNumbers.at(0)) + "."
+                    + QString::number(savedVersionNumbers.at(1)) + "."
+                    + QString::number(savedVersionNumbers.at(2)) + " "
+                    + "compared to program version "
+                    + QCoreApplication::applicationVersion()
+                    + " The project will be updated to the latest version");
+        qWarning() << warn;
+        warnings.append(warn);
     }
 
-    if (!mainObj.value("videos").isArray()) {
-        file->close();
-        qWarning() << "Videos object is not an array";
-        return;
-    }
-
-    this->dcim = mainObj.value("info").toObject().value("dcim").toString();
-    this->dcimLinked = mainObj.value("info").toObject().value("dcimLinked").toBool();
-
-    if (!this->dcimLinked) {
-        this->dcim = this->path + "/DCIM";
-    }
-
-    // Check if the project version is compatible
-
-    this->version = mainObj.value("info").toObject().value("version").toString();
-
-    QStringList appVersionParts = QCoreApplication::applicationVersion().split(".");
-    QStringList versionParts = version.split(".");
-
-    if (appVersionParts.length() != versionParts.length()) {
-        valid = false;
-        qWarning() << "The application version parts length is not the same as the project version parts";
-        return;
-    }
-
-    bool compatibleVersion = true;
-    for (int i=0; i<versionParts.length(); i++) {
-        if (appVersionParts.at(i).toInt() < versionParts.at(i).toInt()) {
-            compatibleVersion = false;
-        }
-    }
-
-    if (!compatibleVersion) {
-        qWarning() << "The project version" << version
-                   << "is not compatible with the application version"
-                   << QCoreApplication::applicationVersion();
-        return;
+    if (savedVersionNumbers.at(0) > versionNumbers.at(0) ||
+        savedVersionNumbers.at(1) > versionNumbers.at(1) ||
+        savedVersionNumbers.at(2) > versionNumbers.at(2)) {
+        QString warn("You must update the program to at least the version"
+                     + QString::number(savedVersionNumbers.at(0)) + "."
+                     + QString::number(savedVersionNumbers.at(1)) + "."
+                     + QString::number(savedVersionNumbers.at(2)) + " "
+                     + "to open this project. The current installed program version is "
+                     + QCoreApplication::applicationVersion()
+                     + " The project will be updated to the latest version");
+        qWarning() << warn;
+        warnings.append(warn);
     }
 
     if (!QDir(path).exists("DFSegments") || !QDir(path).exists("DFLowSegments") ||
         !QDir(path).exists("DFVideos") || !QDir(path).exists("DFLowVideos") ||
         !QDir(path).exists("EVideos") || !QDir(path).exists("ELowVideos") ||
         (!dcimLinked && !QDir(path).exists("DCIM"))) {
-        file->close();
         qWarning() << "Project folder invalid, required folders not found" << path;
         return;
     }
+
+    sqlQuery = R"(
+        SELECT * FROM videos
+    )";
+
+    query = QSqlQuery(db);
+
+    if (!query.exec(sqlQuery)) {
+        qWarning() << "Could not open project: select videos Query failed with error"
+                   << query.lastError().text();
+        return;
+    }
+
+    while (query.next()) {
+        int videoId = query.value("id").toInt();
+        qint64 videoDualFisheye = query.value("dualFisheye").toLongLong();
+
+
+    }
+
+    db.close();
+
+    this->valid = true;
+    /*
+
+
 
     if (!mainObj.value("videos").isArray()) {
         qWarning() << "Videos array not found in project file";
@@ -429,6 +484,8 @@ void Project::load(LoadingInfo loadingInfo)
 
     file->close();
     this->valid = true;
+
+    */
 }
 
 void Project::create(LoadingInfo loadingInfo)
@@ -444,20 +501,17 @@ void Project::create(LoadingInfo loadingInfo)
         if (!QFileInfo(loadingInfo.dcimPath).isReadable() ||
             !QFileInfo(loadingInfo.dcimPath + "/100GFRNT").isReadable() ||
             !QFileInfo(loadingInfo.dcimPath + "/100GBACK").isReadable()) {
-            emit loadProjectError("Could not read the DCIM folder");
             qWarning() << "DCIM folder invalid, not readable" << loadingInfo.dcimPath
                        << "The permissions on the folder are " << QFileInfo(loadingInfo.dcimPath).permissions();
             return;
         }
     } else {
         if (!QFileInfo(loadingInfo.dcimFrontPath).isReadable()) {
-            emit loadProjectError("Could not read the front folder of the SD card");
             qWarning() << "front folder of sd card invalid, not readable" << loadingInfo.dcimFrontPath
                        << "The permissions on the front folder are " << QFileInfo(loadingInfo.dcimFrontPath).permissions();
             return;
         }
         if (!QFileInfo(loadingInfo.dcimBackPath).isReadable()) {
-            emit loadProjectError("Could not read the back folder of the SD card");
             qWarning() << "back folder of sd card invalid, not readable" << loadingInfo.dcimBackPath
                        << "The permissions on the back folder are " << QFileInfo(loadingInfo.dcimBackPath).permissions();
             return;
@@ -467,7 +521,6 @@ void Project::create(LoadingInfo loadingInfo)
     // Create project folder
 
     if (!QDir(loadingInfo.rootProjectPath).mkdir(loadingInfo.projectName)) {
-        emit loadProjectError("Could not create the project folder");
         qWarning() << "Could not create the project folder, mkdir failed on" << loadingInfo.rootProjectPath;
         return;
     }
@@ -484,7 +537,6 @@ void Project::create(LoadingInfo loadingInfo)
         (!projectFolder.mkdir("DFLowVideos")) ||
         (!projectFolder.mkdir("EVideos")) ||
         (!projectFolder.mkdir("ELowVideos"))) {
-        emit loadProjectError("Could not create the project subfolders");
         qWarning() << "Could not mkdir the project required folders in" << projectFolder.absolutePath();
         projectFolder.removeRecursively();
         return;
@@ -498,16 +550,87 @@ void Project::create(LoadingInfo loadingInfo)
         this->back = QDir(loadingInfo.dcimBackPath);
     }
 
+    this->uuid = QUuid::createUuid().toString();
     this->rootPath = loadingInfo.rootProjectPath;
     this->path = loadingInfo.projectPath;
-    this->file = new QFile(path + "/project.ffs");
     this->dcim = QFileInfo(this->front.absolutePath()).absolutePath();
 
+    if (!setupDatabase()) return;
     if (loadingInfo.copyDCIM && !copyDCIM()) return;
     if (!indexVideos()) return;
+    if (!this->save()) return;
 
-    this->save();
     this->valid = true;
+}
+
+bool Project::setupDatabase()
+{
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "setup_database_project");
+    db.setDatabaseName(this->path + "/project.ffs");
+
+    if (!db.open()) {
+        qWarning() << "Could not create project database on " + this->path + "/project.ffs";
+        return false;
+    }
+
+    QString sqlQuery = R"(
+        CREATE TABLE IF NOT EXISTS project_info (
+            uuid TEXT PRIMARY KEY,
+            dcim TEXT NOT NULL,
+            dcimLinked INTEGER NOT NULL,
+            version_major INTEGER NOT NULL,
+            version_mid INTEGER NOT NULL,
+            version_minor INTEGER NOT NULL
+        );
+    )";
+
+    QSqlQuery query(db);
+
+    if (!query.exec(sqlQuery)) {
+        qWarning() << "Could not create project database initial structure table project_info" << query.lastError().text();
+        return false;
+    }
+
+    sqlQuery = R"(
+        CREATE TABLE IF NOT EXISTS videos (
+            id INTEGER PRIMARY KEY,
+            dualFisheye INTEGER,
+            dualFisheyeLow INTEGER,
+            equirectangular INTEGER,
+            equirectangularLow INTEGER,
+            frontThumbnail INTEGER NOT NULL,
+            backThumbnail INTEGER NOT NULL
+        );
+    )";
+
+    if (!query.exec(sqlQuery)) {
+        qWarning() << "Could not create project database initial structure table videos" << query.lastError().text();
+        return false;
+    }
+
+    sqlQuery = R"(
+        CREATE TABLE IF NOT EXISTS segments (
+            id INTEGER PRIMARY KEY,
+            video INTEGER NOT NULL,
+            dualFisheye INTEGER,
+            dualFisheyeLow INTEGER,
+            frontMP4 INTEGER NOT NULL,
+            frontLRV INTEGER NOT NULL,
+            backMP4 INTEGER NOT NULL,
+            backLRV INTEGER NOT NULL,
+            backWAV INTEGER NOT NULL,
+            format TEXT NOT NULL,
+            FOREIGN KEY(video) REFERENCES videos(id) ON UPDATE CASCADE ON DELETE CASCADE
+        );
+    )";
+
+    if (!query.exec(sqlQuery)) {
+        qWarning() << "Could not create project database initial structure table videos" << query.lastError().text();
+        return false;
+    }
+
+    db.close();
+    return true;
 }
 
 bool Project::copyDCIM()
@@ -519,7 +642,6 @@ bool Project::copyDCIM()
 
     if (!projectDir.mkpath("DCIM/100GFRNT") ||
         !projectDir.mkpath("DCIM/100GBACK")) {
-        emit loadProjectError("Could not copy the DCIM files");
         qWarning() << "Could not create DCIM paths in the project folder";
         return false;
     }
@@ -538,12 +660,10 @@ bool Project::copyDCIM()
         QString dst = projectDir.absolutePath() + "/DCIM/100GFRNT/" + frontFileInfo.fileName();
         if (QFile::exists(dst) && !QFile::remove(dst)) {
             qWarning() << "File exists in destination and could not be removed: "<< dst;
-            emit loadProjectError("Could not copy the DCIM files");
             return false;
         }
         if (!copy(src, dst)) {
             qWarning() << "Could not copy file "<< src << " to " << dst;
-            emit loadProjectError("Could not copy the DCIM files");
             return false;
         }
         i++;
@@ -559,12 +679,10 @@ bool Project::copyDCIM()
         QString dst = projectDir.absolutePath() + "/DCIM/100GBACK/" + backFileInfo.fileName();
         if (QFile::exists(dst) && !QFile::remove(dst)) {
             qWarning() << "File exists in destination and could not be removed: "<< dst;
-            emit loadProjectError("Could not copy the DCIM files");
             return false;
         }
         if (!copy(src, dst)) {
             qWarning() << "Could not copy file "<< src << " to " << dst;
-            emit loadProjectError("Could not copy the DCIM files");
             return false;
         }
         i++;
@@ -579,16 +697,12 @@ bool Project::copyDCIM()
 
 bool Project::indexVideos()
 {
-    QList<FVideo*> videos;
-
     if (!front.exists()) {
-        emit loadProjectError("The front folder has an invalid structure");
         qWarning() << "Front folder does not exist: " << front.absolutePath();
         return false;
     }
 
     if (!back.exists()) {
-        emit loadProjectError("The back folder has an invalid structure");
         qWarning() << "Back folder does not exist: " << back.absolutePath();
         return false;
     }
@@ -625,27 +739,15 @@ bool Project::indexVideos()
             continue;
         }
 
-        FVideo *video = new FVideo(vid);
+        FVideo *video = new FVideo(this, vid);
 
-        QFile* frontThumnailFile = new QFile(front.path() + "/GPFR" + video->getIdString() + ".THM");
-        QFile* backThumnailFile = new QFile(back.path() + "/GPBK" + video->getIdString() + ".THM");
-
-        if (!frontThumnailFile->exists() || !backThumnailFile->exists()) {
-            qWarning() << "Front or back thumnails do not exist for video"
-                       << vid << frontThumnailFile->fileName()
-                       << backThumnailFile->fileName();
-            badVideos.append({vid, "Front or back thumnails do not exist"});
-            delete frontThumnailFile;
-            delete backThumnailFile;
-            delete video;
+        if (!video->setFrontThumbnail(front.path() + "/GPFR" + video->getIdString() + ".THM")) {
+            badVideos.append({video->getIdString(), "Invalid front thumbnail"});
             continue;
         }
 
-        video->setFrontThumbnail(frontThumnailFile);
-        video->setBackThumbnail(backThumnailFile);
-
-        if (!video->verify()) {
-            badVideos.append({vid, "Invalid thumnails"});
+        if (!video->setBackThumbnail(back.path() + "/GPBK" + video->getIdString() + ".THM")) {
+            badVideos.append({video->getIdString(), "Invalid back thumbnail"});
             continue;
         }
 
@@ -659,7 +761,7 @@ bool Project::indexVideos()
             new QFile(back.path() + "/GPBK" + video->getIdString() + ".WAV")
         );
         if (!video->addSegment(mainSegment)) {
-            badVideos.append({vid, "Invalid main segment"});
+            badVideos.append({video->getIdString(), "Invalid main segment"});
             continue;
         }
         indexSegmentComplete();
@@ -673,7 +775,7 @@ bool Project::indexVideos()
             int segId = QStringView(mainSecSegment.fileName()).mid(2,2).toInt(&isNumber);
             if (!isNumber) {
                 qWarning() << "Found a secondary front segment with an invalid ID: " << mainFrontSegment.absoluteFilePath();
-                badVideos.append({vid, "Secondary video segment invalid"});
+                badVideos.append({video->getIdString(), "Secondary video segment invalid"});
                 secSegmentsOk = false;
                 break;
             }
@@ -691,7 +793,7 @@ bool Project::indexVideos()
 
             if (!video->addSegment(secSegment)) {
                 qWarning() << "Found an invalid secondary segment for video " << vid;
-                badVideos.append({vid, "Secondary video segment invalid"});
+                badVideos.append({video->getIdString(), "Secondary video segment invalid"});
                 secSegmentsOk = false;
                 break;
             }
@@ -704,8 +806,6 @@ bool Project::indexVideos()
         videos.append(video);
         indexVideoComplete();
     }
-
-    this->videos = videos;
 
     return true;
 }
@@ -778,108 +878,193 @@ bool Project::copy(QString src, QString dst)
     return true;
 }
 
-void Project::save()
+QList<int> Project::getVersionNumbers()
 {
-    if (file == nullptr) {
-        qWarning() << "Project file pointer is null";
-        return;
-    }
-
-    qDebug() << "Trying to save to project file" << file->fileName();
-
-    if (file->isOpen()) file->close();
-
-    if (!file->open(QFile::ReadWrite | QFile::Truncate)) {
-        qWarning() << "Could not open project file" << file->fileName();
-        return;
-    }
-
-    QJsonDocument jsonDoc;
-    QJsonObject mainObj;
-
-    QJsonObject info;
-
-    info.insert("dcim", dcimLinked ? dcim.absolutePath() : path + "/DCIM");
-    info.insert("dcimLinked", dcimLinked);
-    info.insert("version", QCoreApplication::applicationVersion());
-
-    mainObj.insert("info", info);
-
-    QJsonArray videosArray;
-
-    for (FVideo *video: videos) {
-        videosArray.append(video->toJson());
-    }
-
-    mainObj.insert("videos", videosArray);
-
-    jsonDoc.setObject(mainObj);
-
-    qint64 written = file->write(jsonDoc.toJson(QJsonDocument::Indented));
-    if (written < 0) {
-        file->close();
-        qWarning() << "Could not save the project" << path;
-        return;
-    }
-
-    file->close();
-
-    lastSaved = QDateTime::currentDateTime();
-    addToRecent();
+    QString version = QCoreApplication::applicationVersion();
+    QStringList versionList = version.split(".");
+    return {
+        (versionList.length()>0) ? versionList.at(0).toInt() : 0,
+        (versionList.length()>1) ? versionList.at(1).toInt() : 0,
+        (versionList.length()>2) ? versionList.at(2).toInt() : 0
+    };
 }
 
-void Project::addToRecent()
+bool Project::save()
 {
-    QSqlDatabase db = Settings::getLocalDb();
+    QString connectionName = "save_connection";
 
-    if (!db.isValid()) {
-        qWarning() << "Could not add project to recent projects. Invalid database";
-        return;
+    if (QSqlDatabase::contains(connectionName)) {
+        QSqlDatabase::removeDatabase(connectionName);
+    }
+
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", connectionName);
+    db.setDatabaseName(this->path + "/project.ffs");
+
+    if (!db.open()) {
+        qWarning() << "Could not save project: Could not open the project database on "
+                          + this->path + "/project.ffs : " + db.lastError().text();
+        return false;
     }
 
     QString sqlQuery = R"(
-        SELECT COUNT(*) FROM recent_projects
-        WHERE path = :path
+        INSERT OR REPLACE INTO project_info
+            (uuid, dcim, dcimLinked, version_major, version_mid, version_minor)
+        VALUES
+            (:uuid, :dcim, :dcimLinked, :version_major, :version_mid, :version_minor);
     )";
 
     QSqlQuery query(db);
 
     if (!query.prepare(sqlQuery)) {
-        qWarning() << "Could not add project to recent projects. Count query failed to prepare" << query.lastError().text();
-        return;
+        qWarning() << "Could not save project: Query preparation failed Insert/Update project info" << query.lastError().text();
+        return false;
     }
 
-    query.bindValue(":path", this->path);
+    QList<int> versionNumbers = getVersionNumbers();
+
+    query.bindValue(":uuid", this->uuid);
+    query.bindValue(":dcim", this->dcim.absolutePath());
+    query.bindValue(":dcimLinked", this->dcimLinked);
+    query.bindValue(":version_major", versionNumbers.at(0));
+    query.bindValue(":version_mid", versionNumbers.at(1));
+    query.bindValue(":version_minor", versionNumbers.at(2));
 
     if (!query.exec()) {
-        qWarning() << "Could not add project to recent projects. Count query failed with error" << query.lastError().text();
+        qWarning() << "Could not save project: Query failed Insert/Update project info" << query.lastError().text();
+        return false;
+    }
+
+    for (FVideo *video: videos) {
+        if (!db.transaction()) {
+            qWarning() << "Could not save project: Could not open database transaction for video "
+                              + video->getIdString() + " : " + query.lastError().text();
+            return false;
+        }
+
+        sqlQuery = R"(
+            INSERT OR REPLACE INTO videos
+                (id, dualFisheye, dualFisheyeLow, equirectangular, equirectangularLow, frontThumbnail, backThumbnail)
+            VALUES
+                (:id, :dualFisheye, :dualFisheyeLow, :equirectangular, :equirectangularLow, :frontThumbnail, :backThumbnail);
+        )";
+
+        query = QSqlQuery(db);
+        if (!query.prepare(sqlQuery)) {
+            qWarning() << "Could not save project: Query preparation failed Insert/Update video "
+                        + video->getIdString() + " : " + query.lastError().text();
+            return false;
+        }
+
+        QFile* dualFisheye = video->getDualFisheye();
+        QFile* dualFisheyeLow = video->getDualFisheyeLow();
+        QFile* equirectangular = video->getEquirectangular();
+        QFile* equirectangularLow = video->getEquirectangularLow();
+        QFile* frontThumbnail = video->getFrontThumbnail();
+        QFile* backThumbnail = video->getBackThumbnail();
+
+        query.bindValue(":id", video->getId());
+        query.bindValue(":dualFisheye", (dualFisheye == nullptr) ? -1 : dualFisheye->size());
+        query.bindValue(":dualFisheyeLow", (dualFisheyeLow == nullptr) ? -1 : dualFisheyeLow->size());
+        query.bindValue(":equirectangular", (equirectangular == nullptr) ? -1 : equirectangular->size());
+        query.bindValue(":equirectangularLow", (equirectangularLow == nullptr) ? -1 : equirectangularLow->size());
+        query.bindValue(":frontThumbnail", (frontThumbnail == nullptr) ? -1 : frontThumbnail->size());
+        query.bindValue(":backThumbnail", (backThumbnail == nullptr) ? -1 : backThumbnail->size());
+
+        if (!query.exec()) {
+            qWarning() << "Could not save project: Query failed Insert/Update video "
+                              + video->getIdString() + " : " + query.lastError().text();
+            return false;
+        }
+
+
+        QList<FSegment*> segments = video->getSegments();
+        for (FSegment *segment: segments) {
+            sqlQuery = R"(
+                INSERT OR REPLACE INTO segments
+                    (id, video, dualFisheye, dualFisheyeLow, frontMP4, frontLRV, backMP4, backLRV, backWAV, format)
+                VALUES
+                    (:id, :video, :dualFisheye, :dualFisheyeLow, :frontMP4, :frontLRV, :backMP4, :backLRV, :backWAV, :format);
+            )";
+
+            query = QSqlQuery(db);
+            if (!query.prepare(sqlQuery)) {
+                qWarning() << "Could not save project: Query preparation failed Insert/Update segment "
+                                  + segment->getIdString() + " from video " + video->getIdString() + " : " + query.lastError().text();
+                return false;
+            }
+
+            QFile* dualFisheye = segment->getDualFisheye();
+            QFile* dualFisheyeLow = segment->getDualFisheyeLow();
+            QFile* frontMP4 = segment->getFrontMP4();
+            QFile* frontLRV = segment->getFrontLRV();
+            QFile* backMP4 = segment->getBackMP4();
+            QFile* backLRV = segment->getBackLRV();
+            QFile* backWAV = segment->getBackWAV();
+            QString format = segment->getFormat().name;
+
+            query.bindValue(":id", segment->getId());
+            query.bindValue(":video", video->getId());
+            query.bindValue(":dualFisheye", (dualFisheye == nullptr) ? -1 : dualFisheye->size());
+            query.bindValue(":dualFisheyeLow", (dualFisheyeLow == nullptr) ? -1 : dualFisheyeLow->size());
+            query.bindValue(":frontMP4", (frontMP4 == nullptr) ? -1 : frontMP4->size());
+            query.bindValue(":frontLRV", (frontLRV == nullptr) ? -1 : frontLRV->size());
+            query.bindValue(":backMP4", (backMP4 == nullptr) ? -1 : backMP4->size());
+            query.bindValue(":backLRV", (backLRV == nullptr) ? -1 : backLRV->size());
+            query.bindValue(":backWAV", (backWAV == nullptr) ? -1 : backWAV->size());
+            query.bindValue(":format", format);
+
+            if (!query.exec()) {
+                qWarning() << "Could not save project: Query failed Insert/Update segment "
+                                  + segment->getIdString() + " from video " + video->getIdString() + " : " + query.lastError().text();
+                return false;
+            }
+        }
+
+        if (!db.commit()) {
+            qWarning() << "Could not save project: Could not save database transaction for video "
+                              + video->getIdString() + " : " + query.lastError().text();
+            return false;
+        }
+    }
+
+    db.close();
+
+    this->lastSaved = QDateTime::currentDateTime();
+    addToRecent();
+    return true;
+}
+
+void Project::addToRecent()
+{
+    QString connectionName = "add_to_recent_projects_connection";
+
+    if (QSqlDatabase::contains(connectionName)) {
+        QSqlDatabase::removeDatabase(connectionName);
+    }
+
+    QSqlDatabase localDb = QSqlDatabase::addDatabase("QSQLITE", connectionName);
+    localDb.setDatabaseName(Settings::getAppDataPath() + "/local.db");
+
+    if (!localDb.open()) {
+        qWarning() << "Could not add project to recent projects. Could not connect to database: " + localDb.lastError().text();
         return;
     }
 
-    sqlQuery = R"(
-        UPDATE recent_projects
-        SET path = :path,
-            name = :name,
-            saved_on = :saved_on
-        WHERE path = :path;
+    QString sqlQuery = R"(
+        INSERT OR REPLACE INTO recent_projects
+            (uuid, path, name, saved_on)
+        VALUES
+            (:uuid, :path, :name, :saved_on);
     )";
 
-    if (query.size() < 1) {
-        sqlQuery = R"(
-            INSERT INTO recent_projects
-                (path, name, saved_on)
-            VALUES
-                (:path, :name, :saved_on);
-        )";
-    }
-
-    query = QSqlQuery(db);
+    QSqlQuery query(localDb);
 
     if (!query.prepare(sqlQuery)) {
         qWarning() << "Could not add project to recent projects. Insert/Update query failed to prepare" << query.lastError().text();
         return;
     }
 
+    query.bindValue(":uuid", this->uuid);
     query.bindValue(":path", this->path);
     query.bindValue(":name", QFileInfo(this->path).fileName());
     query.bindValue(":saved_on", this->lastSaved.toMSecsSinceEpoch());
@@ -889,5 +1074,5 @@ void Project::addToRecent()
         return;
     }
 
-    db.close();
+    localDb.close();
 }

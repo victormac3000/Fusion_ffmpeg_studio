@@ -86,14 +86,14 @@ void LoadingPane::loadProjectFinished(Project* project)
 {
     workerThread->quit();
     workerThread->wait();
-    QList<QPair<int,QString>> badVideos = project->getBadVideos();
+    QList<QPair<QString,QString>> badVideos = project->getBadVideos();
     if (badVideos.length() > 0) {
         QMessageBox box;
         box.setIcon(QMessageBox::Information);
         box.setWindowTitle("Error processing some videos");
         box.setText("Some videos could not be loaded:\n");
-        for (const QPair<int,QString> &badVideo: badVideos) {
-            box.setText("VIDEO " + QString::number(badVideo.first) + ": " + badVideo.second + "\n");
+        for (const QPair<QString,QString> &badVideo: badVideos) {
+            box.setText("VIDEO " + badVideo.first + ": " + badVideo.second + "\n");
         }
         box.exec();
     }

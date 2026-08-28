@@ -1,9 +1,6 @@
 <RCC>
     <qresource prefix="/">
-        <file>Images/AppIcon.png</file>
-        <file>Images/Snow.jpg</file>
-        <file>Documents/Txt/Attributions.txt</file>
-        <file>Icons/General/settings-icon.png</file>
+        <file>Qml/Main.qml</file>
         <file>Qml/EditorPane.qml</file>
         <file>Qml/QueueItem.qml</file>
         <file>Qml/VideoItem.qml</file>
@@ -15,7 +12,6 @@
         <file>Qml/RecentProject.qml</file>
         <file>Qml/WelcomePane.qml</file>
         <file>Qml/MyButton.qml</file>
-        <file>Documents/Txt/LICENSE</file>
         <file>Qml/About.qml</file>
         <file>Qml/ScrollableTextArea.qml</file>
         <file>Qml/BuildInfo.qml</file>
@@ -25,9 +21,6 @@
         <file>Qml/PreferencesRendering.qml</file>
         <file>Qml/Constants.qml</file>
         <file>Qml/MyComboBox.qml</file>
-        <file>Images/cpu_icon.png</file>
-        <file>Images/gpu_icon.png</file>
-        <file>Images/Information.png</file>
         <file>Qml/CreateProject.qml</file>
         <file>Qml/CreateProjectFolder.qml</file>
         <file>Qml/CreateProjectSd.qml</file>
@@ -35,8 +28,16 @@
         <file>Qml/MyRangeSlider.qml</file>
         <file>Qml/MySlider.qml</file>
         <file>Qml/VideoPlayerSeekerBar.qml</file>
+        <file>Images/AppIcon.png</file>
+        <file>Images/Snow.jpg</file>
+        <file>Documents/Txt/Attributions.txt</file>
+        <file>Documents/Txt/LICENSE</file>
+        <file>Icons/General/settings-icon.png</file>
+        <file>Images/cpu_icon.png</file>
+        <file>Images/gpu_icon.png</file>
+        <file>Images/Information.png</file>
     </qresource>
-    <qresource prefix="/Qml">
+    <qresource prefix="/qml">
         <file>Icons/VideoPlayer/Left.png</file>
         <file>Icons/VideoPlayer/no_video.png</file>
         <file>Icons/VideoPlayer/Pause.png</file>

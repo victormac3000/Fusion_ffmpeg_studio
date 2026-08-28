@@ -2,7 +2,12 @@
 #include "utils/dialogs.h"
 #include "utils/exitcodes.h"
 #include "utils/myqsysinfo.h"
+extern "C" {
+    #include <libavcodec/avcodec.h>
+    #include <libavutil/avutil.h>
+}
 #include <iostream>
+
 
 QMap<QString,QStringList> Settings::compatibleFormats = {
     {"h264", {"mp4", "mkv", "avi", "mov"}},
@@ -10,13 +15,12 @@ QMap<QString,QStringList> Settings::compatibleFormats = {
     {"mpeg4", {"mp4", "mkv", "avi", "mov"}},
     {"prores", {"mov", "mxf"}}
 };
-QSqlDatabase Settings::db;
 
 void Settings::setup()
 {
     setupDefaultProjectPath();
     setupDefaultProjectName();
-    setupBinaries();
+    //setupBinaries();
     setupEncoders();
     setupLocalDb();
 }
@@ -184,15 +188,6 @@ QStringList Settings::getAvailableFormats(QString codec)
     return compatibleFormats.value(codec);
 }
 
-QSqlDatabase Settings::getLocalDb()
-{
-    if (!db.open()) {
-        qCritical() << "Could not open local database on " + db.hostName();
-        return QSqlDatabase();
-    }
-    return db;
-}
-
 void Settings::setupAppData()
 {
     QSettings settings;
@@ -304,6 +299,27 @@ void Settings::setupBinaries()
 
 void Settings::setupEncoders()
 {
+    const AVCodec* codec = nullptr;
+    void *iter = nullptr;
+
+
+    while((codec = av_codec_iterate(&iter))) {
+        QString name(codec->name);
+        if (name.contains("videotoolbox")) {
+            /*
+            std::cout << (av_codec_is_decoder(codec) ? "D" : ".");
+            std::cout << (av_codec_is_encoder(codec) ? "E" : ".");
+            std::cout << ((codec->type == AVMEDIA_TYPE_VIDEO) ? "V" :
+                              (codec->type == AVMEDIA_TYPE_AUDIO) ? "A" :
+                              (codec->type == AVMEDIA_TYPE_SUBTITLE) ? "S" : ".");
+            std::cout << "  " << codec->name
+                      << " - " << (codec->long_name ? codec->long_name : "")
+                      << std::endl;
+            */
+        }
+    }
+
+    /*
     QSettings settings;
     QByteArray hardwareId = MyQSysInfo::hardwareId();
 
@@ -319,6 +335,7 @@ void Settings::setupEncoders()
             return;
         }
     }
+
 
     QProcess p;
 
@@ -406,6 +423,8 @@ void Settings::setupEncoders()
     settings.setValue("defaultFormat", compatibleFormats.value(defaultCodec).first());
 
     settings.setValue("hardwareId", hardwareId);
+
+*/
 }
 
 void Settings::setupLocalDb()
@@ -417,9 +436,9 @@ void Settings::setupLocalDb()
         return;
     }
 
-    db = QSqlDatabase::addDatabase("QSQLITE");
-
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "setup_local_db_conn");
     db.setDatabaseName(dbPath);
+
     if (!db.open()) {
         qWarning() << "Could not open local database on " + dbPath;
         return;
@@ -429,7 +448,8 @@ void Settings::setupLocalDb()
 
     QString createRecentProjectsTableSQL = R"(
         CREATE TABLE IF NOT EXISTS recent_projects (
-            path TEXT PRIMARY KEY,
+            uuid TEXT PRIMARY KEY,
+            path TEXT NOT NULL,
             name TEXT NOT NULL,
             saved_on INTEGER NOT NULL
         )

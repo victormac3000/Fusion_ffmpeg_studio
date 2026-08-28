@@ -71,17 +71,45 @@ bool WelcomePane::getInit()
 
 void WelcomePane::openProjectButtonClicked()
 {
-    QString proposedProjectFile = QFileDialog::getOpenFileName(
+    QString proposedProjectFilePath = QFileDialog::getOpenFileName(
         this, tr("Select the project file"),
-        "/Users/victor/Documents/Untitled/project.json",
-        tr("Fusion FFmpeg studio project (*.ffs)")
+        QDir::homePath(),
+        tr("Fusion FFmpeg studio project (*.ffs *.ffsbundle)")
     );
-    if (proposedProjectFile.isEmpty()) return;
+    QFile proposedProjectFile(proposedProjectFilePath);
+    if (!proposedProjectFile.exists()) {
+        qWarning() << "The project file selected does not exist: "
+                    + proposedProjectFilePath;
+    }
+    QString extension = QFileInfo(proposedProjectFile).suffix();
 
     LoadingInfo loadingInfo;
     loadingInfo.type = LOAD_PROJECT;
-    loadingInfo.projectPath = QFileInfo(proposedProjectFile).absolutePath();
-    loadingInfo.rootProjectPath = QFileInfo(loadingInfo.projectPath).absolutePath();
+
+    if (extension != "ffs" && extension != "ffsbundle") {
+        qWarning() << "The project file selected does not match the required extensions (.ffs, .ffsbundle) on "
+                    + proposedProjectFilePath;
+        Dialogs::warning("You must select a valid project file (inside the project folder)");
+        return;
+    }
+
+    if (extension == "ffs") {
+        loadingInfo.projectPath = QFileInfo(proposedProjectFile).absolutePath();
+    }
+
+    if (extension == "ffsbundle") {
+        loadingInfo.projectPath = proposedProjectFilePath;
+    }
+
+    QDir projectDir(loadingInfo.projectPath);
+    if (!projectDir.cdUp()) {
+        qWarning() << "The project file selected directory failed to cdUp: "
+                    + projectDir.absolutePath();
+        Dialogs::warning("There was an error reading the project."
+                         "Maybe try to move it to a different location");
+        return;
+    }
+    loadingInfo.rootProjectPath = projectDir.absolutePath();
 
     LoadingPane* loader = new LoadingPane(mainWindow, loadingInfo);
     if (loader->getInit()) {
@@ -109,16 +137,25 @@ void WelcomePane::recentProjectClicked(QVariant rectangle)
         return;
     }
 
-    QString projectPath = object->property("path").toString();
-    if (projectPath.isEmpty()) {
-        qWarning() << "The recent project clicked path is empty";
+    QString projectFolderPath = object->property("path").toString();
+    QDir projectFolder = projectFolderPath;
+
+    if (!projectFolder.exists()) {
+        qWarning() << "The recent project clicked folder does not exist: "
+                    + projectFolder.absolutePath();
+        return;
+    }
+
+    if (!projectFolder.cdUp()) {
+        qWarning() << "The recent project clicked folder cdUp failed: "
+                    + projectFolder.absolutePath();
         return;
     }
 
     LoadingInfo loadingInfo;
     loadingInfo.type = LOAD_PROJECT;
-    loadingInfo.projectPath = projectPath;
-    loadingInfo.rootProjectPath = QDir(projectPath).absolutePath();
+    loadingInfo.projectPath = projectFolderPath;
+    loadingInfo.rootProjectPath = projectFolder.absolutePath();
 
     LoadingPane* loader = new LoadingPane(mainWindow, loadingInfo);
     if (loader->getInit()) {
@@ -156,9 +193,16 @@ void WelcomePane::settingsButtonClicked()
 
 void WelcomePane::searchRecentProjects(QString text)
 {
-    QSqlDatabase db = Settings::getLocalDb();
+    QString connectionName = "search_recent_projects_conn";
 
-    if (!db.isValid()) {
+    if (QSqlDatabase::contains(connectionName)) {
+        QSqlDatabase::removeDatabase(connectionName);
+    }
+
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", connectionName);
+    db.setDatabaseName(Settings::getAppDataPath() + "/local.db");
+
+    if (!db.open()) {
         qWarning() << "Could not search recent projects. Invalid database";
         return;
     }
@@ -204,9 +248,16 @@ void WelcomePane::searchRecentProjects(QString text)
 
 void WelcomePane::loadRecentProjects()
 {
-    QSqlDatabase db = Settings::getLocalDb();
+    QString connectionName = "load_recent_projects_conn";
 
-    if (!db.isValid()) {
+    if (QSqlDatabase::contains(connectionName)) {
+        QSqlDatabase::removeDatabase(connectionName);
+    }
+
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", connectionName);
+    db.setDatabaseName(Settings::getAppDataPath() + "/local.db");
+
+    if (!db.open()) {
         qWarning() << "Could not load recent projects. Invalid database";
         return;
     }
