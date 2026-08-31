@@ -1,0 +1,22 @@
+<RCC>
+    <qresource prefix="/">
+        <file>icons/videoplayer/Left.png</file>
+        <file>icons/videoplayer/no_video.png</file>
+        <file>icons/videoplayer/Pause.png</file>
+        <file>icons/videoplayer/Play.png</file>
+        <file>icons/videoplayer/Right.png</file>
+        <file>icons/queue/dropdown.png</file>
+        <file>icons/queue/cross.png</file>
+        <file>icons/general/settings-icon.png</file>
+        <file>images/AppIcon.png</file>
+        <file>images/cpu_icon.png</file>
+        <file>images/folder.png</file>
+        <file>images/gpu_icon.png</file>
+        <file>images/Information.png</file>
+        <file>images/red_triangle.svg</file>
+        <file>images/sd-card.png</file>
+        <file>images/Snow.jpg</file>
+        <file>documents/txt/Attributions.txt</file>
+        <file>documents/txt/LICENSE</file>
+    </qresource>
+</RCC>

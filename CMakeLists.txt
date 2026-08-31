@@ -20,7 +20,9 @@ find_package(Qt6 6.5 REQUIRED COMPONENTS
     QuickWidgets
     QuickControls2
     WebEngineWidgets
+    Qml
 )
+qt_standard_project_setup(REQUIRES 6.5)
 
 # Find ffmpeg packages
 if(APPLE)
@@ -59,7 +61,8 @@ set(SOURCES
     panes/loadingpane.cpp
     panes/welcomepane.cpp
     windows/preferences.cpp
-    worker.cpp
+    utils/worker.cpp
+    controllers/maincontroller.cpp
 )
 
 set(HEADERS
@@ -87,7 +90,8 @@ set(HEADERS
     panes/loadingpane.h
     panes/welcomepane.h
     windows/preferences.h
-    worker.h
+    utils/worker.h
+    controllers/maincontroller.h
 )
 
 set(FORMS
@@ -102,8 +106,12 @@ set(FORMS
     windows/preferences.ui
 )
 
+set(QML_FILES
+
+)
+
 set(RESOURCES
-    Resources/Resources.qrc
+    resources/index.qrc
 )
 
 qt_add_executable(FusionFFmpegStudio
@@ -111,8 +119,19 @@ qt_add_executable(FusionFFmpegStudio
     ${HEADERS}
     ${FORMS}
     ${RESOURCES}
-    utils/maincontroller.h utils/maincontroller.cpp
+)
 
+qt_policy(SET QTP0004 NEW)
+qt_add_qml_module(FusionFFmpegStudio
+    URI FusionFFmpegStudio
+    QML_FILES
+        qml/Main.qml
+        qml/WelcomePane.qml
+        qml/components/MyButton.qml
+)
+
+set_target_properties(FusionFFmpegStudio PROPERTIES
+    OUTPUT_NAME "FusionFFmpegStudioApp"
 )
 
 target_include_directories(FusionFFmpegStudio PRIVATE
@@ -130,6 +149,7 @@ target_link_libraries(FusionFFmpegStudio PRIVATE
     Qt6::QuickWidgets
     Qt6::QuickControls2
     Qt6::WebEngineWidgets
+    Qt6::Qml
 )
 
 # Add defines (like in qmake CONFIG or DEFINES)

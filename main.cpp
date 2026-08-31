@@ -1,6 +1,6 @@
 #include "utils/logger.h"
 #include "utils/settings.h"
-#include "utils/maincontroller.h"
+#include "controllers/maincontroller.h"
 
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
@@ -36,16 +36,13 @@ int main(int argc, char *argv[])
 
     // REGISTER MODEL CLASSES
 
-    const QUrl url(QStringLiteral("qrc:/Qml/Main.qml"));
     QObject::connect(
-        &engine, &QQmlApplicationEngine::objectCreated,
+        &engine,
+        &QQmlApplicationEngine::objectCreated,
         &a,
-        [url, &tmr](QObject *obj, const QUrl &objUrl)
+        [&tmr](QObject *obj, const QUrl &url)
         {
-            if (objUrl != url)
-                return;
-
-            qDebug() << "Loading the main window log took"
+            qDebug() << "Loading the main window took"
                      << tmr.elapsed()
                      << "ms";
 
@@ -54,7 +51,7 @@ int main(int argc, char *argv[])
         }
     );
 
-    engine.load(url);
+    engine.loadFromModule("FusionFFmpegStudio", "Main");
 
     return a.exec();
 }

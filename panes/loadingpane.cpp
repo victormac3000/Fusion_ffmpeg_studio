@@ -5,7 +5,7 @@
 #include "panes/editorpane.h"
 #include "utils/dialogs.h"
 #include "models/project.h"
-#include "worker.h"
+#include "utils/worker.h"
 
 LoadingPane::LoadingPane(QWidget *parent, LoadingInfo loadingInfo) :
     QWidget(parent),
@@ -92,7 +92,7 @@ void LoadingPane::loadProjectFinished(Project* project)
         box.setIcon(QMessageBox::Information);
         box.setWindowTitle("Error processing some videos");
         box.setText("Some videos could not be loaded:\n");
-        for (const QPair<QString,QString> &badVideo: badVideos) {
+        for (const QPair<QString,QString> &badVideo: std::as_const(badVideos)) {
             box.setText("VIDEO " + badVideo.first + ": " + badVideo.second + "\n");
         }
         box.exec();
