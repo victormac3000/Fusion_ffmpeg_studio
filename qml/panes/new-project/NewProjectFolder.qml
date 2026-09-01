@@ -2,10 +2,10 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts
 
+import FusionFFmpegStudio
+
 Rectangle {
     id: root
-    width: 600
-    height: 400
     color: "lightblue"
 
     Constants {

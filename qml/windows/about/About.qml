@@ -2,11 +2,27 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 
-Rectangle {
+import FusionFFmpegStudio
+
+Window {
     id: root
     width: 600
     height: 400
+
     color: "lightblue"
+
+    property var parentWindow
+
+    maximumHeight: parentWindow.height * 0.9
+    maximumWidth: parentWindow.width * 0.9
+
+    minimumHeight: parentWindow.minimumHeight * 0.9
+    minimumWidth: parentWindow.minimumWidth * 0.9
+
+    AboutController {
+        id: controller
+        appController: mainController
+    }
 
     ColumnLayout {
         anchors.fill: parent
@@ -20,19 +36,29 @@ Rectangle {
             Image {
                 Layout.preferredWidth: 80
                 Layout.preferredHeight: 80
-                source: "Images/AppIcon.png"
+                source: "qrc:/images/AppIcon.png"
             }
 
             ColumnLayout {
                 Layout.fillWidth: true
 
-                Text {
+                RowLayout {
                     Layout.fillWidth: true
-                    font.pointSize: 20
-                    minimumPointSize: 10
-                    fontSizeMode: Text.Fit
-                    font.family: "Arial"
-                    text: "Fusion FFmpeg Studio"
+                    Text {
+                        Layout.fillWidth: true
+                        font.pointSize: 20
+                        minimumPointSize: 10
+                        fontSizeMode: Text.Fit
+                        font.family: "Arial"
+                        text: "Fusion FFmpeg Studio"
+                    }
+
+                    Button {
+                        text: "X"
+                        onClicked: {
+                            root.close()
+                        }
+                    }
                 }
 
                 Text {
@@ -89,6 +115,8 @@ Rectangle {
                 id: licenseTextArea
                 objectName: "licenseTextArea"
                 Layout.fillHeight: true
+                areaText: controller.readResourceFile(":/documents/txt/LICENSE")
+                fontPointSize: 16
             }
 
             Libraries {

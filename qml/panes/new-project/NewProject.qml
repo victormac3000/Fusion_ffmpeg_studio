@@ -2,11 +2,16 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts
 
+import FusionFFmpegStudio
+
 Rectangle {
     id: root
-    width: 600
-    height: 400
     color: "lightblue"
+
+    NewProjectController {
+        id: controller
+        appController: mainController
+    }
 
     Constants {
         id: constants
@@ -57,10 +62,9 @@ Rectangle {
                         objectName: "sdCardMouseArea"
                         anchors.fill: parent
                         hoverEnabled: true
-                        signal clickDetected()
 
                         onClicked: {
-                            clickDetected()
+                            controller.importSDClicked()
                         }
 
                         onEntered: {
@@ -73,7 +77,7 @@ Rectangle {
 
                     Image {
                         anchors.fill: parent
-                        source: "Images/sd-card.png"
+                        source: "qrc:/images/sd-card.png"
                         fillMode: Image.PreserveAspectFit
                     }
                 }
@@ -88,10 +92,9 @@ Rectangle {
                         objectName: "dcimFolderMouseArea"
                         anchors.fill: parent
                         hoverEnabled: true
-                        signal clickDetected()
 
                         onClicked: {
-                            clickDetected()
+                            controller.importDCIMFolderClicked()
                         }
 
                         onEntered: {
@@ -104,7 +107,7 @@ Rectangle {
 
                     Image {
                         anchors.fill: parent
-                        source: "Images/folder.png"
+                        source: "qrc:/images/folder.png"
                         fillMode: Image.PreserveAspectFit
 
                         Text {
@@ -133,6 +136,9 @@ Rectangle {
                 objectName: "createProjectBackButton"
                 anchors.fill: parent
                 text: qsTr("Back")
+                onClicked: {
+                    mainController.back()
+                }
             }
 
         }

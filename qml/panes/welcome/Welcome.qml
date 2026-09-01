@@ -5,9 +5,10 @@ import QtQuick.Layouts
 import FusionFFmpegStudio
 
 Rectangle {
-    width: 800
-    height: 600
-    anchors.fill: parent
+    WelcomeController {
+        id: controller
+        appController: mainController
+    }
 
     ColumnLayout {
         anchors.fill: parent
@@ -63,6 +64,7 @@ Rectangle {
                     Layout.fillWidth: true
                     Layout.alignment: Qt.AlignRight
                     text: "Load project"
+                    onClicked: controller.onLoadProjectClicked()
                 }
 
                 MyButton {
@@ -71,6 +73,7 @@ Rectangle {
                     Layout.fillWidth: true
                     Layout.alignment: Qt.AlignRight
                     text: "New project"
+                    onClicked: controller.onNewProjectClicked()
                 }
 
             }
@@ -203,7 +206,7 @@ Rectangle {
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignLeft
                 text: "About"
-                onClicked: mainController.onAboutClicked()
+                onClicked: controller.onAboutClicked()
             }
 
             MyButton {
@@ -212,7 +215,7 @@ Rectangle {
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignLeft
                 text: "Settings"
-                onClicked: mainController.onSettingsClicked()
+                onClicked: controller.onSettingsClicked()
             }
 
 

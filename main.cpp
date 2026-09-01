@@ -1,6 +1,9 @@
 #include "utils/logger.h"
 #include "utils/settings.h"
 #include "controllers/maincontroller.h"
+#include "controllers/panes/new-project/newprojectcontroller.h"
+#include "controllers/panes/welcome/welcomecontroller.h"
+#include "controllers/windows/about/aboutcontroller.h"
 
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
@@ -28,11 +31,13 @@ int main(int argc, char *argv[])
     MainController mainController;
 
     engine.rootContext()->setContextProperty(
-        QStringLiteral("mainController"),
+        "mainController",
         &mainController
     );
 
-    qmlRegisterType<MainController>("FusionFFmpegStudio", 1, 0, "MainController");
+    qmlRegisterType<NewProjectController>("FusionFFmpegStudio", 1, 0, "NewProjectController");
+    qmlRegisterType<WelcomeController>("FusionFFmpegStudio", 1, 0, "WelcomeController");
+    qmlRegisterType<AboutController>("FusionFFmpegStudio", 1, 0, "AboutController");
 
     // REGISTER MODEL CLASSES
 

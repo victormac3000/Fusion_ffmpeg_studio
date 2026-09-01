@@ -2,6 +2,8 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 
+import FusionFFmpegStudio
+
 Rectangle {
     id: root
     width: 600

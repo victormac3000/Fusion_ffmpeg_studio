@@ -63,6 +63,8 @@ set(SOURCES
     windows/preferences.cpp
     utils/worker.cpp
     controllers/maincontroller.cpp
+    controllers/panes/welcome/welcomecontroller.cpp
+    controllers/panes/new-project/newprojectcontroller.cpp
 )
 
 set(HEADERS
@@ -92,6 +94,8 @@ set(HEADERS
     windows/preferences.h
     utils/worker.h
     controllers/maincontroller.h
+    controllers/panes/welcome/welcomecontroller.h
+    controllers/panes/new-project/newprojectcontroller.h
 )
 
 set(FORMS
@@ -107,7 +111,24 @@ set(FORMS
 )
 
 set(QML_FILES
-
+    qml/components/MyButton.qml
+    qml/components/MyComboBox.qml
+    qml/components/MySlider.qml
+    qml/components/MyRangeSlider.qml
+    qml/components/Constants.qml
+    qml/components/NiceProgressBar.qml
+    qml/components/ScrollableTextArea.qml
+    qml/windows/main/Main.qml
+    qml/windows/about/About.qml
+    qml/windows/about/BuildInfo.qml
+    qml/windows/about/Libraries.qml
+    qml/windows/preferences/Preferences.qml
+    qml/windows/preferences/PreferencesGeneral.qml
+    qml/windows/preferences/PreferencesRendering.qml
+    qml/panes/welcome/Welcome.qml
+    qml/panes/new-project/NewProject.qml
+    qml/panes/new-project/NewProjectFolder.qml
+    qml/panes/new-project/NewProjectSd.qml
 )
 
 set(RESOURCES
@@ -125,9 +146,9 @@ qt_policy(SET QTP0004 NEW)
 qt_add_qml_module(FusionFFmpegStudio
     URI FusionFFmpegStudio
     QML_FILES
-        qml/Main.qml
-        qml/WelcomePane.qml
-        qml/components/MyButton.qml
+    ${QML_FILES}
+    SOURCES controllers/windows/about/aboutcontroller.h controllers/windows/about/aboutcontroller.cpp
+    SOURCES controllers/basecontroller.h controllers/basecontroller.cpp
 )
 
 set_target_properties(FusionFFmpegStudio PROPERTIES

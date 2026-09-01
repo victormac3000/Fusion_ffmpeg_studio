@@ -13,24 +13,34 @@ public:
         Welcome,
         LoadProject,
         NewProject,
-        About,
-        Settings
+        NewProjectFolder,
+        NewProjectSd
     };
     Q_ENUM(Pane)
 
+    enum class Window {
+        Main,
+        About,
+        Preferences
+    };
+    Q_ENUM(Window)
+
     explicit MainController(QObject *parent = nullptr);
 
-public slots:
-    void onLoadProjectClicked();
-    void onNewProjectClicked();
-    void onAboutClicked();
-    void onSettingsClicked();
+    Q_INVOKABLE QString paneToUrl(Pane pane) const;
+    Q_INVOKABLE QString windowToUrl(Window window) const;
+
+    void navigateToM(Pane pane);
+    void addWindowM(Window window, bool modal);
+    void backM();
 
 private:
 
 
 signals:
     void navigateTo(MainController::Pane pane);
+    void addWindow(MainController::Window window, bool modal);
+    void back();
 };
 
 #endif // MAINCONTROLLER_H
