@@ -113,22 +113,24 @@ Window {
 
             ScrollableTextArea {
                 id: licenseTextArea
-                objectName: "licenseTextArea"
                 Layout.fillHeight: true
+                Layout.fillWidth: true
                 areaText: controller.readResourceFile(":/documents/txt/LICENSE")
                 fontPointSize: 16
             }
 
             Libraries {
                 id: librariesInfoGrid
-                objectName: "librariesInfoGrid"
                 Layout.fillHeight: true
+                Layout.fillWidth: true
+                paneController: controller
             }
 
             BuildInfo {
                 id: buildInfoGrid
-                objectName: "buildInfoGrid"
                 Layout.fillHeight: true
+                Layout.fillWidth: true
+                paneController: controller
             }
         }
     }

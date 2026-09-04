@@ -3,143 +3,75 @@ import QtQuick.Controls 2.15
 import QtQuick.Layouts
 
 Rectangle {
-    property string qtVersion: "Unknown"
-    property string ffmpegVersion: "Unknown"
-    property string ffprobeVersion: "Unknown"
-
     color: "lightgrey"
+    id: root
 
-    ColumnLayout {
-        width: parent.width
-        height: parent.height
+    required property var paneController
+    readonly property var ffmpegLibs: paneController.getFFmpegVersions()
+    readonly property string qtVersion: paneController.getQtVersion()
 
-        GridLayout {
-            Layout.alignment: Qt.AlignCenter | Qt.AlignTop
-            Layout.fillHeight: true
-            Layout.fillWidth: true
-            columns: 2
+    ScrollView {
+        anchors.fill: parent
 
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                Layout.maximumHeight: 50
-                Layout.maximumWidth: 200
+        ColumnLayout {
+            id: itemsLayout
+            width: root.width
+            height: root.height
+
+            BuildItem {
                 Layout.alignment: Qt.AlignTop
-                border.width: 3
-                border.color: "green"
-
-                Text {
-                    Layout.fillWidth: true
-                    font.pointSize: 20
-                    minimumPointSize: 10
-                    fontSizeMode: Text.Fit
-                    font.family: "Arial"
-                    text: "Qt"
-                    padding: 5
-                }
+                Layout.fillWidth: true
+                name: "Qt framework"
+                value: qtVersion
             }
 
-
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                Layout.maximumHeight: 50
+            BuildItem {
                 Layout.alignment: Qt.AlignTop
-                border.width: 3
-                border.color: "green"
-
-                Text {
-                    Layout.fillWidth: true
-                    font.pointSize: 20
-                    minimumPointSize: 10
-                    fontSizeMode: Text.Fit
-                    font.family: "Arial"
-                    text: qtVersion
-                    padding: 5
-                }
-
+                Layout.fillWidth: true
+                name: "FFmpeg"
+                value: ffmpegLibs["FFmpeg"]
             }
 
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                Layout.maximumHeight: 50
+            BuildItem {
                 Layout.alignment: Qt.AlignTop
-                Layout.maximumWidth: 200
-                border.width: 3
-                border.color: "green"
-
-                Text {
-                    Layout.fillWidth: true
-                    font.pointSize: 20
-                    minimumPointSize: 10
-                    fontSizeMode: Text.Fit
-                    font.family: "Arial"
-                    text: "FFmpeg version"
-                    padding: 5
-                }
+                Layout.fillWidth: true
+                name: "FFmpeg (avcodec)"
+                value: ffmpegLibs["avcodec"]
             }
 
-
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                Layout.maximumHeight: 50
+            BuildItem {
                 Layout.alignment: Qt.AlignTop
-                border.color: "green"
-                border.width: 3
-
-                Text {
-                    Layout.fillWidth: true
-                    font.pointSize: 20
-                    minimumPointSize: 10
-                    fontSizeMode: Text.Fit
-                    font.family: "Arial"
-                    text: ffmpegVersion
-                    padding: 5
-                }
-
+                Layout.fillWidth: true
+                name: "FFmpeg (avformat)"
+                value: ffmpegLibs["avformat"]
             }
 
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                Layout.maximumHeight: 50
+            BuildItem {
                 Layout.alignment: Qt.AlignTop
-                Layout.maximumWidth: 200
-                border.width: 3
-                border.color: "green"
-
-                Text {
-                    Layout.fillWidth: true
-                    font.pointSize: 20
-                    minimumPointSize: 10
-                    fontSizeMode: Text.Fit
-                    font.family: "Arial"
-                    text: "FFprobe version"
-                    padding: 5
-                }
+                Layout.fillWidth: true
+                name: "FFmpeg (avutil)"
+                value: ffmpegLibs["avutil"]
             }
 
+            BuildItem {
+                Layout.alignment: Qt.AlignTop
+                Layout.fillWidth: true
+                name: "FFmpeg (swresample)"
+                value: ffmpegLibs["swresample"]
+            }
 
+            BuildItem {
+                Layout.alignment: Qt.AlignTop
+                Layout.fillWidth: true
+                name: "FFmpeg (swscale)"
+                value: ffmpegLibs["swscale"]
+            }
+
+            // Used for compacting the BuildItem components
             Rectangle {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                Layout.maximumHeight: 50
-                Layout.alignment: Qt.AlignTop
-                border.color: "green"
-                border.width: 3
-
-                Text {
-                    Layout.fillWidth: true
-                    font.pointSize: 20
-                    minimumPointSize: 10
-                    fontSizeMode: Text.Fit
-                    font.family: "Arial"
-                    text: ffprobeVersion
-                    padding: 5
-                }
-
+                color: "transparent"
             }
         }
     }

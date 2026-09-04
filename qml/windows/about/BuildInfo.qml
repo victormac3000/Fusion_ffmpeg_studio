@@ -3,144 +3,54 @@ import QtQuick.Controls 2.15
 import QtQuick.Layouts
 
 Rectangle {
-    property string compilationDate: "Unknown"
-    property string compilationType: "Unknown"
-    property string compilationOSName: "Unknown"
-    property string compilationOSVersion: "Unknown"
+    id: root
+
+    required property var paneController
+    readonly property var buildInfo: paneController.getBuildInfo()
 
     color: "lightgrey"
 
-    ColumnLayout {
-        width: parent.width
-        height: parent.height
+    ScrollView {
+        anchors.fill: parent
 
-        GridLayout {
-            Layout.alignment: Qt.AlignCenter | Qt.AlignTop
-            Layout.fillHeight: true
-            Layout.fillWidth: true
-            columns: 2
+        ColumnLayout {
+            id: itemsLayout
+            width: root.width
+            height: root.height
 
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                Layout.maximumHeight: 50
+            BuildItem {
                 Layout.alignment: Qt.AlignTop
-                Layout.maximumWidth: 200
-                border.width: 3
-                border.color: "green"
-
-                Text {
-                    Layout.fillWidth: true
-                    font.pointSize: 20
-                    minimumPointSize: 10
-                    fontSizeMode: Text.Fit
-                    font.family: "Arial"
-                    text: "Compilation date"
-                    padding: 5
-                }
+                Layout.fillWidth: true
+                name: "Compilation date"
+                value: buildInfo["datetime"]
             }
 
-
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                Layout.maximumHeight: 50
+            BuildItem {
                 Layout.alignment: Qt.AlignTop
-                border.color: "green"
-                border.width: 3
-
-                Text {
-                    Layout.fillWidth: true
-                    font.pointSize: 20
-                    minimumPointSize: 10
-                    fontSizeMode: Text.Fit
-                    font.family: "Arial"
-                    text: compilationDate
-                    padding: 5
-                }
-
+                Layout.fillWidth: true
+                name: "Compilation type"
+                value: buildInfo["type"]
             }
 
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                Layout.maximumHeight: 50
+            BuildItem {
                 Layout.alignment: Qt.AlignTop
-                Layout.maximumWidth: 200
-                border.width: 3
-                border.color: "green"
-
-                Text {
-                    Layout.fillWidth: true
-                    font.pointSize: 20
-                    minimumPointSize: 10
-                    fontSizeMode: Text.Fit
-                    font.family: "Arial"
-                    text: "Compilation type"
-                    padding: 5
-                }
+                Layout.fillWidth: true
+                name: "Compilation OS"
+                value: buildInfo["os"]
             }
 
-
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                Layout.maximumHeight: 50
+            BuildItem {
                 Layout.alignment: Qt.AlignTop
-                border.color: "green"
-                border.width: 3
-
-                Text {
-                    Layout.fillWidth: true
-                    font.pointSize: 20
-                    minimumPointSize: 10
-                    fontSizeMode: Text.Fit
-                    font.family: "Arial"
-                    text: compilationType
-                    padding: 5
-                }
-
+                Layout.fillWidth: true
+                name: "Compilation OS Version"
+                value: buildInfo["os_version"]
             }
 
+            // Used for compacting the BuildItem components
             Rectangle {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                Layout.maximumHeight: 50
-                Layout.alignment: Qt.AlignTop
-                Layout.maximumWidth: 200
-                border.width: 3
-                border.color: "green"
-
-                Text {
-                    Layout.fillWidth: true
-                    font.pointSize: 20
-                    minimumPointSize: 10
-                    fontSizeMode: Text.Fit
-                    font.family: "Arial"
-                    text: "Compilation OS"
-                    padding: 5
-                }
-            }
-
-
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                Layout.maximumHeight: 50
-                Layout.alignment: Qt.AlignTop
-                border.color: "green"
-                border.width: 3
-
-                Text {
-                    Layout.fillWidth: true
-                    font.pointSize: 20
-                    minimumPointSize: 10
-                    fontSizeMode: Text.Fit
-                    font.family: "Arial"
-                    text: compilationOSName + " " + compilationOSVersion
-                    padding: 5
-                }
-
+                color: "transparent"
             }
         }
     }

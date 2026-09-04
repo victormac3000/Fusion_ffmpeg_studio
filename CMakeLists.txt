@@ -149,6 +149,7 @@ qt_add_qml_module(FusionFFmpegStudio
     ${QML_FILES}
     SOURCES controllers/windows/about/aboutcontroller.h controllers/windows/about/aboutcontroller.cpp
     SOURCES controllers/basecontroller.h controllers/basecontroller.cpp
+    QML_FILES qml/windows/about/BuildItem.qml
 )
 
 set_target_properties(FusionFFmpegStudio PROPERTIES

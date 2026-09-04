@@ -2,11 +2,11 @@
 #include "models/project.h"
 #include "models/fvideo.h"
 #include "models/renderwork.h"
-#include "utils/settings.h"
 
 FFmpeg::FFmpeg(QObject *parent)
     : QObject{parent}
 {
+    /*
     this->process = new QProcess(this);
 
     connect(process, SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(processErrorOccurred(QProcess::ProcessError)));
@@ -28,15 +28,43 @@ FFmpeg::FFmpeg(QObject *parent)
     this->process->setProgram(ffmpegPath);
 
     qDebug() << "FFMpeg created";
+    */
 }
 
 FFmpeg::~FFmpeg()
 {
+    /*
     process->terminate();
     qDebug() << "FFmpeg running, waiting for finished";
     process->waitForFinished();
     delete process;
     qDebug() << "FFMpeg destroyed";
+    */
+}
+
+QMap<QString,QString> FFmpeg::getVersions()
+{
+    QMap<QString,QString> versions;
+
+    const QString ffmpegVer =  QString::fromUtf8(av_version_info());
+    const QString avutilVer = getVersionsDots(avutil_version());
+    const QString avcodecVer = getVersionsDots(avcodec_version());
+    const QString avformatVer = getVersionsDots(avformat_version());
+    //const QString avfilterVer = getVersionsDots(avfilter_version());
+    const QString swscaleVer = getVersionsDots(swscale_version());
+    const QString swresampleVer = getVersionsDots(swresample_version());
+    //const QString avdeviceVer = getVersionsDots(avdevice_version());
+
+    versions.insert("FFmpeg", ffmpegVer);
+    versions.insert("avutil", avutilVer);
+    versions.insert("avcodec", avcodecVer);
+    versions.insert("avformat", avformatVer);
+    //versions.insert("avfilter", avfilterVer);
+    versions.insert("swscale", swscaleVer);
+    versions.insert("swresample", swresampleVer);
+    //versions.insert("avdevice", avdeviceVer);
+
+    return versions;
 }
 
 void FFmpeg::render(RenderWork *work)
@@ -370,4 +398,12 @@ bool FFmpeg::renderPreviewStep3()
     }
     video->setEquirectangularLow(new QFile(outPath));
     return false;
+}
+
+QString FFmpeg::getVersionsDots(unsigned int version)
+{
+    return
+        QString::number(AV_VERSION_MAJOR(version)) + "." +
+        QString::number(AV_VERSION_MINOR(version)) + "." +
+        QString::number(AV_VERSION_MICRO(version));
 }
