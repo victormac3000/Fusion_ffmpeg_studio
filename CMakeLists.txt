@@ -55,7 +55,7 @@ set(SOURCES
     utils/myqsysinfo.cpp
     utils/renderer.cpp
     utils/settings.cpp
-    windows/about.cpp
+
     windows/mainwindow.cpp
     panes/editorpane.cpp
     panes/loadingpane.cpp
@@ -86,7 +86,7 @@ set(HEADERS
     utils/renderer.h
     utils/settings.h
     utils/myqsysinfo.h
-    windows/about.h
+
     windows/mainwindow.h
     panes/editorpane.h
     panes/loadingpane.h
@@ -102,7 +102,7 @@ set(FORMS
     panes/projectcreator.ui
     panes/projectcreatorfolder.ui
     panes/projectcreatorsd.ui
-    windows/about.ui
+
     windows/mainwindow.ui
     panes/editorpane.ui
     panes/loadingpane.ui
