@@ -11,10 +11,9 @@ public:
 
     Q_INVOKABLE QString getAppDataPath() const;
     Q_INVOKABLE QString getDefaultProjectName() const;
-    Q_INVOKABLE bool changeAppDataDir(QString proposedAppDataDir) const;
+    Q_INVOKABLE QVariantMap changeAppDataDir(QString proposedAppDataDir) const;
 
 private:
-    QString copyAppData(QString path) const;
 };
 
 #endif // PREFERENCESCONTROLLER_H

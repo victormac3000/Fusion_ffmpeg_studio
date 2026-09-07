@@ -22,16 +22,12 @@ Rectangle {
         id: browseAppDataPathDialog
         acceptLabel: "Select new appdata directory"
         onAccepted: {
-            if (!paneController.changeAppDataDir(selectedFolder)) {
-                console.log("Error changing appdata dir")
-                dialogs.error("Error changing AppData directory", undefined, cb)
+            var retVal = paneController.changeAppDataDir(selectedFolder)
+            if (!retVal["ok"]) {
+                dialogs.warning(retVal["error"])
                 return
             }
-            console.log("Changed appdata dir to " + selectedFolder)
-        }
-
-        function cb(buttonName) {
-            console.log(buttonName + " pressed")
+            dialogs.info("Successfully changed AppData directory")
         }
     }
 

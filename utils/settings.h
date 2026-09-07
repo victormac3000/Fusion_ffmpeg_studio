@@ -32,6 +32,7 @@ public:
     static void setDefaultCodec(QString defaultCodec);
     static void setDefaultEncoder(QString defaultEncoder);
     static void setDefaultFormat(QString defaultFormat);
+    static void setAppDataPath(const QString& newPath);
 
     static QStringList getAvailableCodecs();
     static QStringList getAvailableEncoders(QString codec);
@@ -44,6 +45,9 @@ private:
     static void setupBinaries();
     static void setupEncoders();
     static void setupLocalDb();
+
+    static void copyAppDataContents(const QDir& source, const QDir& destination);
+    static void clearDirectory(const QDir& dir);
 
     static void qexit(int code);
 

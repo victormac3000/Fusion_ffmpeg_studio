@@ -56,6 +56,7 @@ set(SOURCES
     utils/renderer.cpp
     utils/settings.cpp
     utils/dialogs.cpp
+    utils/copier.cpp
 
     windows/mainwindow.cpp
     panes/editorpane.cpp
@@ -88,6 +89,7 @@ set(HEADERS
     utils/settings.h
     utils/myqsysinfo.h
     utils/dialogs.h
+    utils/copier.h
 
     windows/mainwindow.h
     panes/editorpane.h
@@ -158,6 +160,9 @@ qt_add_qml_module(FusionFFmpegStudio
     QML_FILES qml/windows/about/BuildItem.qml
     SOURCES controllers/windows/preferences/preferencescontroller.h controllers/windows/preferences/preferencescontroller.cpp
     QML_FILES qml/components/dialogs/DialogButton.qml
+    SOURCES utils/exceptions/settingsexception.h
+    SOURCES  utils/copier.cpp
+    SOURCES utils/exceptions/copierexception.h
 )
 
 set_target_properties(FusionFFmpegStudio PROPERTIES

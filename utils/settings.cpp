@@ -1,12 +1,16 @@
 #include "settings.h"
 #include "utils/dialogs.h"
 #include "utils/exitcodes.h"
-#include "utils/myqsysinfo.h"
+#include "utils/copier.h"
+#include "utils/exceptions/settingsexception.h"
+#include "utils/exceptions/copierexception.h"
 extern "C" {
     #include <libavcodec/avcodec.h>
     #include <libavutil/avutil.h>
 }
 #include <iostream>
+#include <QUrl>
+#include <QDir>
 
 
 QMap<QString,QStringList> Settings::compatibleFormats = {
@@ -28,7 +32,7 @@ void Settings::setup()
 QString Settings::getAppDataPath()
 {
     QString appDataPath = QSettings().value("appData").toString();
-    if (appDataPath.isEmpty()) {
+    if (appDataPath.isEmpty() || !QFileInfo(appDataPath).isReadable()) {
         setupAppData();
     }
     return QSettings().value("appData").toString();
@@ -145,6 +149,20 @@ void Settings::setDefaultFormat(QString defaultFormat)
         return;
     }
     settings.setValue("defaultFormat", defaultFormat);
+}
+
+void Settings::setAppDataPath(const QString& newPath)
+{
+    QSettings settings;
+
+    Copier copier(true, QDir::NoDotAndDotDot | QDir::AllEntries);
+    try {
+        copier.copy(getAppDataPath(), newPath);
+    } catch (CopierException &e) {
+        throw SettingsException(e.what(), "Could not copy current AppData folder contents\n" + e.userMessage(), true);
+    }
+
+    settings.setValue("appData", copier.toLocalPath(newPath));
 }
 
 QStringList Settings::getAvailableCodecs()
