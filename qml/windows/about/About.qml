@@ -6,12 +6,13 @@ import FusionFFmpegStudio
 
 Window {
     id: root
-    width: 600
-    height: 400
 
     color: "lightblue"
 
-    property var parentWindow
+    required property var parentWindow
+
+    width: parentWindow.width * 0.9
+    height: parentWindow.height * 0.9
 
     maximumHeight: parentWindow.height * 0.9
     maximumWidth: parentWindow.width * 0.9
@@ -29,9 +30,9 @@ Window {
 
         RowLayout {
             Layout.alignment: Qt.AlignLeft | Qt.AlignTop
-            Layout.margins: 5
             Layout.fillWidth: true
             Layout.preferredHeight: 80
+            Layout.margins: 10
 
             Image {
                 Layout.preferredWidth: 80
@@ -87,7 +88,7 @@ Window {
             id: aboutTabBar
             Layout.fillWidth: true
             Layout.preferredHeight: 36
-            Layout.margins: 5
+            Layout.margins: 10
 
             TabButton {
                 Layout.fillWidth: true
@@ -108,8 +109,8 @@ Window {
         StackLayout {
             Layout.fillHeight: true
             Layout.fillWidth: true
-            Layout.margins: 5
             currentIndex: aboutTabBar.currentIndex
+            Layout.margins: 10
 
             ScrollableTextArea {
                 id: licenseTextArea

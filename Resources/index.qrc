@@ -18,5 +18,9 @@
         <file>images/Snow.jpg</file>
         <file>documents/txt/Attributions.txt</file>
         <file>documents/txt/LICENSE</file>
+        <file>icons/dialogs/critical.png</file>
+        <file>icons/dialogs/info.png</file>
+        <file>icons/dialogs/question.png</file>
+        <file>icons/dialogs/warning.png</file>
     </qresource>
 </RCC>

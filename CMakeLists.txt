@@ -48,13 +48,14 @@ set(SOURCES
     panes/projectcreator.cpp
     panes/projectcreatorfolder.cpp
     panes/projectcreatorsd.cpp
-    utils/dialogs.cpp
+
     utils/ffmpeg.cpp
     utils/logger.cpp
     utils/mediainfo.cpp
     utils/myqsysinfo.cpp
     utils/renderer.cpp
     utils/settings.cpp
+    utils/dialogs.cpp
 
     windows/mainwindow.cpp
     panes/editorpane.cpp
@@ -78,7 +79,7 @@ set(HEADERS
     panes/projectcreator.h
     panes/projectcreatorfolder.h
     panes/projectcreatorsd.h
-    utils/dialogs.h
+
     utils/exitcodes.h
     utils/ffmpeg.h
     utils/logger.h
@@ -86,6 +87,7 @@ set(HEADERS
     utils/renderer.h
     utils/settings.h
     utils/myqsysinfo.h
+    utils/dialogs.h
 
     windows/mainwindow.h
     panes/editorpane.h
@@ -118,6 +120,10 @@ set(QML_FILES
     qml/components/Constants.qml
     qml/components/NiceProgressBar.qml
     qml/components/ScrollableTextArea.qml
+    qml/components/dialogs/Dialogs.qml
+    qml/components/dialogs/DialogContent.qml
+    qml/components/dialogs/DialogFooter.qml
+    qml/components/dialogs/DialogHeader.qml
     qml/windows/main/Main.qml
     qml/windows/about/About.qml
     qml/windows/about/BuildInfo.qml
@@ -150,6 +156,8 @@ qt_add_qml_module(FusionFFmpegStudio
     SOURCES controllers/windows/about/aboutcontroller.h controllers/windows/about/aboutcontroller.cpp
     SOURCES controllers/basecontroller.h controllers/basecontroller.cpp
     QML_FILES qml/windows/about/BuildItem.qml
+    SOURCES controllers/windows/preferences/preferencescontroller.h controllers/windows/preferences/preferencescontroller.cpp
+    QML_FILES qml/components/dialogs/DialogButton.qml
 )
 
 set_target_properties(FusionFFmpegStudio PROPERTIES

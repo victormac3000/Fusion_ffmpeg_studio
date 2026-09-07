@@ -40,7 +40,6 @@ private slots:
     void openProjectButtonClicked();
     void newProjectButtonClicked();
     void recentProjectClicked(QVariant rectangle);
-    void aboutButtonClicked();
     void settingsButtonClicked();
 
 private:

@@ -1,9 +1,11 @@
 #include "utils/logger.h"
 #include "utils/settings.h"
+
 #include "controllers/maincontroller.h"
 #include "controllers/panes/new-project/newprojectcontroller.h"
 #include "controllers/panes/welcome/welcomecontroller.h"
 #include "controllers/windows/about/aboutcontroller.h"
+#include "controllers/windows/preferences/preferencescontroller.h"
 
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
@@ -38,6 +40,7 @@ int main(int argc, char *argv[])
     qmlRegisterType<NewProjectController>("FusionFFmpegStudio", 1, 0, "NewProjectController");
     qmlRegisterType<WelcomeController>("FusionFFmpegStudio", 1, 0, "WelcomeController");
     qmlRegisterType<AboutController>("FusionFFmpegStudio", 1, 0, "AboutController");
+    qmlRegisterType<PreferencesController>("FusionFFmpegStudio", 1, 0, "PreferencesController");
 
     // REGISTER MODEL CLASSES
 

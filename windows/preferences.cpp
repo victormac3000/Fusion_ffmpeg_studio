@@ -175,7 +175,7 @@ QString Preferences::copyAppData(QString path)
 
     QFileInfoList dirFiles = dir.entryInfoList(QDir::NoDotAndDotDot | QDir::AllDirs | QDir::Files);
 
-    for (const QFileInfo &dirFileInfo: dirFiles) {
+    for (const QFileInfo &dirFileInfo: std::as_const(dirFiles)) {
         QString src = dirFileInfo.absoluteFilePath();
         QString dst = newDir.absolutePath() + "/" + dirFileInfo.fileName();
         if (QFile::exists(dst)) {

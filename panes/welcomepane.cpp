@@ -1,7 +1,6 @@
 #include "welcomepane.h"
 #include "ui_welcomepane.h"
 #include "windows/preferences.h"
-#include "windows/about.h"
 #include "utils/dialogs.h"
 #include "utils/settings.h"
 #include "panes/projectcreator.h"
@@ -163,19 +162,6 @@ void WelcomePane::recentProjectClicked(QVariant rectangle)
     } else {
         Dialogs::warning("Could not load the next menu");
     }
-}
-
-void WelcomePane::aboutButtonClicked()
-{
-    About* aboutWindow = new About;
-    aboutWindow->setWindowTitle("About");
-    aboutWindow->setWindowModality(Qt::ApplicationModal);
-    if (!aboutWindow->getInit()) {
-        Dialogs::warning("Could not open About window");
-        return;
-    }
-    aboutWindow->exec();
-    delete aboutWindow;
 }
 
 void WelcomePane::settingsButtonClicked()

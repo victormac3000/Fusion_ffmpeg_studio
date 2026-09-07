@@ -4,55 +4,80 @@ import QtQuick.Controls
 
 import FusionFFmpegStudio
 
-Rectangle {
+Window {
     id: root
-    width: 600
-    height: 400
     color: "lightblue"
 
-    Constants {
-        id: constants
-        visible: false
+    required property var parentWindow
+
+    width: parentWindow.width * 0.9
+    height: parentWindow.height * 0.9
+
+    maximumHeight: parentWindow.height * 0.9
+    maximumWidth: parentWindow.width * 0.9
+
+    minimumHeight: parentWindow.minimumHeight * 0.9
+    minimumWidth: parentWindow.minimumWidth * 0.9
+
+    PreferencesController {
+        id: controller
+        appController: mainController
     }
 
     ColumnLayout {
         anchors.fill: parent
 
-        TabBar {
-            id: aboutTabBar
+        RowLayout {
+            Layout.fillHeight: true
             Layout.fillWidth: true
             Layout.preferredHeight: 36
-            Layout.margins: 5
+            Layout.maximumHeight: 36
+            Layout.margins: 10
 
-            TabButton {
+            TabBar {
+                id: aboutTabBar
                 Layout.fillWidth: true
-                text: qsTr("General")
-                //font.pointSize: font.pointSize * constants.fontSizeScale
+
+
+                TabButton {
+                    Layout.fillWidth: true
+                    text: qsTr("General")
+                }
+
+                TabButton {
+                    Layout.fillWidth: true
+                    text: qsTr("Rendering")
+                }
             }
 
-            TabButton {
-                Layout.fillWidth: true
-                text: qsTr("Rendering")
-                //font.pointSize: font.pointSize * constants.fontSizeScale
+            Button {
+                Layout.preferredWidth: 40
+                Layout.fillHeight: true
+                Layout.alignment: Qt.AlignCenter
+                text: "X"
+                onPressed: {
+                    root.close()
+                }
             }
         }
 
         StackLayout {
             Layout.fillHeight: true
             Layout.fillWidth: true
-            Layout.margins: 5
+            Layout.margins: 10
             currentIndex: aboutTabBar.currentIndex
 
             PreferencesGeneral {
                 id: preferencesGeneralArea
-                objectName: "preferencesGeneralArea"
                 Layout.fillHeight: true
+                paneController: controller
+                parentWindow: root.parentWindow
             }
 
             PreferencesRendering {
                 id: preferencesRenderingArea
-                objectName: "preferencesRenderingArea"
                 Layout.fillHeight: true
+                paneController: controller
             }
         }
     }

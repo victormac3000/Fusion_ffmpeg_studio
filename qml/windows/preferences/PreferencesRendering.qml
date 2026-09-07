@@ -5,7 +5,10 @@ import QtQuick.Layouts
 import FusionFFmpegStudio
 
 Rectangle {
+    id: root
     color: "lightgrey"
+
+    required property var paneController
 
     ColumnLayout {
         width: parent.width
@@ -28,9 +31,7 @@ Rectangle {
 
                 Text {
                     anchors.fill: parent
-                    font.pointSize: 16 * constants.fontSizeScale
                     clip: true
-                    font.family: "Arial"
                     text: "Codec"
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
@@ -54,9 +55,7 @@ Rectangle {
 
                     TextArea {
                         id: codecsDescriptionText
-                        font.pointSize: 16 * constants.fontSizeScale
                         clip: true
-                        font.family: "Arial"
                         text: ""
                         wrapMode: Text.WordWrap
                         readOnly: true
@@ -76,23 +75,12 @@ Rectangle {
                 border.width: 3
 
                 MyComboBox {
-                    signal codecChanged()
-
                     id: codecsComboBox
-                    objectName: "codecsComboBox"
                     anchors.fill: parent
                     anchors.margins: 10
-                    font.pointSize: 16 * constants.fontSizeScale
 
                     onCurrentIndexChanged: {
-                        var selectedCodec = model.get(currentIndex).text
-                        save(selectedCodec, "codec")
-                        var info = constants.codecsInfo
-                        codecsDescriptionText.text = ""
-                        if (selectedCodec in info) {
-                            codecsDescriptionText.text = info[selectedCodec]
-                        }
-                        codecChanged()
+                        // TODO
                     }
                 }
             }
@@ -108,8 +96,6 @@ Rectangle {
 
                 Text {
                     anchors.fill: parent
-                    font.pointSize: 16 * constants.fontSizeScale
-                    font.family: "Arial"
                     text: "Encoder"
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
@@ -133,8 +119,6 @@ Rectangle {
                     TextArea {
                         id: encodersDescriptionText
                         clip: true
-                        font.pointSize: 16 * constants.fontSizeScale
-                        font.family: "Arial"
                         text: ""
                         readOnly: true
                         wrapMode: Text.WordWrap
@@ -155,7 +139,7 @@ Rectangle {
 
                 Image {
                     id: acceleratorImage
-                    source: hardware ? "Images/gpu_icon.png" : "Images/cpu_icon.png"
+                    source: hardware ? "qrc:/images/gpu_icon.png" : "qrc:/images/cpu_icon.png"
                     fillMode: Image.PreserveAspectFit
                     width: parent.width
                     height: parent.height
@@ -173,26 +157,11 @@ Rectangle {
 
                 MyComboBox {
                     id: encodersComboBox
-                    objectName: "encodersComboBox"
                     anchors.fill: parent
                     anchors.margins: 10
-                    font.pointSize: 16 * constants.fontSizeScale
 
                     onCurrentIndexChanged: {
-                        if (currentIndex >= 0) {
-                            var selectedEncoder = model.get(currentIndex).text
-                            save(selectedEncoder, "encoder")
-                            var info = constants.encodersInfo
-                            encodersDescriptionText.text = ""
-                            if (selectedEncoder in info) {
-                                if ("description" in info[selectedEncoder]) {
-                                    encodersDescriptionText.text = info[selectedEncoder]["description"]
-                                }
-                                if ("hardware" in info[selectedEncoder]) {
-                                    acceleratorImage.hardware = info[selectedEncoder]["hardware"];
-                                }
-                            }
-                        }
+                        // TODO
                     }
                 }
             }
@@ -207,8 +176,6 @@ Rectangle {
 
                 Text {
                     anchors.fill: parent
-                    font.pointSize: 16 * constants.fontSizeScale
-                    font.family: "Arial"
                     text: "Format"
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
@@ -233,8 +200,6 @@ Rectangle {
                     TextArea {
                         id: formatsDescriptionText
                         clip: true
-                        font.pointSize: 16 * constants.fontSizeScale
-                        font.family: "Arial"
                         text: ""
                         readOnly: true
                         wrapMode: Text.WordWrap
@@ -255,21 +220,11 @@ Rectangle {
 
                 MyComboBox {
                     id: formatsComboBox
-                    objectName: "formatsComboBox"
                     anchors.fill: parent
                     anchors.margins: 10
-                    font.pointSize: 16 * constants.fontSizeScale
 
                     onCurrentIndexChanged: {
-                        if (currentIndex >= 0) {
-                            var selectedFormat = model.get(currentIndex).text
-                            save(selectedFormat, "format")
-                            var info = constants.formatsInfo
-                            formatsDescriptionText.text = ""
-                            if (selectedFormat in info) {
-                                formatsDescriptionText.text = info[selectedFormat]
-                            }
-                        }
+                        // TODO
                     }
                 }
             }
