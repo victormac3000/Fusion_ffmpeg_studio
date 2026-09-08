@@ -1,11 +1,13 @@
 #include "preferencescontroller.h"
-#include "utils/dialogs.h"
 #include "utils/exceptions/settingsexception.h"
 #include "utils/settings.h"
+#include "utils/copier.h"
 
 #include <QVariant>
 #include <QFileDialog>
 #include <QSettings>
+#include <QThread>
+#include <QThreadPool>
 
 PreferencesController::PreferencesController(QObject *parent)
     : BaseController{parent}
@@ -23,20 +25,35 @@ QString PreferencesController::getDefaultProjectName() const
     return Settings::getDefaultProjectName();
 }
 
-QVariantMap PreferencesController::changeAppDataDir(QString proposedAppDataDir) const
+void PreferencesController::setDefaultProjectName(QString defaultName)
 {
-    try {
-        Settings::setAppDataPath(proposedAppDataDir);
-    } catch (const SettingsException& e) {
-        return {
-            {"ok", false},
-            {"error", "Could not change the appData directory to\n"
-                    + QUrl(proposedAppDataDir).toLocalFile() + "\n"
-                    + QString::fromStdString(e.userMessage())
-            }
-        };
-    }
-    return {
-        {"ok", true}
-    };
+    Settings::setDefaultProjectName(defaultName);
+}
+
+void PreferencesController::changeAppDataDir(QString proposedAppDataDir)
+{
+    QThreadPool::globalInstance()->start([this, proposedAppDataDir]() {
+        QVariantMap ret;
+        ret.insert("ok", false);
+
+        try {
+            Settings::setAppDataPath(proposedAppDataDir);
+            QThread::sleep(5);
+            ret.insert("ok", true);
+            ret.insert("newPath", Copier::toLocalPath(proposedAppDataDir));
+        } catch (const SettingsException& e) {
+            ret.insert(
+                "error", "Could not change the appData directory to\n"
+                + Copier::toLocalPath(proposedAppDataDir) + "\n"
+                + QString::fromStdString(e.userMessage())
+            );
+        }
+
+        emit appDataPathChanged(ret);
+    });
+}
+
+void PreferencesController::resetAppDataDir()
+{
+    Settings::resetAppDataPath();
 }

@@ -12,7 +12,6 @@ Item {
         modal: true
         closePolicy: Popup.NoAutoClose
         width: 400
-        height: 200
 
         property string dialogType: "critical"
 
@@ -29,6 +28,26 @@ Item {
         footer: DialogFooter {
             dialog: rootDialog
         }
+    }
+
+    Dialog {
+        id: spinnerDialog
+        modal: true
+        closePolicy: Popup.NoAutoClose
+        height: 200
+        width: 400
+
+        anchors.centerIn: Overlay.overlay
+
+        header: null
+        footer: null
+        contentItem: DialogSpinnerContent{}
+    }
+
+    function spinner(message) {
+        spinnerDialog.contentItem.message = message
+        spinnerDialog.open()
+        return spinnerDialog
     }
 
     function create(type, message, title, callback) {

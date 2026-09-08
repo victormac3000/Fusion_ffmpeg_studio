@@ -29,13 +29,13 @@ public:
 
     Q_INVOKABLE QString paneToUrl(Pane pane) const;
     Q_INVOKABLE QString windowToUrl(Window window) const;
+    Q_INVOKABLE void stopApp();
 
     void navigateToM(Pane pane);
     void addWindowM(Window window, bool modal);
     void backM();
 
 private:
-
 
 signals:
     void navigateTo(MainController::Pane pane);

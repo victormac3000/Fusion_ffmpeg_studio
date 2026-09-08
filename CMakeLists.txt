@@ -163,6 +163,9 @@ qt_add_qml_module(FusionFFmpegStudio
     SOURCES utils/exceptions/settingsexception.h
     SOURCES  utils/copier.cpp
     SOURCES utils/exceptions/copierexception.h
+    QML_FILES qml/components/dialogs/DialogSpinnerContent.qml
+    QML_FILES qml/components/Spinner.qml
+    QML_FILES qml/components/Utils.qml
 )
 
 set_target_properties(FusionFFmpegStudio PROPERTIES

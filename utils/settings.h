@@ -18,7 +18,9 @@ class Settings
 public:
     static void setup();
 
+    static void resetAppDataPath();
     static QString getAppDataPath();
+    static QString getDefaultAppDataPath();
     static QString getDefaultProjectName();
     static QString getDefaultProjectPath();
     static QString getFFmpegPath();
@@ -33,6 +35,7 @@ public:
     static void setDefaultEncoder(QString defaultEncoder);
     static void setDefaultFormat(QString defaultFormat);
     static void setAppDataPath(const QString& newPath);
+    static void setDefaultProjectName(QString projectName);
 
     static QStringList getAvailableCodecs();
     static QStringList getAvailableEncoders(QString codec);

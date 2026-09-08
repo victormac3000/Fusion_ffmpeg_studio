@@ -15,7 +15,7 @@ public:
 
     void copy(const QString& sourcePath,
               const QString& destinationPath);
-    QString toLocalPath(const QString& path) const;
+    static QString toLocalPath(QString path);
 
 private:
     void copyDirectory(const QDir& source,

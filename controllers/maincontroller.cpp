@@ -2,6 +2,7 @@
 
 #include <QDebug>
 #include <QMetaEnum>
+#include <QGuiApplication>
 
 MainController::MainController(QObject *parent)
     : QObject{parent}
@@ -54,6 +55,11 @@ QString MainController::windowToUrl(Window window) const
 
 }
 
+void MainController::stopApp()
+{
+    QGuiApplication::exit(1);
+}
+
 void MainController::navigateToM(Pane pane)
 {
     emit navigateTo(pane);
@@ -62,4 +68,9 @@ void MainController::navigateToM(Pane pane)
 void MainController::addWindowM(Window window, bool modal)
 {
     emit addWindow(window, modal);
+}
+
+void MainController::backM()
+{
+
 }

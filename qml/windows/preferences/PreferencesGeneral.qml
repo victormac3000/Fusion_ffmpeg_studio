@@ -14,20 +14,31 @@ Rectangle {
     property string appDataPath: paneController.getAppDataPath()
     property string defaultProjectName: paneController.getDefaultProjectName()
 
+    property var spinner
+
     Dialogs {
         id: dialogs
+    }
+
+    Connections {
+        target: paneController
+
+        function onAppDataPathChanged(retVal) {
+            root.spinner.close()
+            if (!retVal["ok"]) {
+                dialogs.warning(retVal["error"], "")
+                return
+            }
+            dialogs.info("Successfully changed AppData directory")
+            appDataPath = retVal["newPath"]
+        }
     }
 
     FolderDialog {
         id: browseAppDataPathDialog
         acceptLabel: "Select new appdata directory"
         onAccepted: {
-            var retVal = paneController.changeAppDataDir(selectedFolder)
-            if (!retVal["ok"]) {
-                dialogs.warning(retVal["error"])
-                return
-            }
-            dialogs.info("Successfully changed AppData directory")
+            paneController.changeAppDataDir(selectedFolder)
         }
     }
 
@@ -101,10 +112,11 @@ Rectangle {
 
                         ScrollView {
                             Layout.fillWidth: true
+                            Layout.fillHeight: true
                             Layout.margins: 10
-                            contentHeight: parent.height
 
                             TextArea {
+                                id: appDataPathTextArea
                                 clip: true
                                 text: appDataPath
                                 wrapMode: Text.WordWrap
@@ -128,17 +140,48 @@ Rectangle {
                     ColumnLayout {
                         anchors.fill: parent
 
+
                         MyButton {
-                            id: appDataPathBrowseButton
                             Layout.fillWidth: true
                             Layout.fillHeight: true
                             Layout.maximumHeight: 60
                             Layout.maximumWidth: 100
-                            Layout.margins: 5
+                            Layout.margins: 10
                             Layout.alignment: Qt.AlignCenter
                             text: qsTr("Browse")
+                            textPixelSize: 18
+                            Layout.bottomMargin: 0
                             onClicked: {
+                                root.spinner = dialogs.spinner("Changing aplication data directory")
                                 browseAppDataPathDialog.open()
+                            }
+                        }
+
+                        MyButton {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            Layout.maximumHeight: 60
+                            Layout.maximumWidth: 100
+                            Layout.margins: 10
+                            Layout.alignment: Qt.AlignCenter
+                            text: qsTr("Reset")
+                            textPixelSize: 18
+                            Layout.topMargin: 0
+                            highlighted: false
+                            flat: false
+                            backgroundPressedColor: "#0d9d02"
+                            backgroundHoverColor: "#91fb00"
+                            backgroundDefaultColor: "#dbca05"
+                            onClicked: {
+                                dialogs.question(
+                                    "The application will close in order to apply the change, you must reopen manually.\n¿Do you want to proceed?",
+                                    "Aplication relaunch required",
+                                function(ret) {
+                                    if (ret["button"] === "YES") {
+                                        paneController.resetAppDataDir()
+                                        mainController.stopApp()
+                                    }
+                                })
                             }
                         }
                     }
@@ -184,6 +227,14 @@ Rectangle {
                         placeholderText: defaultProjectName
                         placeholderTextColor: "grey"
                         text: defaultProjectName
+                        maximumLength: 80
+
+                        onTextEdited: {
+                            if (text.length < 1) {
+                                text = "Project"
+                            }
+                            paneController.setDefaultProjectName(text)
+                        }
                     }
                 }
             }

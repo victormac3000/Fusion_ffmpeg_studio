@@ -79,7 +79,7 @@ ColumnLayout {
             DialogButtonBox.buttonRole: DialogButtonBox.AcceptRole
             onClicked: {
                 if (callback) {
-                    callback(callback({"button": "OK"}))
+                    callback({"button": "NO"})
                 }
                 root.dialog.close()
             }

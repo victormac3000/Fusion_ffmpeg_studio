@@ -5,6 +5,8 @@ import QtQuick.Layouts
 import FusionFFmpegStudio
 
 Rectangle {
+    id: root
+
     WelcomeController {
         id: controller
         appController: mainController

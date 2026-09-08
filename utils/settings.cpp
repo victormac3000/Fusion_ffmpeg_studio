@@ -29,6 +29,12 @@ void Settings::setup()
     setupLocalDb();
 }
 
+void Settings::resetAppDataPath()
+{
+    QSettings settings;
+    settings.setValue("appData", getDefaultAppDataPath());
+}
+
 QString Settings::getAppDataPath()
 {
     QString appDataPath = QSettings().value("appData").toString();
@@ -36,6 +42,12 @@ QString Settings::getAppDataPath()
         setupAppData();
     }
     return QSettings().value("appData").toString();
+}
+
+void Settings::setDefaultProjectName(QString projectName)
+{
+    QSettings settings;
+    settings.setValue("defaultProjectName", projectName);
 }
 
 QString Settings::getDefaultProjectName()
@@ -206,11 +218,16 @@ QStringList Settings::getAvailableFormats(QString codec)
     return compatibleFormats.value(codec);
 }
 
+QString Settings::getDefaultAppDataPath()
+{
+    return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+}
+
 void Settings::setupAppData()
 {
     QSettings settings;
     QString actualAppData = settings.value("appData").toString();
-    QString defaultAppData = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QString defaultAppData = getDefaultAppDataPath();
     QDir defaultAppDataDir(defaultAppData);
 
     if (actualAppData.isEmpty() || !QDir(actualAppData).exists() || !QFileInfo(actualAppData).isWritable()) {

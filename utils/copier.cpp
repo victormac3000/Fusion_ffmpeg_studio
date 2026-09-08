@@ -184,7 +184,7 @@ void Copier::recordCreatedDirectory(const QString& path)
     m_createdDirectories.append(path);
 }
 
-QString Copier::toLocalPath(const QString& path) const
+QString Copier::toLocalPath(QString path)
 {
     const QUrl url(path);
 
