@@ -3,23 +3,42 @@
 
 #include "controllers/basecontroller.h"
 
+#include <QJsValue>
+#include <QMap>
+
 class PreferencesController : public BaseController
 {
     Q_OBJECT
 public:
     explicit PreferencesController(QObject *parent = nullptr);
 
-    Q_INVOKABLE QString getAppDataPath() const;
-    Q_INVOKABLE void changeAppDataDir(QString proposedAppDataDir);
-    Q_INVOKABLE void resetAppDataDir();
+    // Getters
 
+    Q_INVOKABLE QString getAppDataPath() const;
     Q_INVOKABLE QString getDefaultProjectName() const;
-    Q_INVOKABLE void setDefaultProjectName(QString defaultName);
+    Q_INVOKABLE QString getDefaultProjectPath() const;
+
+    // Setters
+
+    Q_INVOKABLE void setAppDataPath(const QJSValue& args,
+                                    const QJSValue& outputCallback,
+                                    const QJSValue& errorCallback);
+    Q_INVOKABLE void setDefaultProjectName(QString newName);
+    Q_INVOKABLE void setDefaultProjectPath(const QJSValue& args,
+                                           const QJSValue& outputCallback,
+                                           const QJSValue& errorCallback);
+
+    // Resetters
+
+    Q_INVOKABLE void resetAppDataPath(const QJSValue& args,
+                                      const QJSValue& outputCallback,
+                                      const QJSValue& errorCallback);
+    Q_INVOKABLE void resetDefaultProjectPath(const QJSValue& args,
+                                             const QJSValue& outputCallback,
+                                             const QJSValue& errorCallback);
 
 private:
 
-signals:
-    void appDataPathChanged(QVariantMap results);
 };
 
 #endif // PREFERENCESCONTROLLER_H

@@ -36,8 +36,6 @@ Item {
 
                 anchors.fill: parent
 
-                property real rotation: 0
-
                 onRotationChanged: requestPaint()
 
                 onPaint: {

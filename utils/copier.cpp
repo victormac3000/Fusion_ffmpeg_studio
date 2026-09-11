@@ -1,5 +1,6 @@
 #include "copier.h"
 #include "utils/exceptions/copierexception.h"
+#include "utils/toolbox.h"
 
 #include <QFile>
 #include <QFileInfo>
@@ -17,8 +18,8 @@ void Copier::copy(const QString& sourcePath,
     m_createdFiles.clear();
     m_createdDirectories.clear();
 
-    const QString sourceLocalPath = toLocalPath(sourcePath);
-    const QString destinationLocalPath = toLocalPath(destinationPath);
+    const QString sourceLocalPath = Toolbox::toLocalPath(sourcePath);
+    const QString destinationLocalPath = Toolbox::toLocalPath(destinationPath);
 
     QDir source(sourceLocalPath);
     QDir destination(destinationLocalPath);
@@ -182,26 +183,6 @@ void Copier::recordCreatedFile(const QString& path)
 void Copier::recordCreatedDirectory(const QString& path)
 {
     m_createdDirectories.append(path);
-}
-
-QString Copier::toLocalPath(QString path)
-{
-    const QUrl url(path);
-
-    if (url.isLocalFile()) {
-        return url.toLocalFile();
-    }
-
-    if (QFileInfo(path).isAbsolute()) {
-        return path;
-    }
-
-    throw CopierException(
-        QString("Path is neither a local path nor a local file URL: %1")
-            .arg(path)
-            .toStdString(),
-        "The selected path is not a valid local directory."
-    );
 }
 
 void Copier::rollback()

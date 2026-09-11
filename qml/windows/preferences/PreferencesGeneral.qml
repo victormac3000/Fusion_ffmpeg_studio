@@ -11,35 +11,15 @@ Rectangle {
 
     required property var parentWindow
     required property var paneController
+
     property string appDataPath: paneController.getAppDataPath()
     property string defaultProjectName: paneController.getDefaultProjectName()
+    property string defaultProjectPath: paneController.getDefaultProjectPath()
 
     property var spinner
 
     Dialogs {
         id: dialogs
-    }
-
-    Connections {
-        target: paneController
-
-        function onAppDataPathChanged(retVal) {
-            root.spinner.close()
-            if (!retVal["ok"]) {
-                dialogs.warning(retVal["error"], "")
-                return
-            }
-            dialogs.info("Successfully changed AppData directory")
-            appDataPath = retVal["newPath"]
-        }
-    }
-
-    FolderDialog {
-        id: browseAppDataPathDialog
-        acceptLabel: "Select new appdata directory"
-        onAccepted: {
-            paneController.changeAppDataDir(selectedFolder)
-        }
     }
 
     ScrollView {
@@ -116,7 +96,6 @@ Rectangle {
                             Layout.margins: 10
 
                             TextArea {
-                                id: appDataPathTextArea
                                 clip: true
                                 text: appDataPath
                                 wrapMode: Text.WordWrap
@@ -140,6 +119,25 @@ Rectangle {
                     ColumnLayout {
                         anchors.fill: parent
 
+                        FolderDialog {
+                            id: browseAppDataPathDialog
+                            acceptLabel: "Select new application data directory"
+                            onAccepted: {
+                                root.spinner = dialogs.spinner("Changing aplication data directory")
+                                var args = {"newPath": selectedFolder}
+                                paneController.setAppDataPath(
+                                    args,
+                                    (newPath) => {
+                                        appDataPath = newPath
+                                        spinner.close()
+                                    },
+                                    function(error) {
+                                        spinner.close()
+                                        dialogs.warning(error)
+                                    }
+                                )
+                            }
+                        }
 
                         MyButton {
                             Layout.fillWidth: true
@@ -152,7 +150,6 @@ Rectangle {
                             textPixelSize: 18
                             Layout.bottomMargin: 0
                             onClicked: {
-                                root.spinner = dialogs.spinner("Changing aplication data directory")
                                 browseAppDataPathDialog.open()
                             }
                         }
@@ -174,14 +171,176 @@ Rectangle {
                             backgroundDefaultColor: "#dbca05"
                             onClicked: {
                                 dialogs.question(
-                                    "The application will close in order to apply the change, you must reopen manually.\n¿Do you want to proceed?",
-                                    "Aplication relaunch required",
+                                    "Resetting the application data path will destroy the previous aplication data in the default location.\n" +
+                                    "The application will close in order to apply the change, and you must reopen manually." +
+                                    "\n¿Do you want to proceed?",
+                                    "WARNING",
                                 function(ret) {
                                     if (ret["button"] === "YES") {
-                                        paneController.resetAppDataDir()
-                                        mainController.stopApp()
+                                        root.spinner = dialogs.spinner("Changing aplication data directory")
+                                        paneController.resetAppDataPath(
+                                            {},
+                                            function() {
+                                                appDataPath = paneController.getAppDataPath()
+                                                spinner.close()
+                                            },
+                                            function(error) {
+                                                spinner.close()
+                                                dialogs.warning(error, "Reset error")
+                                            }
+                                        )
                                     }
                                 })
+                            }
+                        }
+                    }
+                }
+            }
+
+            GridLayout {
+                id: grid3
+                Layout.minimumHeight: 80
+                Layout.maximumHeight: 80
+                Layout.preferredHeight: 80
+                columns: 3
+                columnSpacing: 2
+
+                Rectangle {
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    border.width: 3
+                    border.color: "green"
+
+                    ColumnLayout {
+                        anchors.fill: parent
+
+                        Text {
+                            Layout.fillWidth: true
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                            text: qsTr("Default project path")
+                            topPadding: 10
+                            leftPadding: 10
+                            rightPadding: 10
+                            wrapMode: Text.WordWrap
+                        }
+
+                        Rectangle {
+                            Layout.fillWidth: true
+                            Layout.minimumHeight: 3
+                            Layout.maximumHeight: 3
+                            color: "blue"
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            Layout.alignment: Qt.AlignBottom
+                            wrapMode: Text.WordWrap
+                            bottomPadding: 10
+                            leftPadding: 10
+                            rightPadding: 10
+                            text: qsTr("This is the defalt folder on which the application will make the new project folders")
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                    }
+                }
+
+                Rectangle {
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    border.width: 3
+                    border.color: "green"
+
+                    ColumnLayout {
+                        anchors.fill: parent
+
+                        ScrollView {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            Layout.margins: 10
+
+                            TextArea {
+                                clip: true
+                                text: defaultProjectPath
+                                wrapMode: Text.WordWrap
+                                readOnly: true
+                                horizontalAlignment: Text.AlignLeft
+                                verticalAlignment: Text.AlignTop
+                                padding: 5
+                            }
+                        }
+                    }
+                }
+
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: grid.width * 0.15
+                    Layout.fillHeight: true
+                    Layout.alignment: Qt.AlignTop
+                    border.width: 3
+                    border.color: "green"
+
+                    ColumnLayout {
+                        anchors.fill: parent
+
+                        FolderDialog {
+                            id: browseDefaultProjectPathDialog
+                            acceptLabel: "Select new project path directory"
+                            onAccepted: {
+                                root.spinner = dialogs.spinner("Changing default project directory")
+                                paneController.setDefaultProjectPath({newPath: selectedFolder},
+                                    (newPath) => {
+                                        spinner.close()
+                                        defaultProjectPath = newPath
+                                    },
+                                    (error) => {
+                                        spinner.close()
+                                        dialogs.warning("Could not change default project directory.\n" + error)
+                                    }
+                                );
+                            }
+                        }
+
+                        MyButton {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            Layout.maximumHeight: 60
+                            Layout.maximumWidth: 100
+                            Layout.margins: 10
+                            Layout.alignment: Qt.AlignCenter
+                            text: qsTr("Browse")
+                            textPixelSize: 18
+                            Layout.bottomMargin: 0
+                            onClicked: {
+                                browseDefaultProjectPathDialog.open()
+                            }
+                        }
+
+                        MyButton {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            Layout.maximumHeight: 60
+                            Layout.maximumWidth: 100
+                            Layout.margins: 10
+                            Layout.alignment: Qt.AlignCenter
+                            text: qsTr("Reset")
+                            textPixelSize: 18
+                            Layout.topMargin: 0
+                            highlighted: false
+                            flat: false
+                            backgroundPressedColor: "#0d9d02"
+                            backgroundHoverColor: "#91fb00"
+                            backgroundDefaultColor: "#dbca05"
+                            onClicked: {
+                                var spinner = dialogs.spinner("Restoring default project directory")
+                                paneController.resetDefaultProjectPath({}, function (newPath) {
+                                    spinner.close()
+                                    defaultProjectPath = newPath
+                                }, function (error) {
+                                    spinner.close()
+                                    dialogs.warning(error)
+                                });
                             }
                         }
                     }
@@ -238,7 +397,6 @@ Rectangle {
                     }
                 }
             }
-
 
             // Used for compacting the components
             Rectangle {

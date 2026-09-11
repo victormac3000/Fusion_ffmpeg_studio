@@ -1,7 +1,6 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
-#include <QCoreApplication>
 #include <QString>
 #include <QSettings>
 #include <QStandardPaths>
@@ -18,28 +17,30 @@ class Settings
 public:
     static void setup();
 
-    static void resetAppDataPath();
+    static QStringList getAvailableCodecs();
+    static QStringList getAvailableEncoders(QString codec);
+    static QStringList getAvailableFormats(QString codec);
     static QString getAppDataPath();
     static QString getDefaultAppDataPath();
     static QString getDefaultProjectName();
     static QString getDefaultProjectPath();
     static QString getFFmpegPath();
     static QString getFFprobePath();
-
     static QString getDefaultCodec();
     static QString getDefaultEncoder();
-    static void resetDefaultFormat();
     static QString getDefaultFormat();
 
     static void setDefaultCodec(QString defaultCodec);
     static void setDefaultEncoder(QString defaultEncoder);
     static void setDefaultFormat(QString defaultFormat);
+
     static void setAppDataPath(const QString& newPath);
     static void setDefaultProjectName(QString projectName);
+    static void setDefaultProjectPath(QString projectPath);
 
-    static QStringList getAvailableCodecs();
-    static QStringList getAvailableEncoders(QString codec);
-    static QStringList getAvailableFormats(QString codec);
+    static void resetDefaultFormat();
+    static void resetAppDataPath();
+    static void resetDefaultProjectPath();
 
 private:
     static void setupAppData();
@@ -48,9 +49,6 @@ private:
     static void setupBinaries();
     static void setupEncoders();
     static void setupLocalDb();
-
-    static void copyAppDataContents(const QDir& source, const QDir& destination);
-    static void clearDirectory(const QDir& dir);
 
     static void qexit(int code);
 

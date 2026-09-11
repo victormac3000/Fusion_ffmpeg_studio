@@ -2,16 +2,21 @@
 #include "utils/dialogs.h"
 #include "utils/exitcodes.h"
 #include "utils/copier.h"
-#include "utils/exceptions/settingsexception.h"
+#include "utils/remover.h"
+#include "utils/toolbox.h"
+#include "utils/exceptions/removerexception.h"
+#include "utils/exceptions/toolboxexception.h"
 #include "utils/exceptions/copierexception.h"
+#include "utils/exceptions/settingsexception.h"
 extern "C" {
     #include <libavcodec/avcodec.h>
     #include <libavutil/avutil.h>
 }
+
+#include <QGuiApplication>
 #include <iostream>
 #include <QUrl>
 #include <QDir>
-
 
 QMap<QString,QStringList> Settings::compatibleFormats = {
     {"h264", {"mp4", "mkv", "avi", "mov"}},
@@ -29,12 +34,6 @@ void Settings::setup()
     setupLocalDb();
 }
 
-void Settings::resetAppDataPath()
-{
-    QSettings settings;
-    settings.setValue("appData", getDefaultAppDataPath());
-}
-
 QString Settings::getAppDataPath()
 {
     QString appDataPath = QSettings().value("appData").toString();
@@ -46,8 +45,26 @@ QString Settings::getAppDataPath()
 
 void Settings::setDefaultProjectName(QString projectName)
 {
-    QSettings settings;
-    settings.setValue("defaultProjectName", projectName);
+    QSettings().setValue("defaultProjectName", projectName);
+}
+
+void Settings::setDefaultProjectPath(QString projectPath)
+{
+    QString projectPathConverted = Toolbox::toLocalPath(projectPath);
+    QFileInfo info(projectPathConverted);
+    if (!info.isDir()) {
+        throw SettingsException(
+            "Cannot set a default project path that is not a directory",
+            "You must select a folder"
+        );
+    }
+    if (!info.isWritable()) {
+        throw SettingsException(
+            "Cannot set a default project path that is not a writable directory",
+            "You don't have permission to write to the selected folder"
+        );
+    }
+    QSettings().setValue("defaultProjectPath", projectPathConverted);
 }
 
 QString Settings::getDefaultProjectName()
@@ -110,6 +127,25 @@ void Settings::resetDefaultFormat()
     settings.setValue("defaultFormat", compatibleFormats.value(getDefaultCodec()).first());
 }
 
+void Settings::resetAppDataPath()
+{
+    QString defaultAppData = getDefaultAppDataPath();
+
+    try {
+        Remover::cleanDirectory(defaultAppData);
+        setAppDataPath(defaultAppData);
+    } catch (RemoverException &e) {
+        throw SettingsException(e.what(), "Could not remove current application data", true);
+    }
+}
+
+void Settings::resetDefaultProjectPath()
+{
+    QSettings settings;
+    QString osDocumentsPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+    settings.setValue("defaultProjectPath", osDocumentsPath);
+}
+
 QString Settings::getDefaultFormat()
 {
     QString defaultFormat = QSettings().value("defaultFormat").toString();
@@ -165,16 +201,14 @@ void Settings::setDefaultFormat(QString defaultFormat)
 
 void Settings::setAppDataPath(const QString& newPath)
 {
-    QSettings settings;
-
     Copier copier(true, QDir::NoDotAndDotDot | QDir::AllEntries);
     try {
         copier.copy(getAppDataPath(), newPath);
     } catch (CopierException &e) {
-        throw SettingsException(e.what(), "Could not copy current AppData folder contents\n" + e.userMessage(), true);
+        throw SettingsException(e.what(), "Could not copy current application data folder contents\n" + e.userMessage(), true);
     }
 
-    settings.setValue("appData", copier.toLocalPath(newPath));
+    QSettings().setValue("appData", Toolbox::toLocalPath(newPath));
 }
 
 QStringList Settings::getAvailableCodecs()
@@ -502,6 +536,6 @@ void Settings::setupLocalDb()
 
 void Settings::qexit(int code)
 {
-    QCoreApplication::exit(code);
+    QGuiApplication::exit(code);
     exit(code);
 }

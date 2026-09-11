@@ -5,7 +5,7 @@
 #include <QString>
 #include <QStringList>
 
-    class Copier
+class Copier
 {
 public:
     explicit Copier(bool rollbackOnError = true, QFlags<QDir::Filter> fileTypes = QDir::NoDotAndDotDot |
@@ -15,7 +15,6 @@ public:
 
     void copy(const QString& sourcePath,
               const QString& destinationPath);
-    static QString toLocalPath(QString path);
 
 private:
     void copyDirectory(const QDir& source,
