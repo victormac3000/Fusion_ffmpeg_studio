@@ -8,6 +8,11 @@ Rectangle {
     id: root
     color: "lightblue"
 
+    NewProjectSdController {
+        id: controller
+        appController: mainController
+    }
+
     Constants {
         id: constants
         visible: false
@@ -37,8 +42,7 @@ Rectangle {
             Layout.maximumHeight: 30
             Layout.margins: 5
 
-            TextField {
-                objectName: "projectNameField"
+            MyTextField {
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 placeholderText: qsTr("Project name")
@@ -53,8 +57,7 @@ Rectangle {
             Layout.maximumHeight: 30
             Layout.margins: 5
 
-            TextField {
-                objectName: "projectPathField"
+            MyTextField {
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 placeholderText: qsTr("Project path")
@@ -63,7 +66,6 @@ Rectangle {
             }
 
             MyButton {
-                objectName: "projectPathButton"
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 Layout.minimumWidth: 30
@@ -106,12 +108,11 @@ Rectangle {
                         Layout.fillWidth: true
                         color: valid ? "green" : "red"
                         radius: 15
-                        objectName: "frontSDRectangle"
                         property bool valid: false
 
                         Image {
                             anchors.fill: parent
-                            source: "Images/sd-card.png"
+                            source: "qrc:/images/sd-card.png"
                             fillMode: Image.PreserveAspectFit
                         }
                     }
@@ -123,7 +124,6 @@ Rectangle {
                         color: "white"
 
                         MyComboBox {
-                            objectName: "frontSDComboBox"
                             anchors.fill: parent
                             anchors.topMargin: 10
 
@@ -166,12 +166,11 @@ Rectangle {
                         Layout.fillWidth: true
                         color: valid ? "green" : "red"
                         radius: 15
-                        objectName: "backSDRectangle"
                         property bool valid: false
 
                         Image {
                             anchors.fill: parent
-                            source: "Images/sd-card.png"
+                            source: "qrc:/images/sd-card.png"
                             fillMode: Image.PreserveAspectFit
                         }
                     }
@@ -183,7 +182,6 @@ Rectangle {
                         color: "white"
 
                         MyComboBox {
-                            objectName: "backSDComboBox"
                             anchors.fill: parent
                             anchors.topMargin: 10
 
@@ -208,14 +206,15 @@ Rectangle {
             Layout.margins: 5
 
             MyButton {
-                objectName: "createProjectSDBackButton"
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 text: qsTr("Back")
+                onClicked: {
+                    mainController.back()
+                }
             }
 
             MyButton {
-                objectName: "createProjectSDButton"
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 text: qsTr("Create project")

@@ -1,6 +1,5 @@
 #include "welcomepane.h"
 #include "ui_welcomepane.h"
-#include "windows/preferences.h"
 #include "utils/dialogs.h"
 #include "utils/settings.h"
 #include "panes/projectcreator.h"
@@ -166,15 +165,7 @@ void WelcomePane::recentProjectClicked(QVariant rectangle)
 
 void WelcomePane::settingsButtonClicked()
 {
-    Preferences* preferencesWindow = new Preferences;
-    preferencesWindow->setWindowTitle("Preferences");
-    preferencesWindow->setWindowModality(Qt::ApplicationModal);
-    if (!preferencesWindow->getInit()) {
-        Dialogs::warning("Could not open Preferences window");
-        return;
-    }
-    preferencesWindow->exec();
-    delete preferencesWindow;
+
 }
 
 void WelcomePane::searchRecentProjects(QString text)

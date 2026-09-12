@@ -66,6 +66,10 @@ Item {
        create("question", message, title, callback)
     }
 
+    function questionw(message, title, callback) {
+       create("questionw", message, title, callback)
+    }
+
     function info(message, title, callback) {
         create("info", message, title, callback)
     }

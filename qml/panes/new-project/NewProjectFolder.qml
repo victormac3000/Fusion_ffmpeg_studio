@@ -6,7 +6,18 @@ import FusionFFmpegStudio
 
 Rectangle {
     id: root
-    color: "lightblue"
+    color: "#69ff00"
+
+    property int generalMargin: 10
+
+    NewProjectFolderController {
+        id: controller
+        appController: mainController
+    }
+
+    Dialogs {
+        id: dialogs
+    }
 
     Constants {
         id: constants
@@ -16,14 +27,15 @@ Rectangle {
     ColumnLayout {
         anchors.fill: parent
 
-        Rectangle {
+        RowLayout {
             Layout.fillHeight: true
             Layout.fillWidth: true
             Layout.maximumHeight: 50
-            Layout.margins: 5
+            Layout.margins: generalMargin
 
             Text {
-                anchors.fill: parent
+                Layout.fillHeight: true
+                Layout.fillWidth: true
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
                 text: qsTr("SELECT THE PROJECT FOLDER")
@@ -38,140 +50,132 @@ Rectangle {
             color: "black"
         }
 
-        RowLayout {
+        ColumnLayout {
             Layout.fillHeight: true
             Layout.fillWidth: true
-            Layout.maximumHeight: 30
-            Layout.margins: 5
+            Layout.margins: generalMargin
 
-            TextField {
-                objectName: "projectNameField"
+            MyTextField {
+                id: projectNameTextField
                 Layout.fillHeight: true
                 Layout.fillWidth: true
+                Layout.maximumHeight: 30
                 placeholderText: qsTr("Project name")
                 placeholderTextColor: "grey"
-            }
-        }
+                maximumLength: 50
+                borderColor: "red"
 
-
-
-        RowLayout {
-            Layout.fillHeight: true
-            Layout.fillWidth: true
-            Layout.maximumHeight: 30
-            Layout.margins: 5
-
-            TextField {
-                objectName: "projectPathField"
-                Layout.fillHeight: true
-                Layout.fillWidth: true
-                placeholderText: qsTr("Project path")
-                placeholderTextColor: "grey"
-                readOnly: true
+                onTextEdited: {
+                    var proposedPath = projectPathTextField.basePath + "/" + text
+                    console.log(proposedPath)
+                    if (text.length > 0 || controller.verifyProjectPath(proposedPath)) {
+                        borderColor = "blue"
+                        projectPathTextField.text = proposedPath
+                    } else {
+                        borderColor = "red"
+                        projectPathTextField.text = projectPathTextField.basePath
+                    }
+                }
             }
 
-            MyButton {
-                objectName: "projectPathButton"
+            RowLayout {
                 Layout.fillHeight: true
                 Layout.fillWidth: true
-                Layout.minimumWidth: 30
                 Layout.maximumHeight: 30
-                text: qsTr("Browse")
+
+                MyTextField {
+                    id: projectPathTextField
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    placeholderTextColor: "grey"
+                    readOnly: true
+                    text: basePath
+
+                    property string basePath: controller.getDefaultProjectPath()
+                }
+
+                MyButton {
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: 100
+                    text: qsTr("Browse")
+                }
             }
-        }
 
-        RowLayout {
-            Layout.fillHeight: true
-            Layout.fillWidth: true
-            Layout.maximumHeight: 30
-            Layout.margins: 5
 
-            TextField {
-                objectName: "projectDCIMField"
+            RowLayout {
                 Layout.fillHeight: true
                 Layout.fillWidth: true
-                placeholderText: qsTr("DCIM folder path")
-                placeholderTextColor: "grey"
-                readOnly: true
-            }
-
-            MyButton {
-                objectName: "projectDCIMButton"
-                Layout.fillHeight: true
-                Layout.fillWidth: true
-                Layout.minimumWidth: 30
                 Layout.maximumHeight: 30
-                text: qsTr("Browse")
-            }
-        }
 
-        Rectangle {
-            Layout.fillHeight: true
-            Layout.fillWidth: true
-            Layout.maximumHeight: 80
-            Layout.margins: 5
-
-            GridLayout {
-                anchors.fill: parent
-                columns: 2
-
-                RadioButton {
-                    objectName: "copyDCIMCheckbox"
+                MyTextField {
                     Layout.fillHeight: true
                     Layout.fillWidth: true
-                    Layout.minimumWidth: 200
-                    text: qsTr("Copy DCIM folder to project")
+                    placeholderText: qsTr("DCIM folder path")
+                    placeholderTextColor: "grey"
+                    readOnly: true
                 }
 
-                Text {
+                MyButton {
                     Layout.fillHeight: true
                     Layout.fillWidth: true
-                    verticalAlignment: Text.AlignVCenter
-                    text: qsTr("Makes a copy of the selected DCIM folder")
+                    Layout.maximumWidth: 100
+                    text: qsTr("Browse")
                 }
-
-                RadioButton {
-                    objectName: "linkDCIMCheckbox"
-                    Layout.fillHeight: true
-                    Layout.fillWidth: true
-                    text: qsTr("Link DCIM folder to project")
-                    checked: true
-                }
-
-                Text {
-                    Layout.fillHeight: true
-                    Layout.fillWidth: true
-                    verticalAlignment: Text.AlignVCenter
-                    text: qsTr("References the DCIM folder to use it.\nIf DCIM folder is moved, the project breaks")
-                }
-
             }
 
-        }
+            CheckBox {
+                id: copyCheckbox
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+                Layout.maximumHeight: 30
+                text: "Copy videos into the project"
+                checked: true
+                onToggled: {
+                    if (!checked) {
+                        checked = true
+                        dialogs.questionw(
+                            "Remember that the project will require the source files are not moved.\n" +
+                            "If you move the files the project won't work anymore",
+                            "Copy videos",
+                            (res) => {
+                                if (res["button"] === "YES") {
+                                    copyCheckbox.checked = false
+                                }
+                            }
+                        )
+                    }
+                }
+            }
 
-        RowLayout {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            Layout.minimumWidth: 30
-            Layout.maximumHeight: 30
-            Layout.margins: 5
+            Rectangle {
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+                color: "transparent"
+            }
 
-            MyButton {
-                objectName: "createProjectFolderBackButton"
+            RowLayout {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                text: qsTr("Back")
-            }
+                Layout.maximumHeight: 30
 
-            MyButton {
-                objectName: "createProjectFolderButton"
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                text: qsTr("Create project")
-            }
+                MyButton {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    text: qsTr("Back")
+                    onClicked: {
+                        mainController.back()
+                    }
+                }
 
+                MyButton {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    text: qsTr("Create project")
+                }
+
+            }
         }
-
 
     }
 

@@ -13,13 +13,32 @@ ColumnLayout {
     property string type: dialog.dialogType
     property var callback
 
+    property var okBtnVisible: {
+        return type === "critical" || type === "info" || type === "warning"
+    }
+
+    property bool yesBtnVisible: {
+        return type.startsWith("question")
+    }
+
+    property bool noBtnVisible: yesBtnVisible
+
+    property color hrColor: {
+        if (type == "critical") return "red"
+        if (type == "info") return "green"
+        if (type == "warning") return "yellow"
+        if (type == "question") return "blue"
+        if (type == "questionw") return "yellow"
+        return "blue"
+    }
+
     Rectangle {
         Layout.fillHeight: true
         Layout.fillWidth: true
         Layout.preferredHeight: 3
         Layout.minimumHeight: 3
         Layout.maximumHeight: 3
-        color: "blue"
+        color: hrColor
         border.width: 0
     }
 
@@ -49,7 +68,7 @@ ColumnLayout {
                 }
                 root.dialog.close()
             }
-            visible: type != "question"
+            visible: okBtnVisible
         }
 
         DialogButton {
@@ -66,7 +85,7 @@ ColumnLayout {
                 }
                 root.dialog.close()
             }
-            visible: type == "question"
+            visible: yesBtnVisible
         }
 
         DialogButton {
@@ -83,7 +102,7 @@ ColumnLayout {
                 }
                 root.dialog.close()
             }
-            visible: type == "question"
+            visible: noBtnVisible
         }
 
 

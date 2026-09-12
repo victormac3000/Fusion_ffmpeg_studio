@@ -4,9 +4,7 @@
 
 NewProjectController::NewProjectController(QObject *parent)
     : BaseController{parent}
-{
-    qDebug() << "Created NewProjectController";
-}
+{}
 
 void NewProjectController::importSDClicked()
 {
@@ -16,9 +14,4 @@ void NewProjectController::importSDClicked()
 void NewProjectController::importDCIMFolderClicked()
 {
     m_appController->navigateToM(MainController::Pane::NewProjectFolder);
-}
-
-void NewProjectController::onBackClicked()
-{
-    m_appController->back();
 }

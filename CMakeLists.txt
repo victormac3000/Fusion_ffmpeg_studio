@@ -62,11 +62,13 @@ set(SOURCES
     panes/editorpane.cpp
     panes/loadingpane.cpp
     panes/welcomepane.cpp
-    windows/preferences.cpp
+
     utils/worker.cpp
     controllers/maincontroller.cpp
-    controllers/panes/welcome/welcomecontroller.cpp
+    controllers/panes/welcomecontroller.cpp
     controllers/panes/new-project/newprojectcontroller.cpp
+    controllers/panes/new-project/newprojectfoldercontroller.cpp
+    controllers/panes/new-project/newprojectsdcontroller.cpp
 )
 
 set(HEADERS
@@ -95,11 +97,13 @@ set(HEADERS
     panes/editorpane.h
     panes/loadingpane.h
     panes/welcomepane.h
-    windows/preferences.h
+
     utils/worker.h
     controllers/maincontroller.h
-    controllers/panes/welcome/welcomecontroller.h
+    controllers/panes/welcomecontroller.h
     controllers/panes/new-project/newprojectcontroller.h
+    controllers/panes/new-project/newprojectfoldercontroller.h
+    controllers/panes/new-project/newprojectsdcontroller.h
 )
 
 set(FORMS
@@ -111,7 +115,7 @@ set(FORMS
     panes/editorpane.ui
     panes/loadingpane.ui
     panes/welcomepane.ui
-    windows/preferences.ui
+
 )
 
 set(QML_FILES
@@ -133,7 +137,7 @@ set(QML_FILES
     qml/windows/preferences/Preferences.qml
     qml/windows/preferences/PreferencesGeneral.qml
     qml/windows/preferences/PreferencesRendering.qml
-    qml/panes/welcome/Welcome.qml
+    qml/panes/Welcome.qml
     qml/panes/new-project/NewProject.qml
     qml/panes/new-project/NewProjectFolder.qml
     qml/panes/new-project/NewProjectSd.qml
@@ -155,10 +159,10 @@ qt_add_qml_module(FusionFFmpegStudio
     URI FusionFFmpegStudio
     QML_FILES
     ${QML_FILES}
-    SOURCES controllers/windows/about/aboutcontroller.h controllers/windows/about/aboutcontroller.cpp
+    SOURCES controllers/windows/aboutcontroller.h controllers/windows/aboutcontroller.cpp
     SOURCES controllers/basecontroller.h controllers/basecontroller.cpp
     QML_FILES qml/windows/about/BuildItem.qml
-    SOURCES controllers/windows/preferences/preferencescontroller.h controllers/windows/preferences/preferencescontroller.cpp
+    SOURCES controllers/windows/preferencescontroller.h controllers/windows/preferencescontroller.cpp
     QML_FILES qml/components/dialogs/DialogButton.qml
     SOURCES utils/exceptions/settingsexception.h
     SOURCES  utils/copier.cpp
@@ -172,6 +176,7 @@ qt_add_qml_module(FusionFFmpegStudio
     SOURCES utils/toolbox.h utils/toolbox.cpp
     SOURCES utils/exceptions/toolboxexception.h
     SOURCES utils/exceptions/removerexception.h
+    QML_FILES qml/components/MyTextField.qml
 )
 
 set_target_properties(FusionFFmpegStudio PROPERTIES

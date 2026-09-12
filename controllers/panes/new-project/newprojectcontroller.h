@@ -14,7 +14,6 @@ public:
 
     Q_INVOKABLE void importSDClicked();
     Q_INVOKABLE void importDCIMFolderClicked();
-    Q_INVOKABLE void onBackClicked();
 
 signals:
 };

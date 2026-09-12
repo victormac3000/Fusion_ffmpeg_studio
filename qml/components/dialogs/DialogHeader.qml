@@ -14,15 +14,27 @@ ColumnLayout {
         if (type == "info") return "Information"
         if (type == "warning") return "Warning"
         if (type == "question") return "Choose"
+        if (type == "questionw") return "Choose"
         return "Generic title"
     }
+
     property string iconPath: {
         var basePath = "qrc:/icons/dialogs"
         if (type == "critical") return basePath + "/critical.png"
         if (type == "info") return basePath + "/info.png"
         if (type == "warning") return basePath + "/warning.png"
         if (type == "question") return basePath + "/question.png"
+        if (type == "questionw") return basePath + "/warning.png"
         return ""
+    }
+
+    property color hrColor: {
+        if (type == "critical") return "red"
+        if (type == "info") return "green"
+        if (type == "warning") return "yellow"
+        if (type == "question") return "blue"
+        if (type == "questionw") return "yellow"
+        return "blue"
     }
 
     RowLayout {
@@ -65,7 +77,7 @@ ColumnLayout {
         Layout.preferredHeight: 3
         Layout.minimumHeight: 3
         Layout.maximumHeight: 3
-        color: "blue"
+        color: hrColor
         border.width: 0
     }
 }
