@@ -13,6 +13,12 @@ public:
 
     Q_INVOKABLE QString getDefaultProjectPath();
     Q_INVOKABLE bool verifyProjectPath(QString projectPath);
+    Q_INVOKABLE void validateProjectPath(const QJSValue& args,
+                                    const QJSValue& outputCallback,
+                                    const QJSValue& errorCallback);
+    Q_INVOKABLE void validateDCIMPath(const QJSValue& args,
+                                    const QJSValue& outputCallback,
+                                    const QJSValue& errorCallback);
 
 signals:
 };

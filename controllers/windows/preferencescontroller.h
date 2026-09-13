@@ -3,7 +3,7 @@
 
 #include "controllers/basecontroller.h"
 
-#include <QJsValue>
+#include <QJSValue>
 #include <QMap>
 
 class PreferencesController : public BaseController

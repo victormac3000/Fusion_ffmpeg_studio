@@ -25,17 +25,17 @@ find_package(Qt6 6.5 REQUIRED COMPONENTS
 qt_standard_project_setup(REQUIRES 6.5)
 
 # Find ffmpeg packages
-if(APPLE)
+if(APPLE OR LINUX)
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(FFMPEG REQUIRED IMPORTED_TARGET
         libavcodec
         libavformat
         libavutil
+        libavfilter
+        libavdevice
         libswscale
         libswresample
     )
-else()
-    message(FATAL_ERROR "Unsupported platform")
 endif()
 
 set(SOURCES
@@ -144,7 +144,7 @@ set(QML_FILES
 )
 
 set(RESOURCES
-    resources/index.qrc
+    Resources/index.qrc
 )
 
 qt_add_executable(FusionFFmpegStudio
@@ -177,6 +177,7 @@ qt_add_qml_module(FusionFFmpegStudio
     SOURCES utils/exceptions/toolboxexception.h
     SOURCES utils/exceptions/removerexception.h
     QML_FILES qml/components/MyTextField.qml
+    SOURCES utils/exceptions/newprojectexception.h
 )
 
 set_target_properties(FusionFFmpegStudio PROPERTIES
@@ -207,17 +208,11 @@ target_compile_definitions(FusionFFmpegStudio PRIVATE
     QT_DISABLE_DEPRECATED_BEFORE=0x060000
 )
 
+# Link ffmpeg
 if(WIN32)
     target_link_libraries(FusionFFmpegStudio PRIVATE wbemuuid advapi32)
-elseif(APPLE)
-    # Link ffmpeg
+elseif(APPLE OR LINUX)
     target_link_libraries(FusionFFmpegStudio PRIVATE PkgConfig::FFMPEG)
-    # Copy macOS embedded resources
-    #add_custom_command(TARGET FusionFFmpegStudio POST_BUILD
-    #    COMMAND ${CMAKE_COMMAND} -E copy_directory
-    #        "${CMAKE_SOURCE_DIR}/resources/Embedded/macOS"
-    #        "$<TARGET_BUNDLE_CONTENT_DIR:FusionFFmpegStudio>/MacOS"
-    #)
 endif()
 
 if(UNIX AND NOT APPLE)

@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts
+import QtQuick.Dialogs
 
 import FusionFFmpegStudio
 
@@ -9,6 +10,7 @@ Rectangle {
     color: "#69ff00"
 
     property int generalMargin: 10
+    property var spinner
 
     NewProjectFolderController {
         id: controller
@@ -55,33 +57,49 @@ Rectangle {
             Layout.fillWidth: true
             Layout.margins: generalMargin
 
-            MyTextField {
-                id: projectNameTextField
+            RowLayout {
                 Layout.fillHeight: true
                 Layout.fillWidth: true
-                Layout.maximumHeight: 30
-                placeholderText: qsTr("Project name")
-                placeholderTextColor: "grey"
-                maximumLength: 50
-                borderColor: "red"
 
-                onTextEdited: {
-                    var proposedPath = projectPathTextField.basePath + "/" + text
-                    console.log(proposedPath)
-                    if (text.length > 0 || controller.verifyProjectPath(proposedPath)) {
-                        borderColor = "blue"
-                        projectPathTextField.text = proposedPath
-                    } else {
-                        borderColor = "red"
-                        projectPathTextField.text = projectPathTextField.basePath
+                Text {
+                    Layout.maximumWidth: 150
+                    Layout.minimumWidth: 150
+                    Layout.fillWidth: true
+                    text: "PROJECT NAME"
+                }
+
+                MyTextField {
+                    id: projectNameTextField
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    Layout.maximumHeight: 30
+                    placeholderTextColor: "grey"
+                    maximumLength: 50
+                    borderColor: "red"
+
+                    onTextEdited: {
+                        var proposedPath = projectPathTextField.basePath + "/" + text
+                        if (text.length > 0 || controller.verifyProjectPath(proposedPath)) {
+                            borderColor = "blue"
+                            projectPathTextField.text = proposedPath
+                        } else {
+                            borderColor = "red"
+                            projectPathTextField.text = projectPathTextField.basePath
+                        }
                     }
                 }
             }
-
             RowLayout {
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 Layout.maximumHeight: 30
+
+                Text {
+                    Layout.maximumWidth: 150
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: 150
+                    text: "PROJECT PATH"
+                }
 
                 MyTextField {
                     id: projectPathTextField
@@ -98,7 +116,31 @@ Rectangle {
                     Layout.fillHeight: true
                     Layout.fillWidth: true
                     Layout.maximumWidth: 100
+                    Layout.minimumWidth: 100
                     text: qsTr("Browse")
+
+                    onClicked: {
+                        browseProjectPathDialog.open()
+                    }
+
+                    FolderDialog {
+                        id: browseProjectPathDialog
+                        onAccepted: {
+                            root.spinner = dialogs.spinner("Changing project path")
+                            var args = {"newPath": selectedFolder}
+                            controller.validateProjectPath(
+                                args,
+                                (newPath) => {
+                                    projectPathTextField.basePath = newPath
+                                    spinner.close()
+                                },
+                                (error) => {
+                                    spinner.close()
+                                    dialogs.warning(error)
+                                }
+                            )
+                        }
+                    }
                 }
             }
 
@@ -108,7 +150,15 @@ Rectangle {
                 Layout.fillWidth: true
                 Layout.maximumHeight: 30
 
+                Text {
+                    Layout.maximumWidth: 150
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: 150
+                    text: "DCIM FOLDER PATH"
+                }
+
                 MyTextField {
+                    id: dcimPathTextField
                     Layout.fillHeight: true
                     Layout.fillWidth: true
                     placeholderText: qsTr("DCIM folder path")
@@ -120,7 +170,31 @@ Rectangle {
                     Layout.fillHeight: true
                     Layout.fillWidth: true
                     Layout.maximumWidth: 100
+                    Layout.minimumWidth: 100
                     text: qsTr("Browse")
+
+                    onClicked: {
+                        browseDCIMPathDialog.open()
+                    }
+
+                    FolderDialog {
+                        id: browseDCIMPathDialog
+                        onAccepted: {
+                            root.spinner = dialogs.spinner("Changing DCIM folder path")
+                            var args = {"newPath": selectedFolder}
+                            controller.validateDCIMPath(
+                                args,
+                                (newPath) => {
+                                    dcimPathTextField.text = newPath
+                                    spinner.close()
+                                },
+                                (error) => {
+                                    spinner.close()
+                                    dialogs.warning(error)
+                                }
+                            )
+                        }
+                    }
                 }
             }
 
