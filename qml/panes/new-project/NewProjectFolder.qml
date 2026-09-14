@@ -75,17 +75,26 @@ Rectangle {
                     Layout.maximumHeight: 30
                     placeholderTextColor: "grey"
                     maximumLength: 50
-                    borderColor: "red"
+                    placeholderText: "Project name"
+                    text: controller.getDefaultProjectName()
 
-                    onTextEdited: {
-                        var proposedPath = projectPathTextField.basePath + "/" + text
-                        if (text.length > 0 || controller.verifyProjectPath(proposedPath)) {
-                            borderColor = "blue"
-                            projectPathTextField.text = proposedPath
-                        } else {
-                            borderColor = "red"
-                            projectPathTextField.text = projectPathTextField.basePath
+                    onTextChanged: {
+                        var args = {
+                            projectName: projectNameTextField.text,
+                            projectPath: projectPathTextField.basePath
                         }
+                        controller.validateProjectName(args,
+                            (mergedPath) => {
+                                state = "normal"
+                                errorText = ""
+                                projectPathTextField.text = mergedPath
+                            },
+                            (error) => {
+                                state = "error"
+                                errorText = error
+                                projectPathTextField.text = projectPathTextField.basePath
+                            }
+                        )
                     }
                 }
             }
@@ -108,8 +117,35 @@ Rectangle {
                     placeholderTextColor: "grey"
                     readOnly: true
                     text: basePath
+                    placeholderText: "Project path"
 
                     property string basePath: controller.getDefaultProjectPath()
+
+                    onTextChanged: {
+                        if (basePath === text) {
+                            state = "normal"
+                            return
+                        }
+                        var args = {
+                            projectBasePath: basePath,
+                            projectName: projectNameTextField.text
+                        }
+                        controller.validateProjectpath(
+                            args,
+                            (pathDiffersName) => {
+                                if (pathDiffersName) {
+                                    warningText = "Path changed to avoid duplicate folder"
+                                    state = "warning"
+                                } else {
+                                    state = "normal"
+                                }
+                            },
+                            (error) => {
+                                errorText = error
+                                state = "error"
+                            }
+                        )
+                    }
                 }
 
                 MyButton {
@@ -126,16 +162,17 @@ Rectangle {
                     FolderDialog {
                         id: browseProjectPathDialog
                         onAccepted: {
-                            root.spinner = dialogs.spinner("Changing project path")
-                            var args = {"newPath": selectedFolder}
-                            controller.validateProjectPath(
+                            var args = {
+                                projectName: projectNameTextField.text,
+                                selectedFolder: selectedFolder
+                            }
+                            controller.generateProjectPath(
                                 args,
-                                (newPath) => {
-                                    projectPathTextField.basePath = newPath
-                                    spinner.close()
+                                (newBaseFolder, newProjectPath) => {
+                                    projectPathTextField.basePath = newBaseFolder
+                                    projectPathTextField.text = newProjectPath
                                 },
                                 (error) => {
-                                    spinner.close()
                                     dialogs.warning(error)
                                 }
                             )
@@ -180,16 +217,15 @@ Rectangle {
                     FolderDialog {
                         id: browseDCIMPathDialog
                         onAccepted: {
-                            root.spinner = dialogs.spinner("Changing DCIM folder path")
-                            var args = {"newPath": selectedFolder}
+                            var args = {
+                                dcimPath: selectedFolder
+                            }
                             controller.validateDCIMPath(
                                 args,
-                                (newPath) => {
-                                    dcimPathTextField.text = newPath
-                                    spinner.close()
+                                (dcimPath) => {
+                                    dcimPathTextField.text = dcimPath
                                 },
                                 (error) => {
-                                    spinner.close()
                                     dialogs.warning(error)
                                 }
                             )
@@ -246,6 +282,30 @@ Rectangle {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     text: qsTr("Create project")
+
+                    enabled: {
+                        return projectNameTextField.state !== "error" &&
+                            projectPathTextField.state !== "error" &&
+                            dcimPathTextField.text !== ""
+                    }
+
+                    onClicked: {
+                        var args = {
+                            projectName: projectNameTextField.text,
+                            projectPath: projectPathTextField.text,
+                            dcimPath: dcimPathTextField.text,
+                            dcimCopy: copyCheckbox.checked
+                        }
+                        controller.createProject(
+                            args,
+                            (projectName, projectPath, dcimPath, dcimCopy) => {
+                                console.log("projectName=" + projectName)
+                            },
+                            (error) => {
+                                dialogs.warning(error)
+                            }
+                        )
+                    }
                 }
 
             }

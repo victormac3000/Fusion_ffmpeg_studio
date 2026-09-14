@@ -31,7 +31,7 @@ ColumnLayout {
     property color hrColor: {
         if (type == "critical") return "red"
         if (type == "info") return "green"
-        if (type == "warning") return "yellow"
+        if (type == "warning") return "#efb000"
         if (type == "question") return "blue"
         if (type == "questionw") return "yellow"
         return "blue"
