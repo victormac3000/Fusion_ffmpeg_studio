@@ -577,6 +577,10 @@ QList<VolumeInfo> MyQSysInfo::mountedVolumes()
                 volumeInfo.label = mountPathCopy.replace("/Volumes/", "");
             }
 
+            if (volumeInfo.label.startsWith(".timemachine")) {
+                continue;
+            }
+
             mountedVolumes.append(volumeInfo);
         }
     }

@@ -178,6 +178,7 @@ qt_add_qml_module(FusionFFmpegStudio
     SOURCES utils/exceptions/removerexception.h
     QML_FILES qml/components/MyTextField.qml
     SOURCES utils/exceptions/newprojectexception.h
+    QML_FILES
 )
 
 set_target_properties(FusionFFmpegStudio PROPERTIES

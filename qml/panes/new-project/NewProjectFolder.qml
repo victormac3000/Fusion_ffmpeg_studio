@@ -40,7 +40,7 @@ Rectangle {
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
-                text: qsTr("SELECT THE PROJECT FOLDER")
+                text: qsTr("CREATE PROJECT")
                 font.pointSize: 16 * constants.fontSizeScale
             }
         }
@@ -98,6 +98,7 @@ Rectangle {
                     }
                 }
             }
+
             RowLayout {
                 Layout.fillHeight: true
                 Layout.fillWidth: true
@@ -181,11 +182,49 @@ Rectangle {
                 }
             }
 
+            RowLayout {
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+                Layout.maximumHeight: 30
+
+                Text {
+                    Layout.maximumWidth: 150
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: 150
+                    text: "PROJECT SOURCE"
+                }
+
+                TabBar {
+                    id: sourceTabBar
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 30
+
+                    background: Rectangle {
+                        color: parent.palette.window
+                    }
+
+                    TabButton {
+                        text: "FROM SD CARDS"
+                        padding: 0
+                        implicitHeight: parent.height
+                        implicitWidth: parent.width/2
+                    }
+
+                    TabButton {
+                        text: "FROM DCIM FOLDER"
+                        padding: 0
+                        implicitHeight: parent.height
+                        implicitWidth: parent.width/2
+                    }
+                }
+            }
 
             RowLayout {
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 Layout.maximumHeight: 30
+                visible: sourceTabBar.currentIndex === 1
 
                 Text {
                     Layout.maximumWidth: 150
@@ -234,26 +273,120 @@ Rectangle {
                 }
             }
 
-            CheckBox {
-                id: copyCheckbox
+            RowLayout {
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 Layout.maximumHeight: 30
-                text: "Copy videos into the project"
-                checked: true
-                onToggled: {
-                    if (!checked) {
-                        checked = true
-                        dialogs.questionw(
-                            "Remember that the project will require the source files are not moved.\n" +
-                            "If you move the files the project won't work anymore",
-                            "Copy videos",
-                            (res) => {
-                                if (res["button"] === "YES") {
-                                    copyCheckbox.checked = false
+                visible: sourceTabBar.currentIndex === 1
+
+                CheckBox {
+                    id: copyCheckbox
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    Layout.maximumHeight: 30
+                    text: "Copy videos into the project"
+                    checked: true
+                    onToggled: {
+                        if (!checked) {
+                            checked = true
+                            dialogs.questionw(
+                                "Remember that the project will require the source files are not moved.\n" +
+                                "If you move the files the project won't work anymore",
+                                "Copy videos",
+                                (res) => {
+                                    if (res["button"] === "YES") {
+                                        copyCheckbox.checked = false
+                                    }
                                 }
+                            )
+                        }
+                    }
+                }
+            }
+
+
+            RowLayout {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.maximumHeight: 30
+                visible: sourceTabBar.currentIndex === 0
+
+                Text {
+                    Layout.maximumWidth: 150
+                    Layout.minimumWidth: 150
+                    Layout.fillWidth: true
+                    text: "FRONT SD CARD"
+                }
+
+                MyComboBox {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+
+                    Component.onCompleted: {
+                        var externalVolumes = controller.getExternalVolumes()
+
+                        externalVolumes.forEach(function (volumeInfo) {
+                            var text = volumeInfo["label"]
+                                    + " (" + volumeInfo["mountPath"] + ") "
+                                    + "[" + volumeInfo["deviceName"] + "]"
+
+                            var item = {
+                                text: text,
+                                backgroundColor: "white",
+                                textColor: "black"
                             }
-                        )
+
+                            if (volumeInfo["frontCandidate"]) {
+                                item.backgroundColor = "green"
+                                item.textColor = "black"
+                            }
+
+                            model.append(item)
+                        })
+                    }
+                }
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.maximumHeight: 30
+                visible: sourceTabBar.currentIndex === 0
+
+                Text {
+                    Layout.maximumWidth: 150
+                    Layout.minimumWidth: 150
+                    Layout.fillWidth: true
+                    text: "BACK SD CARD"
+                }
+
+                MyComboBox {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+
+                    defaultFirst: false
+
+                    Component.onCompleted: {
+                        var externalVolumes = controller.getExternalVolumes()
+
+                        externalVolumes.forEach(function (volumeInfo) {
+                            var text = volumeInfo["label"]
+                                    + " (" + volumeInfo["mountPath"] + ") "
+                                    + "[" + volumeInfo["deviceName"] + "]"
+
+                            var item = {
+                                text: text,
+                                backgroundColor: "white",
+                                textColor: "black"
+                            }
+
+                            if (volumeInfo["backCandidate"]) {
+                                item.backgroundColor = "green"
+                                item.textColor = "black"
+                            }
+
+                            model.append(item)
+                        })
                     }
                 }
             }
@@ -268,6 +401,7 @@ Rectangle {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 Layout.maximumHeight: 30
+                Layout.minimumHeight: 30
 
                 MyButton {
                     Layout.fillWidth: true

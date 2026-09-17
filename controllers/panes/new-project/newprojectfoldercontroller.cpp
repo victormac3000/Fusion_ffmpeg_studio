@@ -1,6 +1,7 @@
 #include "newprojectfoldercontroller.h"
 #include "utils/settings.h"
 #include "utils/toolbox.h"
+#include "utils/myqsysinfo.h"
 #include "utils/exceptions/newprojectexception.h"
 
 #include <QUrl>
@@ -19,6 +20,38 @@ QString NewProjectFolderController::getDefaultProjectName()
 QString NewProjectFolderController::getDefaultProjectPath()
 {
     return Settings::getDefaultProjectPath();
+}
+
+QVariantList NewProjectFolderController::getExternalVolumes()
+{
+    QList<VolumeInfo> mountedVolumes = MyQSysInfo::mountedVolumes();
+    QVariantList externalVolumesNames = {};
+    for (VolumeInfo& volumeInfo: mountedVolumes) {
+        QVariantMap volumeInfoMap = {
+            {"label", volumeInfo.label},
+            {"mountPath", volumeInfo.mountPath},
+            {"deviceName", volumeInfo.deviceName},
+            {"fileSystemType", volumeInfo.fileSystemType},
+            {"isExternal", volumeInfo.isExternal},
+        };
+
+        if (QDir(volumeInfo.mountPath).exists("DCIM/100GFRNT")) {
+            volumeInfoMap.insert("frontCandidate", true);
+        }
+
+        if (QDir(volumeInfo.mountPath).exists("DCIM/100GBACK")) {
+            volumeInfoMap.insert("backCandidate", true);
+        }
+
+        #ifdef QT_DEBUG
+        externalVolumesNames.append(volumeInfoMap);
+        #else
+        if (volumeInfo.isExternal) {
+            externalVolumesNames.append(volumeInfo.label);
+        }
+        #endif
+    }
+    return externalVolumesNames;
 }
 
 void NewProjectFolderController::validateProjectName(const QJSValue &args, const QJSValue &outputCallback, const QJSValue &errorCallback)
@@ -73,7 +106,7 @@ void NewProjectFolderController::validateProjectName(const QJSValue &args, const
                 QJSValue(result.value("mergedPath").toString()),
             });
         }
-        );
+    );
 }
 
 void NewProjectFolderController::generateProjectPath(const QJSValue &args,

@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts
+import QtQuick.Dialogs
 
 import FusionFFmpegStudio
 
@@ -43,10 +44,31 @@ Rectangle {
             Layout.margins: 5
 
             MyTextField {
+                id: projectNameTextField
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 placeholderText: qsTr("Project name")
                 placeholderTextColor: "grey"
+                text: controller.getDefaultProjectName()
+
+                onTextChanged: {
+                    var args = {
+                        projectName: projectNameTextField.text,
+                        projectPath: projectPathTextField.basePath
+                    }
+                    controller.validateProjectName(args,
+                        (mergedPath) => {
+                            state = "normal"
+                            errorText = ""
+                            projectPathTextField.text = mergedPath
+                        },
+                        (error) => {
+                            state = "error"
+                            errorText = error
+                            projectPathTextField.text = projectPathTextField.basePath
+                        }
+                    )
+                }
             }
         }
 
@@ -58,11 +80,40 @@ Rectangle {
             Layout.margins: 5
 
             MyTextField {
+                id: projectPathTextField
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 placeholderText: qsTr("Project path")
                 placeholderTextColor: "grey"
                 readOnly: true
+
+                property string basePath: controller.getDefaultProjectPath()
+
+                onTextChanged: {
+                    if (basePath === text) {
+                        state = "normal"
+                        return
+                    }
+                    var args = {
+                        projectBasePath: basePath,
+                        projectName: projectNameTextField.text
+                    }
+                    controller.validateProjectPath(
+                        args,
+                        (pathDiffersName) => {
+                            if (pathDiffersName) {
+                                warningText = "Path changed to avoid duplicate folder"
+                                state = "warning"
+                            } else {
+                                state = "normal"
+                            }
+                        },
+                        (error) => {
+                            errorText = error
+                            state = "error"
+                        }
+                    )
+                }
             }
 
             MyButton {
@@ -71,6 +122,30 @@ Rectangle {
                 Layout.minimumWidth: 30
                 Layout.maximumHeight: 30
                 text: qsTr("Browse")
+
+                onClicked: {
+                    browseProjectPathDialog.open()
+                }
+
+                FolderDialog {
+                    id: browseProjectPathDialog
+                    onAccepted: {
+                        var args = {
+                            projectName: projectNameTextField.text,
+                            selectedFolder: selectedFolder
+                        }
+                        controller.generateProjectPath(
+                            args,
+                            (newBaseFolder, newProjectPath) => {
+                                projectPathTextField.basePath = newBaseFolder
+                                projectPathTextField.text = newProjectPath
+                            },
+                            (error) => {
+                                dialogs.warning(error)
+                            }
+                        )
+                    }
+                }
             }
         }
 
@@ -194,6 +269,7 @@ Rectangle {
                     }
                 }
             }
+
         }
 
 

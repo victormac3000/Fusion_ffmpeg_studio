@@ -1,8 +1,6 @@
 #ifndef NEWPROJECTFOLDERCONTROLLER_H
 #define NEWPROJECTFOLDERCONTROLLER_H
 
-#include <QObject>
-
 #include "controllers/basecontroller.h"
 
 class NewProjectFolderController : public BaseController
@@ -13,6 +11,8 @@ public:
 
     Q_INVOKABLE QString getDefaultProjectName();
     Q_INVOKABLE QString getDefaultProjectPath();
+    Q_INVOKABLE QVariantList getExternalVolumes();
+
     Q_INVOKABLE void validateProjectName(const QJSValue& args,
                                          const QJSValue& outputCallback,
                                          const QJSValue& errorCallback);
