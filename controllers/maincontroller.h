@@ -12,7 +12,8 @@ public:
     enum class Pane {
         Welcome,
         LoadProject,
-        NewProject
+        NewProject,
+        Loading
     };
     Q_ENUM(Pane)
 

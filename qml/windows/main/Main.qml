@@ -24,13 +24,13 @@ Window {
     Connections {
         target: mainController
 
-        function onNavigateTo(pane) {
+        function onNavigateTo(pane, attributes) {
             let paneUrl = mainController.paneToUrl(pane)
             if (paneUrl === "") {
                 console.error("Unknown pane: " + pane)
                 return
             }
-            stack.push(paneUrl)
+            stack.push(paneUrl, attributes)
         }
 
         function onAddWindow(window, modal) {

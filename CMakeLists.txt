@@ -66,7 +66,7 @@ set(SOURCES
     utils/worker.cpp
     controllers/maincontroller.cpp
     controllers/panes/welcomecontroller.cpp
-    controllers/panes/new-project/newprojectcontroller.cpp
+    controllers/panes/newprojectcontroller.cpp
 
 
 )
@@ -101,7 +101,7 @@ set(HEADERS
     utils/worker.h
     controllers/maincontroller.h
     controllers/panes/welcomecontroller.h
-    controllers/panes/new-project/newprojectcontroller.h
+    controllers/panes/newprojectcontroller.h
 
 
 )
@@ -138,7 +138,7 @@ set(QML_FILES
     qml/windows/preferences/PreferencesGeneral.qml
     qml/windows/preferences/PreferencesRendering.qml
     qml/panes/Welcome.qml
-    qml/panes/new-project/NewProject.qml
+    qml/panes/NewProject.qml
 
 
 )

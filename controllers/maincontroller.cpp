@@ -24,6 +24,9 @@ QString MainController::paneToUrl(Pane pane) const
 
         case Pane::NewProject:
             return baseUrl + "/new-project/NewProject.qml";
+
+        case Pane::Loading:
+            return baseUrl + "/Loading.qml";
     }
 
     return "";
