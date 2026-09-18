@@ -3,8 +3,6 @@
 
 #include "controllers/maincontroller.h"
 #include "controllers/panes/new-project/newprojectcontroller.h"
-#include "controllers/panes/new-project/newprojectsdcontroller.h"
-#include "controllers/panes/new-project/newprojectfoldercontroller.h"
 #include "controllers/panes/welcomecontroller.h"
 #include "controllers/windows/aboutcontroller.h"
 #include "controllers/windows/preferencescontroller.h"
@@ -40,8 +38,6 @@ int main(int argc, char *argv[])
     );
 
     qmlRegisterType<NewProjectController>("FusionFFmpegStudio", 1, 0, "NewProjectController");
-    qmlRegisterType<NewProjectFolderController>("FusionFFmpegStudio", 1, 0, "NewProjectFolderController");
-    qmlRegisterType<NewProjectSdController>("FusionFFmpegStudio", 1, 0, "NewProjectSdController");
     qmlRegisterType<WelcomeController>("FusionFFmpegStudio", 1, 0, "WelcomeController");
     qmlRegisterType<AboutController>("FusionFFmpegStudio", 1, 0, "AboutController");
     qmlRegisterType<PreferencesController>("FusionFFmpegStudio", 1, 0, "PreferencesController");

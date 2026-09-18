@@ -12,9 +12,7 @@ public:
     enum class Pane {
         Welcome,
         LoadProject,
-        NewProject,
-        NewProjectFolder,
-        NewProjectSd
+        NewProject
     };
     Q_ENUM(Pane)
 
