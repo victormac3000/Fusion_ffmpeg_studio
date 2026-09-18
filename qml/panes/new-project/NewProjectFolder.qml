@@ -86,12 +86,11 @@ Rectangle {
                         controller.validateProjectName(args,
                             (mergedPath) => {
                                 state = "normal"
-                                errorText = ""
                                 projectPathTextField.text = mergedPath
                             },
                             (error) => {
                                 state = "error"
-                                errorText = error
+                                stateText = error
                                 projectPathTextField.text = projectPathTextField.basePath
                             }
                         )
@@ -135,14 +134,14 @@ Rectangle {
                             args,
                             (pathDiffersName) => {
                                 if (pathDiffersName) {
-                                    warningText = "Path changed to avoid duplicate folder"
+                                    stateText = "Path changed to avoid duplicate folder"
                                     state = "warning"
                                 } else {
                                     state = "normal"
                                 }
                             },
                             (error) => {
-                                errorText = error
+                                stateText = error
                                 state = "error"
                             }
                         )
@@ -319,10 +318,26 @@ Rectangle {
                 }
 
                 MyComboBox {
+                    id: frontSDComboBox
                     Layout.fillWidth: true
                     Layout.fillHeight: true
+                    placeholderText: "-Select SD card that contains the front source files-"
 
-                    Component.onCompleted: {
+                    onCurrentIndexChanged: {
+                        var item = model.get(currentIndex)
+                        if (!item) return
+                        if (item.frontCandidate) {
+                            state = "normal"
+                        } else {
+                            stateText = "GoPro front SD source files not found on this device"
+                            state = "error"
+                        }
+                    }
+
+                    function reload() {
+                        state = "normal"
+                        model.clear()
+
                         var externalVolumes = controller.getExternalVolumes()
 
                         externalVolumes.forEach(function (volumeInfo) {
@@ -330,20 +345,30 @@ Rectangle {
                                     + " (" + volumeInfo["mountPath"] + ") "
                                     + "[" + volumeInfo["deviceName"] + "]"
 
-                            var item = {
+                            var candidate = volumeInfo["frontCandidate"] === true
+
+                            model.append({
                                 text: text,
-                                backgroundColor: "white",
-                                textColor: "black"
-                            }
+                                frontCandidate: candidate
+                            })
 
-                            if (volumeInfo["frontCandidate"]) {
-                                item.backgroundColor = "green"
-                                item.textColor = "black"
+                            if (candidate) {
+                                currentIndex = model.count - 1
                             }
-
-                            model.append(item)
                         })
                     }
+
+                    Component.onCompleted: reload()
+                }
+
+                MyButton {
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: 100
+                    Layout.minimumWidth: 100
+                    text: qsTr("Refresh")
+
+                    onClicked: frontSDComboBox.reload()
                 }
             }
 
@@ -361,12 +386,26 @@ Rectangle {
                 }
 
                 MyComboBox {
+                    id: backSDComboBox
                     Layout.fillWidth: true
                     Layout.fillHeight: true
+                    placeholderText: "-Select SD card that contains the front back files-"
 
-                    defaultFirst: false
+                    onCurrentIndexChanged: {
+                        var item = model.get(currentIndex)
+                        if (!item) return
+                        if (item.backCandidate) {
+                            state = "normal"
+                        } else {
+                            stateText = "GoPro front SD back files not found on this device"
+                            state = "error"
+                        }
+                    }
 
-                    Component.onCompleted: {
+                    function reload() {
+                        state = "normal"
+                        model.clear()
+
                         var externalVolumes = controller.getExternalVolumes()
 
                         externalVolumes.forEach(function (volumeInfo) {
@@ -374,20 +413,30 @@ Rectangle {
                                     + " (" + volumeInfo["mountPath"] + ") "
                                     + "[" + volumeInfo["deviceName"] + "]"
 
-                            var item = {
+                            var candidate = volumeInfo["backCandidate"] === true
+
+                            model.append({
                                 text: text,
-                                backgroundColor: "white",
-                                textColor: "black"
-                            }
+                                backCandidate: candidate
+                            })
 
-                            if (volumeInfo["backCandidate"]) {
-                                item.backgroundColor = "green"
-                                item.textColor = "black"
+                            if (candidate) {
+                                currentIndex = model.count - 1
                             }
-
-                            model.append(item)
                         })
                     }
+
+                    Component.onCompleted: reload()
+                }
+
+                MyButton {
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: 100
+                    Layout.minimumWidth: 100
+                    text: qsTr("Refresh")
+
+                    onClicked: backSDComboBox.reload()
                 }
             }
 
@@ -418,9 +467,23 @@ Rectangle {
                     text: qsTr("Create project")
 
                     enabled: {
-                        return projectNameTextField.state !== "error" &&
-                            projectPathTextField.state !== "error" &&
-                            dcimPathTextField.text !== ""
+                        var ok = projectNameTextField.state !== "error" &&
+                                projectPathTextField.state !== "error"
+
+                        // Create project from DCIM folder
+                        if (sourceTabBar.currentIndex === 0) {
+                            ok &= frontSDComboBox.state !== "error" &&
+                                    frontSDComboBox.currentIndex >= 0 &&
+                                    backSDComboBox.state !== "error" &&
+                                    backSDComboBox.currentIndex >= 0
+                        }
+
+                        // Create project from SD cards
+                        if (sourceTabBar.currentIndex === 1) {
+                            ok &= dcimPathTextField.text !== ""
+                        }
+
+                        return ok
                     }
 
                     onClicked: {

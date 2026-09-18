@@ -3,42 +3,108 @@ import QtQuick.Controls 2.15
 
 ComboBox {
     id: root
-
-    property bool defaultFirst: true
-
-    // Crucial: Tells the ComboBox which model property represents the display text
+    model: ListModel{}
     textRole: "text"
 
-    model: ListModel {
-        id: listModel
-    }
+    property string placeholderText: ""
+    property string stateText: ""
+    property bool selectDefault: false
+    property bool defaultFirst: true
 
-    editText: "Henlo"
+    property color boxBackgroundColor: "white"
+    property color boxTextColor: "black"
+    property color boxTextColorPlaceholder: "grey"
+    property color selectorHighlitedBorderColor: "darkgray"
+    property color selectorBorderColor: "transparent"
+    property color selectorTextColor: "black"
+    property color selectorBackgroundColor: "white"
+    property double selectorBorderWidth: 1
 
-    background: Rectangle {
-        color: "blue"
-    }
+    state: "normal"
+    states: [
+        State {
+            name: "normal"
+            PropertyChanges {
+                target: root
+                boxBackgroundColor: "white"
+            }
+        },
+        State {
+            name: "warning"
+            PropertyChanges {
+                target: root
+                boxBackgroundColor: "#FFB500"
+            }
+        },
+        State {
+            name: "error"
+            PropertyChanges {
+                target: root
+                boxBackgroundColor: "#F5B2AF"
 
-    currentIndex: {
-        /*
-        if (model.count > 0) {
-            return defaultFirst ? 0 : model.count-1
+            }
         }
-        return -1
-        */
+    ]
+
+    onCountChanged: {
+        if (selectDefault && count > 0 && currentIndex < 0) {
+            currentIndex = defaultFirst ? 0 : count - 1
+        }
     }
 
-    // Customize the drop-down items to read your appended color properties
+    onStateChanged: {
+        if (state === "normal") {
+            stateText = ""
+        }
+    }
+
+
+    ToolTip {
+        id: tooltip
+        visible: (root.state === "error" || root.state === "warning") && root.hovered
+        text: root.stateText
+        x: (root.width - width) / 2
+        y: -height - 5
+        enabled: false
+    }
+
+    // Customizes the box when closed
+    contentItem: Rectangle {
+        color: boxBackgroundColor
+
+        Text {
+            anchors.fill: parent
+            anchors.rightMargin: 10
+            anchors.leftMargin: 10
+
+            text: {
+                if (root.currentIndex < 0 && root.placeholderText.length > 0) {
+                    return root.placeholderText
+                }
+                return root.currentText
+            }
+
+            color: {
+                if (root.currentIndex < 0 && root.placeholderText.length > 0) {
+                    return root.boxTextColorPlaceholder
+                }
+                return root.boxTextColor
+            }
+
+            elide: Text.ElideRight
+            verticalAlignment: Text.AlignVCenter
+        }
+    }
+
+    // Customize each element on box list
     delegate: ItemDelegate {
         height: 25
         width: root.width
         highlighted: root.highlightedIndex === index
 
         contentItem: Text {
-            text: model.text
-            // Read textColor from your appended JS object
-            color: model.textColor
-            font: root.font
+            text: model.text || ""
+            color: model.textColor || selectorTextColor
             elide: Text.ElideRight
             verticalAlignment: Text.AlignVCenter
         }
@@ -46,11 +112,9 @@ ComboBox {
         background: Rectangle {
             width: parent.width
             height: parent.height
-            // Read backgroundColor from your appended JS object
-            color: model.backgroundColor
-
-            // Optional: visual feedback when hovering/navigating the dropdown list
-            border.color: parent.highlighted ? "darkgray" : "transparent"
+            color: model.backgroundColor || selectorBackgroundColor
+            border.color: parent.highlighted ? selectorHighlitedBorderColor : selectorBorderColor
+            border.width: selectorBorderWidth
         }
     }
 }
