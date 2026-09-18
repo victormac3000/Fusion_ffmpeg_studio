@@ -35,6 +35,7 @@ void Worker::run()
 
 void Worker::createProject()
 {
+    /*
     project->create(loadingInfo);
 
     if (project->isValid()) {
@@ -42,10 +43,12 @@ void Worker::createProject()
     } else {
         emit loadProjectError("Could not create the project");
     }
+*/
 }
 
 void Worker::loadProject()
 {
+    /*
     project->load(loadingInfo);
 
     if (project->isValid()) {
@@ -53,4 +56,5 @@ void Worker::loadProject()
     } else {
         emit loadProjectError("Could not load the project");
     }
+*/
 }

@@ -179,6 +179,9 @@ qt_add_qml_module(FusionFFmpegStudio
     QML_FILES qml/components/MyTextField.qml
     SOURCES utils/exceptions/newprojectexception.h
     QML_FILES
+    QML_FILES qml/panes/Loading.qml
+    SOURCES controllers/panes/loadingcontroller.h controllers/panes/loadingcontroller.cpp
+    SOURCES utils/exceptions/loadingexception.h
 )
 
 set_target_properties(FusionFFmpegStudio PROPERTIES

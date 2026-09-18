@@ -19,15 +19,83 @@ Project::~Project()
     this->save();
 }
 
-void Project::moveToNewThread(QThread *newThread)
+void Project::create(LoadingInfo loadingInfo)
 {
-    this->moveToThread(newThread);
+    qDebug() << "Project thread" << QThread::currentThreadId();
+    qDebug() << loadingInfo.projectName << loadingInfo.projectPath;
+/*
+    progress.stepCount = loadingInfo.copyDCIM ? 4 : 3;
+    progress.stepID = CHECK_SOURCE_FOLDERS;
+    progress.stepNumber = 1;
+    emit loadProjectUpdate(progress);
 
-    for (FVideo* video : videos) {
-        if (video) {
-            video->moveToThread(newThread);
+    // Check that the DCIM folder is readable
+
+    if (loadingInfo.type == CREATE_PROJECT_FOLDER) {
+        if (!QFileInfo(loadingInfo.dcimPath).isReadable() ||
+            !QFileInfo(loadingInfo.dcimPath + "/100GFRNT").isReadable() ||
+            !QFileInfo(loadingInfo.dcimPath + "/100GBACK").isReadable()) {
+            qWarning() << "DCIM folder invalid, not readable" << loadingInfo.dcimPath
+                       << "The permissions on the folder are " << QFileInfo(loadingInfo.dcimPath).permissions();
+            return;
+        }
+    } else {
+        if (!QFileInfo(loadingInfo.dcimFrontPath).isReadable()) {
+            qWarning() << "front folder of sd card invalid, not readable" << loadingInfo.dcimFrontPath
+                       << "The permissions on the front folder are " << QFileInfo(loadingInfo.dcimFrontPath).permissions();
+            return;
+        }
+        if (!QFileInfo(loadingInfo.dcimBackPath).isReadable()) {
+            qWarning() << "back folder of sd card invalid, not readable" << loadingInfo.dcimBackPath
+                       << "The permissions on the back folder are " << QFileInfo(loadingInfo.dcimBackPath).permissions();
+            return;
         }
     }
+
+    // Create project folder
+
+    if (!QDir(loadingInfo.rootProjectPath).mkdir(loadingInfo.projectName)) {
+        qWarning() << "Could not create the project folder, mkdir failed on" << loadingInfo.rootProjectPath;
+        return;
+    }
+
+    progress.stepID = CREATE_PROJECT_DIRS;
+    progress.stepNumber++;
+    emit loadProjectUpdate(progress);
+
+    QDir projectFolder(loadingInfo.projectPath);
+
+    if ((!projectFolder.mkdir("DFSegments")) ||
+        (!projectFolder.mkdir("DFVideos")) ||
+        (!projectFolder.mkdir("DFLowSegments")) ||
+        (!projectFolder.mkdir("DFLowVideos")) ||
+        (!projectFolder.mkdir("EVideos")) ||
+        (!projectFolder.mkdir("ELowVideos"))) {
+        qWarning() << "Could not mkdir the project required folders in" << projectFolder.absolutePath();
+        projectFolder.removeRecursively();
+        return;
+    }
+
+    if (loadingInfo.type == CREATE_PROJECT_FOLDER) {
+        this->front = QDir(loadingInfo.dcimPath + "/100GFRNT");
+        this->back = QDir(loadingInfo.dcimPath + "/100GBACK");
+    } else {
+        this->front = QDir(loadingInfo.dcimFrontPath);
+        this->back = QDir(loadingInfo.dcimBackPath);
+    }
+
+    this->uuid = QUuid::createUuid().toString();
+    this->rootPath = loadingInfo.rootProjectPath;
+    this->path = loadingInfo.projectPath;
+    this->dcim = QFileInfo(this->front.absolutePath()).absolutePath();
+
+    if (!setupDatabase()) return;
+    if (loadingInfo.copyDCIM && !copyDCIM()) return;
+    if (!indexVideos()) return;
+    if (!this->save()) return;
+
+    this->valid = true;
+*/
 }
 
 bool Project::isValid()
@@ -486,81 +554,6 @@ void Project::load(LoadingInfo loadingInfo)
     this->valid = true;
 
     */
-}
-
-void Project::create(LoadingInfo loadingInfo)
-{
-    progress.stepCount = loadingInfo.copyDCIM ? 4 : 3;
-    progress.stepID = CHECK_SOURCE_FOLDERS;
-    progress.stepNumber = 1;
-    emit loadProjectUpdate(progress);
-
-    // Check that the DCIM folder is readable
-
-    if (loadingInfo.type == CREATE_PROJECT_FOLDER) {
-        if (!QFileInfo(loadingInfo.dcimPath).isReadable() ||
-            !QFileInfo(loadingInfo.dcimPath + "/100GFRNT").isReadable() ||
-            !QFileInfo(loadingInfo.dcimPath + "/100GBACK").isReadable()) {
-            qWarning() << "DCIM folder invalid, not readable" << loadingInfo.dcimPath
-                       << "The permissions on the folder are " << QFileInfo(loadingInfo.dcimPath).permissions();
-            return;
-        }
-    } else {
-        if (!QFileInfo(loadingInfo.dcimFrontPath).isReadable()) {
-            qWarning() << "front folder of sd card invalid, not readable" << loadingInfo.dcimFrontPath
-                       << "The permissions on the front folder are " << QFileInfo(loadingInfo.dcimFrontPath).permissions();
-            return;
-        }
-        if (!QFileInfo(loadingInfo.dcimBackPath).isReadable()) {
-            qWarning() << "back folder of sd card invalid, not readable" << loadingInfo.dcimBackPath
-                       << "The permissions on the back folder are " << QFileInfo(loadingInfo.dcimBackPath).permissions();
-            return;
-        }
-    }
-
-    // Create project folder
-
-    if (!QDir(loadingInfo.rootProjectPath).mkdir(loadingInfo.projectName)) {
-        qWarning() << "Could not create the project folder, mkdir failed on" << loadingInfo.rootProjectPath;
-        return;
-    }
-
-    progress.stepID = CREATE_PROJECT_DIRS;
-    progress.stepNumber++;
-    emit loadProjectUpdate(progress);
-
-    QDir projectFolder(loadingInfo.projectPath);
-
-    if ((!projectFolder.mkdir("DFSegments")) ||
-        (!projectFolder.mkdir("DFVideos")) ||
-        (!projectFolder.mkdir("DFLowSegments")) ||
-        (!projectFolder.mkdir("DFLowVideos")) ||
-        (!projectFolder.mkdir("EVideos")) ||
-        (!projectFolder.mkdir("ELowVideos"))) {
-        qWarning() << "Could not mkdir the project required folders in" << projectFolder.absolutePath();
-        projectFolder.removeRecursively();
-        return;
-    }
-
-    if (loadingInfo.type == CREATE_PROJECT_FOLDER) {
-        this->front = QDir(loadingInfo.dcimPath + "/100GFRNT");
-        this->back = QDir(loadingInfo.dcimPath + "/100GBACK");
-    } else {
-        this->front = QDir(loadingInfo.dcimFrontPath);
-        this->back = QDir(loadingInfo.dcimBackPath);
-    }
-
-    this->uuid = QUuid::createUuid().toString();
-    this->rootPath = loadingInfo.rootProjectPath;
-    this->path = loadingInfo.projectPath;
-    this->dcim = QFileInfo(this->front.absolutePath()).absolutePath();
-
-    if (!setupDatabase()) return;
-    if (loadingInfo.copyDCIM && !copyDCIM()) return;
-    if (!indexVideos()) return;
-    if (!this->save()) return;
-
-    this->valid = true;
 }
 
 bool Project::setupDatabase()

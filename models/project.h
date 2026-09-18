@@ -30,9 +30,6 @@ public:
     bool isValid();
     QStringList getErrors();
     QStringList getWarnings();
-    void moveToNewThread(QThread* newThread);
-    void load(LoadingInfo loadingInfo);
-    void create(LoadingInfo loadingInfo);
     QDir getDcim();
     void setDcim(QString newDcim);
     QString getVersion();
@@ -46,6 +43,9 @@ public:
 signals:
     void loadProjectUpdate(LoadingProgress progress);
 
+protected slots:
+    void create(LoadingInfo loadingInfo);
+    void load(LoadingInfo loadingInfo);
 
 private:
     bool valid = false;

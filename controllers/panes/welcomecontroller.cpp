@@ -10,7 +10,7 @@ WelcomeController::WelcomeController(QObject *parent)
 
 void WelcomeController::onLoadProjectClicked()
 {
-    m_appController->navigateToM(MainController::Pane::LoadProject);
+    qDebug() << "Not yet implemented";
 }
 
 void WelcomeController::onNewProjectClicked()

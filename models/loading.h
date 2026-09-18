@@ -2,6 +2,7 @@
 #define LOADING_H
 
 #include <QString>
+#include <QtCore/qobject.h>
 
 enum {
     CREATE_PROJECT_FOLDER,
@@ -23,6 +24,7 @@ struct LoadingInfo {
     QString projectName;        // Only used on create type
     QString dcimPath;
     QString dcimFrontPath, dcimBackPath;
+    QString frontVolumePath, backVolumePath;
     bool copyDCIM = false;
 };
 

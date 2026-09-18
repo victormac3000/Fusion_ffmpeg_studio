@@ -2,11 +2,51 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 
+import FusionFFmpegStudio
+
 Rectangle {
-    id: loadingPaneRectangle
-    width: 600
-    height: 400
+    id: root
     color: "lightblue"
+
+    required property string operation
+    property string projectName
+    property string projectPath
+    property string frontPath
+    property string backPath
+    property string dcimPath
+    property bool dcimCopy
+
+    LoadingController {
+        id: controller
+        appController: mainController
+    }
+
+    Dialogs {
+        id: dialogs
+    }
+
+    Component.onCompleted: {
+        var args = {
+            operation: operation,
+            projectName: projectName,
+            projectPath: projectPath,
+            frontPath: frontPath,
+            backPath: backPath,
+            dcimPath: dcimPath,
+            dcimCopy: dcimCopy
+        }
+        controller.startLoading(
+            args,
+            () => {
+                console.log("Project loaded ok")
+            },
+            (error) => {
+                dialogs.warning(error, "Loading error", () => {
+                    mainController.back()
+                })
+            }
+        )
+    }
 
     ColumnLayout {
         anchors.fill: parent
@@ -15,7 +55,7 @@ Rectangle {
             Layout.fillHeight: true
             Layout.fillWidth: true
             Layout.maximumHeight: parent.height*0.8
-            source: "Images/Snow.jpg"
+            source: "qrc:/images/Snow.jpg"
         }
 
         GridLayout {

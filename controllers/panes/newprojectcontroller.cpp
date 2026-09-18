@@ -106,7 +106,7 @@ void NewProjectController::validateProjectName(const QJSValue &args, const QJSVa
                 QJSValue(result.value("mergedPath").toString()),
             });
         }
-        );
+    );
 }
 
 void NewProjectController::generateProjectPath(const QJSValue &args,
@@ -235,29 +235,16 @@ void NewProjectController::createProject(const QJSValue &args, const QJSValue &o
     this->task(
         args, outputCallback, errorCallback,
         [](const QVariantMap &args) {
-            QString projectName = args.value("projectName").toString();
-            QString projectPath = args.value("projectPath").toString();
-            QString dcimPath = args.value("dcimPath").toString();
-            bool dcimCopy = args.value("dcimCopy").toBool();
-
-            return QVariantMap{
-                {"projectName", projectName},
-                {"projectPath", projectPath},
-                {"dcimPath", dcimPath},
-                {"dcimCopy", dcimCopy}
-            };
+            qDebug() << args;
+            return args;
         },
-        [](const QVariantMap &result,
+        [this](const QVariantMap &result,
            const QJSValue &outputCallback) {
+            m_appController->navigateToM(MainController::Pane::Loading, result);
 
-            outputCallback.call({
-                QJSValue(result.value("projectName").toString()),
-                QJSValue(result.value("projectPath").toString()),
-                QJSValue(result.value("dcimPath").toString()),
-                QJSValue(result.value("dcimCopy").toBool())
-            });
+            outputCallback.call({});
         }
-        );
+    );
 }
 
 QPair<QString,QString> NewProjectController::generateProjectNamePath(QString name, QString basePath)

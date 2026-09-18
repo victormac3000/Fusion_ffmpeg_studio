@@ -7,7 +7,16 @@
 MainController::MainController(QObject *parent)
     : QObject{parent}
 {
+    this->project = new Project();
+    this->project->moveToThread(&projectThread);
+    projectThread.start();
+}
 
+MainController::~MainController()
+{
+    projectThread.quit();
+    projectThread.wait();
+    delete project;
 }
 
 QString MainController::paneToUrl(Pane pane) const
@@ -17,13 +26,10 @@ QString MainController::paneToUrl(Pane pane) const
     switch (pane)
     {
         case Pane::Welcome:
-            return baseUrl + "/welcome/Welcome.qml";
-
-        case Pane::LoadProject:
-            return baseUrl + "/loadproject/LoadProject.qml";
+            return baseUrl + "/Welcome.qml";
 
         case Pane::NewProject:
-            return baseUrl + "/new-project/NewProject.qml";
+            return baseUrl + "/NewProject.qml";
 
         case Pane::Loading:
             return baseUrl + "/Loading.qml";
@@ -57,9 +63,9 @@ void MainController::stopApp()
     QGuiApplication::exit(1);
 }
 
-void MainController::navigateToM(Pane pane)
+void MainController::navigateToM(Pane pane,  const QVariantMap &attributes)
 {
-    emit navigateTo(pane);
+    emit navigateTo(pane, attributes);
 }
 
 void MainController::addWindowM(Window window, bool modal)
@@ -70,4 +76,9 @@ void MainController::addWindowM(Window window, bool modal)
 void MainController::backM()
 {
 
+}
+
+Project* MainController::getProject()
+{
+    return this->project;
 }

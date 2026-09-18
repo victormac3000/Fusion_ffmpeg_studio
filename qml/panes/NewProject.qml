@@ -10,7 +10,6 @@ Rectangle {
     color: "#69ff00"
 
     property int generalMargin: 10
-    property var spinner
 
     NewProjectController {
         id: controller
@@ -349,7 +348,8 @@ Rectangle {
 
                             model.append({
                                 text: text,
-                                frontCandidate: candidate
+                                frontCandidate: candidate,
+                                volumeInfo: volumeInfo
                             })
 
                             if (candidate) {
@@ -417,7 +417,8 @@ Rectangle {
 
                             model.append({
                                 text: text,
-                                backCandidate: candidate
+                                backCandidate: candidate,
+                                volumeInfo: volumeInfo
                             })
 
                             if (candidate) {
@@ -489,15 +490,24 @@ Rectangle {
                     onClicked: {
                         var args = {
                             projectName: projectNameTextField.text,
-                            projectPath: projectPathTextField.text,
-                            dcimPath: dcimPathTextField.text,
-                            dcimCopy: copyCheckbox.checked
+                            projectPath: projectPathTextField.text
                         }
+
+                        if (sourceTabBar.currentIndex === 0) {
+                            args.operation = "CREATE_PROJECT_SD"
+                            args.frontPath = frontSDComboBox.model.get(frontSDComboBox.currentIndex).volumeInfo["mountPath"]
+                            args.backPath = backSDComboBox.model.get(backSDComboBox.currentIndex).volumeInfo["mountPath"]
+                        }
+
+                        if (sourceTabBar.currentIndex === 1) {
+                            args.operation = "CREATE_PROJECT_DCIM"
+                            args.dcimPath = dcimPathTextField.text
+                            args.dcimCopy = copyCheckbox.checked
+                        }
+
                         controller.createProject(
                             args,
-                            (projectName, projectPath, dcimPath, dcimCopy) => {
-                                console.log("projectName=" + projectName)
-                            },
+                            () => {},
                             (error) => {
                                 dialogs.warning(error)
                             }
