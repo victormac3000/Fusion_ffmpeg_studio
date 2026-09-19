@@ -22,6 +22,8 @@ Project::~Project()
 void Project::create(LoadingInfo loadingInfo)
 {
     qDebug() << "Project thread" << QThread::currentThreadId();
+
+
     qDebug() << loadingInfo.projectName << loadingInfo.projectPath;
 /*
     progress.stepCount = loadingInfo.copyDCIM ? 4 : 3;
@@ -644,7 +646,7 @@ bool Project::copyDCIM()
     progress.copy.fileCount = frontFiles.length() + backFiles.length();
 
     int i=0;
-    for (const QFileInfo &frontFileInfo: frontFiles) {
+    for (QFileInfo& frontFileInfo: frontFiles) {
         progress.copy.currentFile.name = frontFileInfo.fileName();
         progress.copy.currentFile.bytesCount = frontFileInfo.size();
         progress.copy.fileNumber = i+1;
@@ -663,7 +665,7 @@ bool Project::copyDCIM()
     }
 
     i=progress.copy.fileNumber;
-    for (const QFileInfo &backFileInfo: backFiles) {
+    for (QFileInfo& backFileInfo: backFiles) {
         progress.copy.currentFile.name = backFileInfo.fileName();
         progress.copy.currentFile.bytesCount = backFileInfo.size();
         progress.copy.fileNumber = i+1;
@@ -723,7 +725,7 @@ bool Project::indexVideos()
     progress.stepNumber++;
     emit loadProjectUpdate(progress);
 
-    for (const QFileInfo &mainFrontSegment: mainFrontSegments) {
+    for (QFileInfo& mainFrontSegment: mainFrontSegments) {
         bool isNumber = false;
 
         int vid = QStringView(mainFrontSegment.fileName()).mid(4,4).toInt(&isNumber);
@@ -763,7 +765,7 @@ bool Project::indexVideos()
         QFileInfoList mainSecSegments = front.entryInfoList(QDir::Files);
 
         bool secSegmentsOk = true;
-        for (const QFileInfo &mainSecSegment: mainSecSegments) {
+        for (QFileInfo& mainSecSegment: mainSecSegments) {
             bool isNumber = false;
             int segId = QStringView(mainSecSegment.fileName()).mid(2,2).toInt(&isNumber);
             if (!isNumber) {
