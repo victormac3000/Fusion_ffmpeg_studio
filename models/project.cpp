@@ -23,13 +23,12 @@ void Project::create(LoadingInfo loadingInfo)
 {
     qDebug() << "Project thread" << QThread::currentThreadId();
 
-
-    qDebug() << loadingInfo.projectName << loadingInfo.projectPath;
-/*
-    progress.stepCount = loadingInfo.copyDCIM ? 4 : 3;
     progress.stepID = CHECK_SOURCE_FOLDERS;
+    progress.stepCount = loadingInfo.copyDCIM ? 4 : 3;
     progress.stepNumber = 1;
     emit loadProjectUpdate(progress);
+
+    /*
 
     // Check that the DCIM folder is readable
 

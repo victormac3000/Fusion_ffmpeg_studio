@@ -13,6 +13,9 @@ void LoadingController::startLoading(const QJSValue& args,
 {
     project = m_appController->getProject();
 
+    connect(m_appController, &MainController::loadProjectError,
+            this, &LoadingController::onLoadProjectError);
+
     this->task(
         args, outputCallback, errorCallback,
         [](const QVariantMap &args) {
@@ -68,4 +71,9 @@ void LoadingController::startLoading(const QJSValue& args,
             outputCallback.call({});
         }
     );
+}
+
+void LoadingController::onLoadProjectError(LoadingError error)
+{
+    qDebug() << "ERROR" << error.message;
 }

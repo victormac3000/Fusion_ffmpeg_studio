@@ -1,5 +1,43 @@
 #include "myqsysinfo.h"
 
+#include <QSysInfo>
+#include <QStringList>
+#include <QDebug>
+#include <QCryptographicHash>
+#include <QFileInfo>
+#include <QFile>
+#include <QDir>
+#include <QElapsedTimer>
+
+#ifdef Q_OS_LINUX
+#include <fstream>
+#include <mntent.h>
+#include <sys/stat.h>
+#include <sys/statvfs.h>
+#include <unistd.h>
+#endif
+
+#ifdef Q_OS_MAC
+#include <sys/types.h>
+#include <sys/sysctl.h>
+#include <sys/mount.h>
+#include <DiskArbitration/DiskArbitration.h>
+#include <CoreFoundation/CoreFoundation.h>
+#endif
+
+#ifdef Q_OS_WIN
+#include <windows.h>
+#include <dxgi.h>
+#include <comdef.h>
+#include <Wbemidl.h>
+#include <setupapi.h>
+#include <devguid.h>
+#include <tchar.h>
+#pragma comment(lib, "dxgi.lib")
+#pragma comment(lib, "wbemuuid.lib")
+#pragma comment(lib, "Setupapi.lib")
+#endif
+
 QString MyQSysInfo::cpuName()
 {
     QString cpuName = "Unknown CPU";
@@ -584,6 +622,274 @@ QList<VolumeInfo> MyQSysInfo::mountedVolumes()
             mountedVolumes.append(volumeInfo);
         }
     }
+    #endif
+
+    #ifdef Q_OS_LINUX
+    FILE *mountsFile = setmntent("/proc/self/mounts", "r");
+
+    if (!mountsFile) {
+        qWarning() << "Failed to open /proc/self/mounts";
+        return mountedVolumes;
+    }
+
+    struct mntent *mountEntry;
+
+    while ((mountEntry = getmntent(mountsFile)) != nullptr) {
+        const QString mountPath = QString::fromLocal8Bit(mountEntry->mnt_dir);
+        const QString deviceName = QString::fromLocal8Bit(mountEntry->mnt_fsname);
+        const QString fsType = QString::fromLocal8Bit(mountEntry->mnt_type);
+
+        /*
+     * Ignore virtual/system filesystems.
+     */
+        static const QSet<QString> ignoredFileSystems = {
+            "proc",
+            "sysfs",
+            "devtmpfs",
+            "devpts",
+            "tmpfs",
+            "cgroup",
+            "cgroup2",
+            "pstore",
+            "bpf",
+            "debugfs",
+            "tracefs",
+            "securityfs",
+            "configfs",
+            "fusectl",
+            "mqueue",
+            "hugetlbfs",
+            "rpc_pipefs",
+            "autofs",
+            "overlay",
+            "squashfs"
+        };
+
+        if (ignoredFileSystems.contains(fsType)) {
+            continue;
+        }
+
+        /*
+     * Ignore pseudo devices and kernel-generated mounts.
+     */
+        if (deviceName == "none" ||
+            deviceName == "proc" ||
+            deviceName == "sysfs" ||
+            deviceName == "tmpfs") {
+            continue;
+        }
+
+        /*
+     * We are interested in actual mounted volumes, not
+     * kernel/internal mount points.
+     */
+        if (!mountPath.startsWith("/media/") &&
+            !mountPath.startsWith("/mnt/") &&
+            mountPath != "/" &&
+            !mountPath.startsWith("/run/media/") &&
+            deviceName.startsWith("/dev/")) {
+
+            // Keep normal local mounts such as /home if they are
+            // backed by a real block device.
+        }
+
+        VolumeInfo volumeInfo;
+
+        volumeInfo.mountPath = mountPath;
+        volumeInfo.deviceName = deviceName;
+        volumeInfo.fileSystemType = fsType;
+        volumeInfo.label = QFileInfo(mountPath).fileName();
+
+        /*
+     * Try to obtain the filesystem label from /dev.
+     *
+     * We deliberately don't invoke blkid or any other command.
+     *
+     * /dev/disk/by-label contains symlinks to devices with labels.
+     */
+        QDir labelDir("/dev/disk/by-label");
+
+        const QStringList labels = labelDir.entryList(
+            QDir::NoDotAndDotDot | QDir::System
+            );
+
+        for (const QString &label : labels) {
+            const QString labelPath = labelDir.filePath(label);
+
+            QFileInfo labelInfo(labelPath);
+
+            if (!labelInfo.exists()) {
+                continue;
+            }
+
+            const QString targetDevice = labelInfo.canonicalFilePath();
+
+            if (targetDevice == deviceName ||
+                QFileInfo(deviceName).canonicalFilePath() == targetDevice) {
+
+                volumeInfo.label = label;
+                break;
+            }
+        }
+
+        /*
+     * If no filesystem label exists, use the mount directory name.
+     *
+     * Examples:
+     *   /media/user/SD_CARD -> "SD_CARD"
+     *   /run/media/user/CAMERA -> "CAMERA"
+     */
+        if (volumeInfo.label.isEmpty() ||
+            volumeInfo.label == "/" ||
+            volumeInfo.label == mountPath) {
+
+            QString path = mountPath;
+
+            while (path.endsWith('/') && path.length() > 1) {
+                path.chop(1);
+            }
+
+            const int slashIndex = path.lastIndexOf('/');
+
+            if (slashIndex >= 0) {
+                volumeInfo.label = path.mid(slashIndex + 1);
+            }
+
+            if (volumeInfo.label.isEmpty()) {
+                volumeInfo.label = "Unknown";
+            }
+        }
+
+        /*
+     * Determine whether this device is removable.
+     *
+     * For a normal partition:
+     *
+     *   /dev/sdb1
+     *
+     * the parent block device is:
+     *
+     *   sdb
+     *
+     * We resolve the device through /sys/class/block/<device>.
+     */
+        volumeInfo.isExternal = false;
+
+        QFileInfo deviceInfo(deviceName);
+
+        if (deviceInfo.exists()) {
+            const QString deviceBaseName = deviceInfo.fileName();
+
+            /*
+         * Strip partition suffixes.
+         *
+         * Examples:
+         *
+         *   sda1    -> sda
+         *   sdb2    -> sdb
+         *   nvme0n1p1 -> nvme0n1
+         *   mmcblk0p1 -> mmcblk0
+         */
+            QString blockDeviceName = deviceBaseName;
+
+            if (blockDeviceName.startsWith("nvme") ||
+                blockDeviceName.startsWith("mmcblk") ||
+                blockDeviceName.startsWith("loop")) {
+
+                const int pIndex = blockDeviceName.lastIndexOf('p');
+
+                if (pIndex > 0 &&
+                    pIndex < blockDeviceName.length() - 1) {
+
+                    bool ok = false;
+                    blockDeviceName.mid(pIndex + 1).toInt(&ok);
+
+                    if (ok) {
+                        blockDeviceName = blockDeviceName.left(pIndex);
+                    }
+                }
+
+            } else {
+                /*
+             * Traditional devices:
+             *
+             *   sda1 -> sda
+             *   sdb2 -> sdb
+             */
+                while (!blockDeviceName.isEmpty() &&
+                       blockDeviceName.back().isDigit()) {
+
+                    blockDeviceName.chop(1);
+                }
+            }
+
+            /*
+         * /sys/class/block/<device>/removable
+         *
+         * 1 = removable
+         * 0 = non-removable
+         */
+            QFile removableFile(
+                QString("/sys/class/block/%1/removable")
+                    .arg(blockDeviceName)
+                );
+
+            if (removableFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                const QByteArray removable =
+                    removableFile.readAll().trimmed();
+
+                if (removable == "1") {
+                    volumeInfo.isExternal = true;
+                }
+            }
+
+            /*
+         * Also check whether the device belongs to a USB
+         * device by examining its sysfs path.
+         *
+         * This catches USB hard drives/SSDs even when Linux
+         * reports the block device itself as non-removable.
+         */
+            QFileInfo sysfsDevice(
+                QString("/sys/class/block/%1/device")
+                    .arg(blockDeviceName)
+                );
+
+            if (sysfsDevice.exists()) {
+                const QString canonicalPath =
+                    sysfsDevice.canonicalFilePath();
+
+                if (canonicalPath.contains("/usb", Qt::CaseInsensitive)) {
+                    volumeInfo.isExternal = true;
+                }
+            }
+
+            /*
+         * Some USB storage devices have a parent path such as:
+         *
+         * /sys/devices/.../usb1/1-2/1-2:1.0/host...
+         *
+         * Check the complete canonical block-device path as well.
+         */
+            QFileInfo blockSysfs(
+                QString("/sys/class/block/%1")
+                    .arg(blockDeviceName)
+                );
+
+            if (blockSysfs.exists()) {
+                const QString canonicalPath =
+                    blockSysfs.canonicalFilePath();
+
+                if (canonicalPath.contains("/usb", Qt::CaseInsensitive)) {
+                    volumeInfo.isExternal = true;
+                }
+            }
+        }
+
+        mountedVolumes.append(volumeInfo);
+    }
+
+    endmntent(mountsFile);
     #endif
 
     return mountedVolumes;

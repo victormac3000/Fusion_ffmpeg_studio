@@ -28,12 +28,12 @@ QVariantList NewProjectController::getExternalVolumes()
     QVariantList externalVolumesNames = {};
     for (VolumeInfo& volumeInfo: mountedVolumes) {
         QVariantMap volumeInfoMap = {
-                                      {"label", volumeInfo.label},
-                                      {"mountPath", volumeInfo.mountPath},
-                                      {"deviceName", volumeInfo.deviceName},
-                                      {"fileSystemType", volumeInfo.fileSystemType},
-                                      {"isExternal", volumeInfo.isExternal},
-                                      };
+            {"label", volumeInfo.label},
+            {"mountPath", volumeInfo.mountPath},
+            {"deviceName", volumeInfo.deviceName},
+            {"fileSystemType", volumeInfo.fileSystemType},
+            {"isExternal", volumeInfo.isExternal}
+        };
 
         if (QDir(volumeInfo.mountPath).exists("DCIM/100GFRNT")) {
             volumeInfoMap.insert("frontCandidate", true);

@@ -16,6 +16,10 @@ Rectangle {
     property string dcimPath
     property bool dcimCopy
 
+    Connections {
+        target: controller
+    }
+
     LoadingController {
         id: controller
         appController: mainController

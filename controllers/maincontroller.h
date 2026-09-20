@@ -46,6 +46,9 @@ signals:
     void navigateTo(MainController::Pane pane, const QVariantMap &attributes = {});
     void addWindow(MainController::Window window, bool modal);
     void back();
+
+    void loadProjectUpdate(LoadingProgress progress);
+    void loadProjectError(LoadingError error);
 };
 
 #endif // MAINCONTROLLER_H

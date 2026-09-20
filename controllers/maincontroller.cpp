@@ -8,6 +8,8 @@ MainController::MainController(QObject *parent)
     : QObject{parent}
 {
     this->project = new Project();
+    connect(this->project, &Project::loadProjectUpdate, this, &MainController::loadProjectUpdate);
+    connect(this->project, &Project::loadProjectError, this, &MainController::loadProjectError);
     this->project->moveToThread(&projectThread);
     projectThread.start();
 }

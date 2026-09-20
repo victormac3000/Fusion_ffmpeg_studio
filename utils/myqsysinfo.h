@@ -8,31 +8,6 @@
 #include <QFile>
 #include <QElapsedTimer>
 
-#ifdef Q_OS_MAC
-#include <sys/types.h>
-#include <sys/sysctl.h>
-#include <sys/mount.h>
-#include <DiskArbitration/DiskArbitration.h>
-#include <CoreFoundation/CoreFoundation.h>
-#endif
-
-#ifdef Q_OS_WIN
-#include <windows.h>
-#include <dxgi.h>
-#include <comdef.h>
-#include <Wbemidl.h>
-#include <setupapi.h>
-#include <devguid.h>
-#include <tchar.h>
-#pragma comment(lib, "dxgi.lib")
-#pragma comment(lib, "wbemuuid.lib")
-#pragma comment(lib, "Setupapi.lib")
-#endif
-
-#ifdef Q_OS_LINUX
-#include <fstream>
-#endif
-
 struct VolumeInfo {
     QString label;
     QString mountPath;

@@ -29,25 +29,30 @@ struct LoadingInfo {
 };
 
 struct LoadingProgress {
-    int stepID;
-    int stepNumber;
-    int stepCount;
+    int stepID = -1;
+    int stepNumber = -1;
+    int stepCount = -1;
     struct index {
-        int doneVideos;
-        int totalVideos;
-        int doneSegments;
-        int totalSegments;
+        int doneVideos = 0;
+        int totalVideos = 0;
+        int doneSegments = 0;
+        int totalSegments = 0;
     } index;
     struct copy {
-        int fileCount;
-        int fileNumber;
+        int fileCount = 0;
+        int fileNumber = 0;
         struct currentFile {
             QString name;
-            qint64 bytesCount;
-            qint64 bytesDone;
-            float speed;   // In MB/s
+            qint64 bytesCount = 0;
+            qint64 bytesDone = 0;
+            float speed = 0.0;   // In MB/s
         } currentFile;
     } copy;
+};
+
+struct LoadingError {
+    QString message;
+    LoadingProgress progress;
 };
 
 #endif

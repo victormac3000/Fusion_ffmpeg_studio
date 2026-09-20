@@ -42,6 +42,7 @@ public:
 
 signals:
     void loadProjectUpdate(LoadingProgress progress);
+    void loadProjectError(LoadingError error);
 
 protected slots:
     void create(LoadingInfo loadingInfo);

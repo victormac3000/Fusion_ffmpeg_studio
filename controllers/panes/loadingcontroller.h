@@ -13,6 +13,13 @@ public:
                                   const QJSValue& outputCallback,
                                   const QJSValue& errorCallback);
 
+private slots:
+    void onLoadProjectError(LoadingError error);
+
+signals:
+    void loadProjectError(QString error);
+    void loadProjectUpdate(LoadingProgress error);
+
 private:
     Project* project;
 };
