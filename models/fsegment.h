@@ -13,68 +13,36 @@ enum VerifyMode {
     FILES_ONLY, FULL
 };
 
-class FSegment : public QObject
+class FSegment
 {
-    Q_OBJECT
 public:
-    explicit FSegment(QObject *parent = nullptr, int id = -1, QFile *front_mp4 = nullptr, QFile *front_lrv = nullptr,
-                      QFile *back_mp4 = nullptr, QFile *back_lrv = nullptr, QFile *back_wav = nullptr);
-    ~FSegment();
+    FSegment(int vid, int id);
 
-
+    int getVideoId();
     int getId();
     QString getIdString();
 
+    bool setFrontFiles(QString videoPath, QString lrvPath);
+    bool setBackFiles(QString videoPath, QString lrvPath, QString audioPath);
 
-    QString toString();
+    QString getFrontVideo();
+    QString getFrontLVideo();
+    FFormat getFrontVideoFormat();
 
-    bool verify(VerifyMode verifyMode = FULL);
-
-    QFile *getFrontMP4();
-    QFile *getFrontLRV();
-    QFile *getBackMP4();
-    QFile *getBackLRV();
-    QFile *getBackWAV();
-
-    void setDualFisheye(QFile *dualFisheye);
-    QFile *getDualFisheye();
-
-
-    void setDualFisheyeLow(QFile *dualFisheyeLow);
-    QFile *getDualFisheyeLow();
-
-    bool isDualFisheyeValid();
-    bool isDualFisheyeLowValid();
-
-    FFormat getFormat();
-    float getFPS();
-    QSize getResolution();
-    QTime getLength();
-
-    QJsonObject toJson();
-
-signals:
+    QString getBackVideo();
+    QString getBackLVideo();
+    QString getBackAudio();
 
 private:
+    int vid;
     int id;
 
-    QFile *frontMP4 = nullptr;
-    QFile *frontLRV = nullptr;
+    QString frontMP4;
+    QString frontLRV;
 
-    QFile *backMP4 = nullptr;
-    QFile *backLRV = nullptr;
-    QFile *backWAV = nullptr;
-
-    QFile *dualFisheye = nullptr;
-    QFile *dualFisheyeLow = nullptr;
-
-    QFile *equirectangular = nullptr;
-    QFile *equirectangularLow = nullptr;
-
-    FFormat format{};
-    float fps;
-    QSize resolution;
-    QTime length;
+    QString backMP4;
+    QString backLRV;
+    QString backWAV;
 
 
 };

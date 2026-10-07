@@ -21,30 +21,33 @@
 #include <QJsonObject>
 
 struct VideoInfo {
+    bool isVideo = false;
     QSize resolution;
-    float frameRate;
+    double frameRate;
     QDateTime date;
-    QTime length;
+    double length_s;
+    QString codecName;
+    QString codecLongName;
+};
+
+struct AudioInfo {
+    bool isAudio = false;
+};
+
+struct ImageInfo {
+    bool isImage = false;
+    QSize size;
 };
 
 class MediaInfo
 {
 public:
-    static bool isVideo(QFile *media);
-    static float getFPS(QFile *video);
-    static QSize getResolution(QFile *video);
-    static QDateTime getDate(QFile *video);
-    static QTime getLength(QFile *media1);
-    static bool isSameLength(QFile *media1, QFile *media2);
-    static QSize getImageResolution(QFile *image);
-    static bool isAudio(QFile *media);
-    static bool isImage(QFile *media);
-    static QMimeType getMimeType(QFile *media);
-    static VideoInfo getVideoInfo(QFile *video);
-    static QList<int> convertToHMS(qint64 miliseconds);
+    static VideoInfo getVideoInfo(QString path);
+    static AudioInfo getAudioInfo(QString path);
+    static ImageInfo getImageInfo(QString path);
 
 private:
-    static QMediaMetaData getMetadata(QFile *media);
+    static QMimeType getMimeType(QString path);
 };
 
 #endif // MEDIAINFO_H

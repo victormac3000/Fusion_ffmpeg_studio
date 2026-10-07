@@ -22,5 +22,7 @@
         <file>icons/dialogs/info.png</file>
         <file>icons/dialogs/question.png</file>
         <file>icons/dialogs/warning.png</file>
+        <file>documents/json/projectdb.json</file>
+        <file>documents/json/local.json</file>
     </qresource>
 </RCC>

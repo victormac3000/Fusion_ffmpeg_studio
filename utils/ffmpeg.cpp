@@ -69,6 +69,7 @@ QMap<QString,QString> FFmpeg::getVersions()
 
 void FFmpeg::render(RenderWork *work)
 {
+    /*
     QString projectPath = work->getProject()->getPath();
 
     dfLowSegmentsFolder = QDir(projectPath + "/DFLowSegments");
@@ -93,6 +94,7 @@ void FFmpeg::render(RenderWork *work)
     } else {
         emit renderDone(work, false);
     }
+*/
 }
 
 void FFmpeg::processStateChanged(QProcess::ProcessState newState)
@@ -177,6 +179,7 @@ void FFmpeg::renderPreview()
 
 bool FFmpeg::renderPreviewStep1()
 {
+    /*
     // STEP 1: MERGE ALL SEGMENTS FRONT AND BACK LOW RES VIDEOS
     emit work->updateRenderStatusString("Step 1 of 3: Merging front and back of each segment");
     FVideo* video = work->getVideo();
@@ -248,11 +251,12 @@ bool FFmpeg::renderPreviewStep1()
 
         segment->setDualFisheyeLow(new QFile(outPath));
     }
-    return false;
+    */return false;
 }
 
 bool FFmpeg::renderPreviewStep2()
 {
+    /*
     // STEP 2: MERGE ALL SEGMENTS INTO ONE BIG LRV VIDEO
     emit work->updateRenderStatusString("Step 2 of 3: Merging all preview segments into one preview video");
     FVideo *video = work->getVideo();
@@ -332,10 +336,13 @@ bool FFmpeg::renderPreviewStep2()
     }
     video->setDualFisheyeLow(new QFile(outPath));
     return false;
+*/
+    return false;
 }
 
 bool FFmpeg::renderPreviewStep3()
 {
+    /*
     // STEP 3: CONVERT DUAL FISHEYE PREVIEW INTO A EQUIRECTANGULAR PREVIEW
     emit work->updateRenderStatusString("Step 3 of 3: Converting dual fisheye preview to equirectangular");
     FVideo *video = work->getVideo();
@@ -397,7 +404,8 @@ bool FFmpeg::renderPreviewStep3()
         return true;
     }
     video->setEquirectangularLow(new QFile(outPath));
-    return false;
+    */return false;
+
 }
 
 QString FFmpeg::getVersionsDots(unsigned int version)

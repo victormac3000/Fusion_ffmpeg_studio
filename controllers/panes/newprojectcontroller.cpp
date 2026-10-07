@@ -235,7 +235,6 @@ void NewProjectController::createProject(const QJSValue &args, const QJSValue &o
     this->task(
         args, outputCallback, errorCallback,
         [](const QVariantMap &args) {
-            qDebug() << args;
             return args;
         },
         [this](const QVariantMap &result,

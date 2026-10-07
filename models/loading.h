@@ -2,6 +2,7 @@
 #define LOADING_H
 
 #include <QString>
+#include <QVariantMap>
 #include <QtCore/qobject.h>
 
 enum {
@@ -11,21 +12,20 @@ enum {
 };
 
 enum {
-    CHECK_SOURCE_FOLDERS,
-    CREATE_PROJECT_DIRS,
+    GENERATE_PROJECT_DIRS,
     COPY_DCIM_FOLDER,
     INDEX_VIDEOS
 };
 
 struct LoadingInfo {
     int type = -1;
-    QString rootProjectPath;    // Root folder of project. Example: /Users/username/Documents
+    /* DEPRECATED */ QString rootProjectPath;    // Root folder of project. Example: /Users/username/Documents
     QString projectPath;        // Base folder of project. Example: /Users/username/Documents/Project1
     QString projectName;        // Only used on create type
     QString dcimPath;
-    QString dcimFrontPath, dcimBackPath;
+    /* DEPRECATED */ QString dcimFrontPath, dcimBackPath;
     QString frontVolumePath, backVolumePath;
-    bool copyDCIM = false;
+    bool copyDCIM = true;
 };
 
 struct LoadingProgress {
@@ -48,6 +48,36 @@ struct LoadingProgress {
             float speed = 0.0;   // In MB/s
         } currentFile;
     } copy;
+
+    QVariantMap toQML()
+    {
+        return QVariantMap{
+            {"stepID", stepID},
+            {"stepNumber", stepNumber},
+            {"stepCount", stepCount},
+            {"index", QVariantMap{
+                {"doneVideos", index.doneVideos},
+                {"totalVideos", index.totalVideos},
+                {"doneSegments", index.doneSegments},
+                {"totalSegments", index.totalSegments}
+            }},
+            {"copy", QVariantMap{
+                {"fileCount", copy.fileCount},
+                {"fileNumber", copy.fileNumber},
+                {"currentFile", QVariantMap{
+                    {"name", copy.currentFile.name},
+                    {"bytesCount", copy.currentFile.bytesCount},
+                    {"bytesDone", copy.currentFile.bytesDone},
+                    {"speed", copy.currentFile.speed}
+                }}
+            }}
+        };
+    }
+};
+
+struct LoadingDone {
+    QStringList badVideos;
+    int numVideos;
 };
 
 struct LoadingError {

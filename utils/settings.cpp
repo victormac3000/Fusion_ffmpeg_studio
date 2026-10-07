@@ -8,6 +8,9 @@
 #include "utils/exceptions/toolboxexception.h"
 #include "utils/exceptions/copierexception.h"
 #include "utils/exceptions/settingsexception.h"
+#include "utils/exceptions/DBException.h"
+#include "models/db/localdb.h"
+
 extern "C" {
     #include <libavcodec/avcodec.h>
     #include <libavutil/avutil.h>
@@ -83,24 +86,6 @@ QString Settings::getDefaultProjectPath()
         qWarning() << "defaultProjectPath was empty when requested";
     }
     return QSettings().value("defaultProjectPath").toString();
-}
-
-QString Settings::getFFmpegPath()
-{
-    QString ffmpegPath = QSettings().value("ffmpegPath").toString();
-    if (ffmpegPath.isEmpty()) {
-        qCritical() << "ffmpegPath was empty when requested. Renders WILL FAIL";
-    }
-    return QSettings().value("ffmpegPath").toString();
-}
-
-QString Settings::getFFprobePath()
-{
-    QString ffprobePath = QSettings().value("ffprobePath").toString();
-    if (ffprobePath.isEmpty()) {
-        qCritical() << "ffprobePath was empty when requested. Renders WILL FAIL";
-    }
-    return QSettings().value("ffprobePath").toString();
 }
 
 QString Settings::getDefaultCodec()
@@ -498,40 +483,23 @@ void Settings::setupEncoders()
 
 void Settings::setupLocalDb()
 {
-    QString dbPath = getAppDataPath() + "/local.db";
-
     if (!QSqlDatabase::drivers().contains("QSQLITE")) {
         qWarning() << "Sqlite driver not found. Cannot use local database";
         return;
     }
 
-    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "setup_local_db_conn");
-    db.setDatabaseName(dbPath);
+    QString dbPath = QDir(getAppDataPath()).filePath("local.db");
 
-    if (!db.open()) {
-        qWarning() << "Could not open local database on " + dbPath;
-        return;
+    try {
+        LocalDB dbManager(dbPath);
+    } catch (DBException& e) {
+        qWarning() << "Could not setup local database" << e.what();
     }
+}
 
-    QString sqlQuery;
-
-    QString createRecentProjectsTableSQL = R"(
-        CREATE TABLE IF NOT EXISTS recent_projects (
-            uuid TEXT PRIMARY KEY,
-            path TEXT NOT NULL,
-            name TEXT NOT NULL,
-            saved_on INTEGER NOT NULL
-        )
-    )";
-
-    sqlQuery.append(createRecentProjectsTableSQL);
-
-    QSqlQuery query(sqlQuery, db);
-    if (!query.exec()) {
-        qWarning() << "Could not create database initial structure" << query.lastError().text();
-    }
-
-    db.close();
+QString Settings::getLocalDBPath()
+{
+    return QDir(getAppDataPath()).filePath("local.db");
 }
 
 void Settings::qexit(int code)

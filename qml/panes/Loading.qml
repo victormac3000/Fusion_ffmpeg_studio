@@ -8,7 +8,7 @@ Rectangle {
     id: root
     color: "lightblue"
 
-    required property string operation
+    required property int operation
     property string projectName
     property string projectPath
     property string frontPath
@@ -18,6 +18,85 @@ Rectangle {
 
     Connections {
         target: controller
+
+        function onLoadProjectDone(data) {
+            if (data.numVideos < 1) {
+                dialogs.error("Could not detect any valid GoPro Fusion source video files", "No videos", () => {
+                    mainController.back()
+                })
+            }
+
+            if (data.badVideos.length > 0) {
+                var msg = "Some videos could not be detected and were skipped\n"
+                data.badVideos.forEach((videoID) => {
+                    msg += videoID + ","
+                })
+                if (msg.charAt(msg.length-1) == ",") {
+                    msg = msg.slice(0, -1)
+                }
+                dialogs.warning(msg, "Invalid videos", () => {
+                    console.log("LOAD EDITOR")
+                })
+            }
+        }
+
+        function onLoadProjectUpdate(data) {
+            mainLoadingBar.insideText = data.operation
+            mainLoadingBar.value = data.stepNumber/(data.stepCount-1)
+            mainLeftLabel.text = data.stepNumber + 1
+            mainRightLabel.text = data.stepCount
+            auxLoadingBar.hoverText = ""
+
+            if (data.stepID === constants.copyDCIMFolder) {
+                var copy = data.copy;
+                var currentFile = data.copy.currentFile;
+
+                var filePercent = currentFile.bytesDone/currentFile.bytesCount
+                auxLoadingBar.insideText = "Copying " + currentFile.name;
+                if (currentFile.speed > 0) {
+                    auxLoadingBar.hoverText = currentFile.speed.toFixed(1) + " MB/s"
+                }
+                auxLoadingBar.value = filePercent
+                auxLeftLabel.text = (filePercent*100).toFixed(0) + "%"
+
+                var totalPercent = (copy.fileNumber-1+filePercent)/copy.fileCount
+                secLeftLabel.text = (totalPercent*100).toFixed(0) + "%"
+                secLoadingBar.insideText = (totalPercent*100).toFixed(0) + "% ("
+                        + copy.fileNumber + " of " + copy.fileCount + ")"
+                secLoadingBar.value = totalPercent
+
+                secProgressRow.visible = true
+                auxProgressRow.visible = true
+            }
+
+            if (data.stepID === constants.indexVideos) {
+                var index = data.index
+
+                var segmentPercent = index.doneSegments/index.totalSegments
+                auxLoadingBar.insideText = "Indexing segment " + index.doneSegments + " of " + index.totalSegments
+                auxLoadingBar.value = segmentPercent
+                auxLeftLabel.text = (segmentPercent*100).toFixed(0) + "%"
+
+                var videoPercent = (index.doneVideos-1+segmentPercent)/index.totalVideos
+                secLoadingBar.insideText = "Indexing video " + index.doneVideos + " of " + index.totalVideos
+                secLoadingBar.value = videoPercent
+                secLeftLabel.text = (videoPercent*100).toFixed(0) + "%"
+
+                secProgressRow.visible = true
+                auxProgressRow.visible = true
+            }
+        }
+
+        function onLoadProjectError(data) {
+            dialogs.warning(data.message, data.title, () => {
+                mainController.back()
+            })
+        }
+    }
+
+    Constants {
+        id: constants
+        visible: false
     }
 
     LoadingController {
@@ -47,6 +126,7 @@ Rectangle {
             (error) => {
                 dialogs.warning(error, "Loading error", () => {
                     mainController.back()
+
                 })
             }
         )
@@ -62,127 +142,117 @@ Rectangle {
             source: "qrc:/images/Snow.jpg"
         }
 
-        GridLayout {
-            objectName: "progressBarGrid"
+        ColumnLayout {
+            id: progressLayout
             Layout.fillHeight: true
             Layout.fillWidth: true
             Layout.margins: 10
-            columns: 3
-            rows: 2
-            property bool generalMessage: true
-            property bool specificMessage: true
 
-            Text {
-                objectName: "mainMessageTopText"
+            property real leftRightWidth: 45
+
+            RowLayout {
+                id: mainProgressRow
                 Layout.fillHeight: true
                 Layout.fillWidth: true
-                Layout.columnSpan: 3
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
+
+                Text {
+                    id: mainLeftLabel
+                    Layout.fillHeight: true
+                    Layout.preferredWidth: progressLayout.leftRightWidth
+                    Layout.minimumWidth: progressLayout.leftRightWidth
+                    Layout.maximumWidth: progressLayout.leftRightWidth
+                    text: "1"
+                    horizontalAlignment: Text.AlignRight
+                    verticalAlignment: Text.AlignVCenter
+                }
+
+                NiceProgressBar {
+                    id: mainLoadingBar
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                }
+
+                Text {
+                    id: mainRightLabel
+                    Layout.fillHeight: true
+                    Layout.preferredWidth: progressLayout.leftRightWidth
+                    Layout.minimumWidth: progressLayout.leftRightWidth
+                    Layout.maximumWidth: progressLayout.leftRightWidth
+                    text: "1"
+                    horizontalAlignment: Text.AlignLeft
+                    verticalAlignment: Text.AlignVCenter
+                }
             }
 
-            Text {
+            RowLayout {
+                id: secProgressRow
+                visible: false
                 Layout.fillHeight: true
                 Layout.fillWidth: true
-                objectName: "mainMessageLeftText"
-                text: "0%"
-                horizontalAlignment: Text.AlignRight
+
+                Text {
+                    id: secLeftLabel
+                    Layout.fillHeight: true
+                    Layout.preferredWidth: progressLayout.leftRightWidth
+                    Layout.minimumWidth: progressLayout.leftRightWidth
+                    Layout.maximumWidth: progressLayout.leftRightWidth
+                    text: "0%"
+                    horizontalAlignment: Text.AlignRight
+                    verticalAlignment: Text.AlignVCenter
+                }
+
+                NiceProgressBar {
+                    id: secLoadingBar
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                }
+
+                Text {
+                    id: secRightLabel
+                    Layout.fillHeight: true
+                    Layout.preferredWidth: progressLayout.leftRightWidth
+                    Layout.minimumWidth: progressLayout.leftRightWidth
+                    Layout.maximumWidth: progressLayout.leftRightWidth
+                    text: "100%"
+                    horizontalAlignment: Text.AlignLeft
+                    verticalAlignment: Text.AlignVCenter
+                }
             }
 
-            NiceProgressBar {
+            RowLayout {
+                id: auxProgressRow
+                visible: false
                 Layout.fillHeight: true
                 Layout.fillWidth: true
-                objectName: "mainMessageBar"
-                insideText: ""
-                from: 0.0
-                to: 100.0
-            }
 
-            Text {
-                Layout.fillHeight: true
-                Layout.fillWidth: true
-                objectName: "mainMessageRightText"
-                text: "100%"
-                horizontalAlignment: Text.AlignLeft
-            }
+                Text {
+                    id: auxLeftLabel
+                    Layout.fillHeight: true
+                    Layout.preferredWidth: progressLayout.leftRightWidth
+                    Layout.minimumWidth: progressLayout.leftRightWidth
+                    Layout.maximumWidth: progressLayout.leftRightWidth
+                    text: "0%"
+                    horizontalAlignment: Text.AlignRight
+                    verticalAlignment: Text.AlignVCenter
+                }
 
-            Text {
-                visible: parent.generalMessage
-                objectName: "generalMessageTopText"
-                Layout.fillHeight: true
-                Layout.fillWidth: true
-                Layout.columnSpan: 3
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
-            }
+                NiceProgressBar {
+                    id: auxLoadingBar
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                }
 
-            Text {
-                visible: parent.generalMessage
-                Layout.fillHeight: true
-                Layout.fillWidth: true
-                objectName: "generalMessageLeftText"
-                text: "0%"
-                horizontalAlignment: Text.AlignRight
-            }
-
-            NiceProgressBar {
-                visible: parent.generalMessage
-                Layout.fillHeight: true
-                Layout.fillWidth: true
-                objectName: "generalMessageBar"
-                insideText: ""
-                from: 0.0
-                to: 100.0
-            }
-
-            Text {
-                visible: parent.generalMessage
-                Layout.fillHeight: true
-                Layout.fillWidth: true
-                objectName: "generalMessageRightText"
-                text: "100%"
-                horizontalAlignment: Text.AlignLeft
-            }
-
-            Text {
-                visible: parent.specificMessage
-                objectName: "specificMessageTopText"
-                Layout.fillHeight: true
-                Layout.fillWidth: true
-                Layout.columnSpan: 3
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
-            }
-
-            Text {
-                visible: parent.specificMessage
-                Layout.fillHeight: true
-                Layout.fillWidth: true
-                objectName: "specificMessageLeftText"
-                text: "0%"
-                horizontalAlignment: Text.AlignRight
-            }
-
-            NiceProgressBar {
-                visible: parent.specificMessage
-                Layout.fillHeight: true
-                Layout.fillWidth: true
-                objectName: "specificMessageBar"
-                insideText: ""
-                from: 0.0
-                to: 100.0
-            }
-
-            Text {
-                visible: parent.specificMessage
-                Layout.fillHeight: true
-                Layout.fillWidth: true
-                objectName: "specificMessageRightText"
-                text: "100%"
-                horizontalAlignment: Text.AlignLeft
+                Text {
+                    id: auxRightLabel
+                    Layout.fillHeight: true
+                    Layout.preferredWidth: progressLayout.leftRightWidth
+                    Layout.minimumWidth: progressLayout.leftRightWidth
+                    Layout.maximumWidth: progressLayout.leftRightWidth
+                    text: "100%"
+                    horizontalAlignment: Text.AlignLeft
+                    verticalAlignment: Text.AlignVCenter
+                }
             }
         }
-
     }
-
 }

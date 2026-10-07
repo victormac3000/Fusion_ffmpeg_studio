@@ -1,0 +1,46 @@
+{
+    "CREATE_PROJECT_INFO": "
+        CREATE TABLE IF NOT EXISTS project_info (
+            uuid TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            dcim_path TEXT NOT NULL,
+            dcim_linked INTEGER NOT NULL,
+            version_major INTEGER NOT NULL,
+            version_mid INTEGER NOT NULL,
+            version_minor INTEGER NOT NULL
+        );",
+    "CREATE_VIDEOS":"
+        CREATE TABLE IF NOT EXISTS videos (
+            id INTEGER PRIMARY KEY,
+            dualFisheye INTEGER,
+            dualFisheyeLow INTEGER,
+            equirectangular INTEGER,
+            equirectangularLow INTEGER
+        );",
+    "CREATE_SEGMENTS":"
+        CREATE TABLE IF NOT EXISTS segments (
+            id INTEGER PRIMARY KEY,
+            video INTEGER NOT NULL,
+            dualFisheye INTEGER,
+            dualFisheyeLow INTEGER,
+            FOREIGN KEY(video) REFERENCES videos(id) ON UPDATE CASCADE ON DELETE CASCADE
+        );",
+    "UPDATE_PROJECT_INFO":"
+        INSERT OR REPLACE INTO project_info
+            (uuid, name, dcim_path, dcim_linked, version_major, version_mid, version_minor)
+        VALUES
+            (:uuid, :name, :dcim_path, :dcim_linked, :version_major, :version_mid, :version_minor)
+        ;",
+    "UPDATE_VIDEO":"
+        INSERT OR REPLACE INTO videos
+            (id, dualFisheye, dualFisheyeLow, equirectangular, equirectangularLow)
+        VALUES
+            (:id, :dualFisheye, :dualFisheyeLow, :equirectangular, :equirectangularLow)
+        ;",
+    "UPDATE_SEGMENT":"
+        INSERT OR REPLACE INTO segments
+            (id, video, dualFisheye, dualFisheyeLow)
+        VALUES
+            (:id, :video, :dualFisheye, :dualFisheyeLow)
+        ;"
+}

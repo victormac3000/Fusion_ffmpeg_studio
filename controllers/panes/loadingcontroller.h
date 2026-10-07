@@ -14,11 +14,14 @@ public:
                                   const QJSValue& errorCallback);
 
 private slots:
+    void onLoadProjectUpdate(LoadingProgress progressData);
+    void onLoadProjectDone(LoadingDone done);
     void onLoadProjectError(LoadingError error);
 
 signals:
-    void loadProjectError(QString error);
-    void loadProjectUpdate(LoadingProgress error);
+    void loadProjectError(const QVariantMap& errorData);
+    void loadProjectDone(const QVariantMap& doneData);
+    void loadProjectUpdate(const QVariantMap& updateData);
 
 private:
     Project* project;

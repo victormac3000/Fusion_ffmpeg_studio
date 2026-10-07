@@ -1,6 +1,16 @@
 import QtQuick 2.15
 
+import FusionFFmpegStudio
+
 Item {
+    readonly property int createProjectFolder: 0
+    readonly property int createProjectSD: 1
+    readonly property int loadProject: 2
+
+    readonly property int generateProjectDirs: 0
+    readonly property int copyDCIMFolder: 1
+    readonly property int indexVideos: 2
+
     property double fontSizeScale: 1.0
 
     property variant codecsInfo: {

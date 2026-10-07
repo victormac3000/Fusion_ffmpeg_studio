@@ -48,6 +48,7 @@ signals:
     void back();
 
     void loadProjectUpdate(LoadingProgress progress);
+    void loadProjectDone(LoadingDone done);
     void loadProjectError(LoadingError error);
 };
 

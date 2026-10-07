@@ -40,14 +40,10 @@ endif()
 
 set(SOURCES
     main.cpp
-    models/fformats.cpp
     models/fsegment.cpp
     models/fvideo.cpp
     models/project.cpp
     models/renderwork.cpp
-    panes/projectcreator.cpp
-    panes/projectcreatorfolder.cpp
-    panes/projectcreatorsd.cpp
 
     utils/ffmpeg.cpp
     utils/logger.cpp
@@ -57,31 +53,21 @@ set(SOURCES
     utils/settings.cpp
     utils/dialogs.cpp
     utils/copier.cpp
+    utils/fformats.cpp
 
-    windows/mainwindow.cpp
-    panes/editorpane.cpp
-    panes/loadingpane.cpp
-    panes/welcomepane.cpp
 
-    utils/worker.cpp
     controllers/maincontroller.cpp
     controllers/panes/welcomecontroller.cpp
     controllers/panes/newprojectcontroller.cpp
-
-
 )
 
 set(HEADERS
     models/fformat.h
-    models/fformats.h
     models/fsegment.h
     models/fvideo.h
     models/loading.h
     models/project.h
     models/renderwork.h
-    panes/projectcreator.h
-    panes/projectcreatorfolder.h
-    panes/projectcreatorsd.h
 
     utils/exitcodes.h
     utils/ffmpeg.h
@@ -92,30 +78,12 @@ set(HEADERS
     utils/myqsysinfo.h
     utils/dialogs.h
     utils/copier.h
+    utils/fformats.h
 
-    windows/mainwindow.h
-    panes/editorpane.h
-    panes/loadingpane.h
-    panes/welcomepane.h
 
-    utils/worker.h
     controllers/maincontroller.h
     controllers/panes/welcomecontroller.h
     controllers/panes/newprojectcontroller.h
-
-
-)
-
-set(FORMS
-    panes/projectcreator.ui
-    panes/projectcreatorfolder.ui
-    panes/projectcreatorsd.ui
-
-    windows/mainwindow.ui
-    panes/editorpane.ui
-    panes/loadingpane.ui
-    panes/welcomepane.ui
-
 )
 
 set(QML_FILES
@@ -139,8 +107,6 @@ set(QML_FILES
     qml/windows/preferences/PreferencesRendering.qml
     qml/panes/Welcome.qml
     qml/panes/NewProject.qml
-
-
 )
 
 set(RESOURCES
@@ -150,7 +116,6 @@ set(RESOURCES
 qt_add_executable(FusionFFmpegStudio
     ${SOURCES}
     ${HEADERS}
-    ${FORMS}
     ${RESOURCES}
 )
 
@@ -182,6 +147,12 @@ qt_add_qml_module(FusionFFmpegStudio
     QML_FILES qml/panes/Loading.qml
     SOURCES controllers/panes/loadingcontroller.h controllers/panes/loadingcontroller.cpp
     SOURCES utils/exceptions/loadingexception.h
+    SOURCES utils/exceptions/projectexception.h
+    SOURCES models/db/projectdb.h models/db/projectdb.cpp
+    SOURCES
+    SOURCES models/db/localdb.h models/db/localdb.cpp
+    SOURCES models/db/basedb.h models/db/basedb.cpp
+    SOURCES utils/exceptions/DBException.h
 )
 
 set_target_properties(FusionFFmpegStudio PROPERTIES

@@ -24,11 +24,10 @@ public:
     static QString getDefaultAppDataPath();
     static QString getDefaultProjectName();
     static QString getDefaultProjectPath();
-    static QString getFFmpegPath();
-    static QString getFFprobePath();
     static QString getDefaultCodec();
     static QString getDefaultEncoder();
     static QString getDefaultFormat();
+    static QString getLocalDBPath();
 
     static void setDefaultCodec(QString defaultCodec);
     static void setDefaultEncoder(QString defaultEncoder);

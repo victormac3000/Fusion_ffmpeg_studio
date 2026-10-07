@@ -3,6 +3,7 @@
 
 #include <QObject>
 
+#include "utils/fformats.h"
 #include "models/fsegment.h"
 
 #define DEFAULT_THUMBNAIL_PATH "qrc:/Qml/Icons/VideoPlayer/no_video.png"
@@ -18,66 +19,31 @@ struct FFmpegStatus {
     float percent;
 };
 
-class FVideo : public QObject
+class FVideo
 {
-    Q_OBJECT
 public:
-    explicit FVideo(QObject* parent = nullptr, int id = -1);
-    ~FVideo();
-
-    void moveToNewThread(QThread* newThread);
-
-    bool addSegment(FSegment* segment, VerifyMode verifyMode = FULL);
-    bool verify();
+    FVideo(int id = -1);
     int getId();
-    QDateTime getDate();
-    FSegment* getSegment(int i);
-    QList<FSegment*> getSegments();
-    int getNumSegments();
     QString getIdString();
 
-    FFormat getFormat();
-    QTime getLength();
-
     bool setFrontThumbnail(QString thumbnailPath);
-    QFile *getFrontThumbnail();
-
     bool setBackThumbnail(QString thumbnailPath);
-    QFile *getBackThumbnail();
+    void setFormat(FFormat format);
+    bool addSegment(FSegment segment);
 
-    void setDualFisheye(QFile *dualFisheye);
-    QFile *getDualFisheye();
-    void setDualFisheyeLow(QFile *dualFisheyeLow);
-    QFile *getDualFisheyeLow();
-    QFile *getEquirectangular();
-    void setEquirectangular(QFile *equirectangular);
-
-    QFile *getEquirectangularLow();
-    void setEquirectangularLow(QFile *equirectangularLow);
-
-    bool isDualFisheyeValid();
-    bool isDualFisheyeLowValid();
-    bool isEquirectangularValid();
-    bool isEquirectangularLowValid();
-    bool isFrontThumbnailValid();
-    bool isBackThumbnailValid();
-
-    QString toString();
-    QJsonObject toJson();
+    QString getFrontThumbnail();
+    QString getBackThumbnail();
+    FFormat getFormat();
+    QList<FSegment> getSegments();
 
 private:
     int id;
-    QList<FSegment*> segments;
-    bool loadingPreview;
-    QFile *dualFisheye = nullptr;
-    QFile *dualFisheyeLow = nullptr;
-    QFile *equirectangular = nullptr;
-    QFile *equirectangularLow = nullptr;
-    QFile *frontThumbnail = nullptr;
-    QFile *backThumbnail = nullptr;
-    QDateTime date;
 
+    QString frontThumbnail;
+    QString backThumbnail;
+    FFormat format;
 
+    QList<FSegment> segments;
 };
 
 struct RenderItem {

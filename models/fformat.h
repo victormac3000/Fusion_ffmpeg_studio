@@ -6,7 +6,9 @@
 struct FFormat {
     QString name;
     QString firmware;
-    int height, width, fps;
+    int height = 0;
+    int width = 0;
+    double fps = 0.0;
 };
 
 #endif // FFORMAT_H

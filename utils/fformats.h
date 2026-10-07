@@ -19,12 +19,12 @@ enum FusionFormats {
     FUSION_THUMNAIL
 };
 
-#include "fformat.h"
+#include "models/fformat.h"
 
 class FFormats
 {
 public:
-    static FFormat get(QFile *media, int type);
+    static FFormat get(QString mediaPath, int type);
     static FFormat getByName(QString name);
 
 signals:

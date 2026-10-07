@@ -1,10 +1,11 @@
 #ifndef PROJECT_H
 #define PROJECT_H
 
-class FVideo;
-struct LoadingInfo;
-
 #include "loading.h"
+#include "models/db/projectdb.h"
+#include "models/db/localdb.h"
+#include "models/fvideo.h"
+#include "models/loading.h"
 
 #include <QObject>
 #include <QList>
@@ -27,53 +28,53 @@ public:
     explicit Project(QObject *parent = nullptr);
     ~Project();
 
-    bool isValid();
-    QStringList getErrors();
-    QStringList getWarnings();
-    QDir getDcim();
-    void setDcim(QString newDcim);
-    QString getVersion();
-    void setVersion(QString newVersion);
-    QString getPath();
-    void setVideos(QList<FVideo*> videos);
-    QList<FVideo*> getVideos();
-    QList<QPair<QString,QString>> getBadVideos();
-    bool save();
+    void save();
 
 signals:
     void loadProjectUpdate(LoadingProgress progress);
+    void loadProjectDone(LoadingDone done);
     void loadProjectError(LoadingError error);
 
 protected slots:
-    void create(LoadingInfo loadingInfo);
-    void load(LoadingInfo loadingInfo);
+    void create(LoadingInfo info);
 
 private:
-    bool valid = false;
+    // Project attributes
 
     QString uuid;
-    QString path;
-    QString rootPath;
+    QString name;
+    QDir rootDir;
+    QDir dir;
     QDir dcim;
-    bool dcimLinked = true;
-    QDir front, back;
-    QString version;
+    bool dcimLinked = false;
+    QDir frontDir;
+    QDir backDir;
 
-    QList<FVideo*> videos;
-    QList<QPair<QString,QString>> badVideos;
-    LoadingProgress progress;
+
+    // Other
+    ProjectDB* dbManager;
+    LocalDB* localDBManager;
+    QList<FVideo> videos;
+    QMap<QString,QString> badVideos;
+
+    LoadingInfo loadingInfo;
+    LoadingProgress loadingProgress;
+
     QDateTime lastSaved;
 
+    void createProjectFolder();
+    void createProjectSD();
+    void loadProject();
+
+    void createProjectTGenerate();
+    void createProjectTCopyDCIM();
+    bool createProjectTHCopy(QString src, QString dst);
+
+    void indexVideos();
     void addToRecent();
-    bool setupDatabase();
-    bool copyDCIM();
-    bool indexVideos();
+
     void indexSegmentComplete();
     void indexVideoComplete();
-    bool copy(QString src, QString dst);
-    QList<int> getVersionNumbers();
-    QStringList errors;
-    QStringList warnings;
 
 };
 

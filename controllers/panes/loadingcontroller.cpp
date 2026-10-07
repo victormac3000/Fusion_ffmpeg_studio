@@ -13,57 +13,33 @@ void LoadingController::startLoading(const QJSValue& args,
 {
     project = m_appController->getProject();
 
+    connect(m_appController, &MainController::loadProjectUpdate,
+            this, &LoadingController::onLoadProjectUpdate);
+    connect(m_appController, &MainController::loadProjectDone,
+            this, &LoadingController::onLoadProjectDone);
     connect(m_appController, &MainController::loadProjectError,
             this, &LoadingController::onLoadProjectError);
 
     this->task(
         args, outputCallback, errorCallback,
-        [](const QVariantMap &args) {
-            QString operation = args.value("operation").toString();
-            int operationConv = -1;
-
-            if (operation == "CREATE_PROJECT_SD") operationConv = CREATE_PROJECT_SD;
-            if (operation == "CREATE_PROJECT_FOLDER") operationConv = CREATE_PROJECT_FOLDER;
-            if (operation == "LOAD_PROJECT") operationConv = LOAD_PROJECT;
-
-            if (operationConv == -1) {
-                throw LoadingException(
-                    ("operation (" + operation + ") is not supported").toStdString(),
-                    "Error interno"
-                );
-            }
-
-            QVariantMap result = args;
-            result.insert("operation", operationConv);
-
-            return result;
+        [](const QVariantMap& args) {
+            return args;
         },
         [this](const QVariantMap &result,
                const QJSValue &outputCallback) {
-
-            QString operation = "create";
-            LoadingInfo info;
-            info.type = result.value("operation").toInt();
-
-
-            if (info.type == CREATE_PROJECT_SD ||
-                info.type == CREATE_PROJECT_FOLDER) {
-                info.projectName = result.value("projectName").toString();
-                info.projectPath = result.value("projectPath").toString();
-                info.frontVolumePath = result.value("frontPath").toString();
-                info.backVolumePath = result.value("backPath").toString();
-                info.dcimPath = result.value("dcimPath").toString();
-                info.copyDCIM = result.value("dcimCopy").toBool();
-            }
-
-            if (info.type == LOAD_PROJECT) {
-                info.projectPath = result.value("projectPath").toString();
-                operation = "load";
-            }
+            LoadingInfo info {
+                .type = result.value("operation").toInt(),
+                .projectPath = result.value("projectPath").toString(),
+                .projectName = result.value("projectName").toString(),
+                .dcimPath = result.value("dcimPath").toString(),
+                .frontVolumePath = result.value("frontPath").toString(),
+                .backVolumePath = result.value("backPath").toString(),
+                .copyDCIM = result.value("dcimCopy").toBool()
+            };
 
             QMetaObject::invokeMethod(
                 project,
-                operation.toUtf8().constData(),
+                "create",
                 Qt::QueuedConnection,
                 Q_ARG(LoadingInfo, info)
             );
@@ -73,7 +49,53 @@ void LoadingController::startLoading(const QJSValue& args,
     );
 }
 
+void LoadingController::onLoadProjectUpdate(LoadingProgress progressData)
+{
+    QVariantMap data;
+    QString operation;
+
+    switch (progressData.stepID) {
+        case GENERATE_PROJECT_DIRS:
+            operation = "Generating project files";
+            break;
+        case COPY_DCIM_FOLDER:
+            operation = "Copying video files";
+            break;
+        case INDEX_VIDEOS:
+            operation = "Importing video files";
+            break;
+        default:
+            operation = "Loading";
+    }
+
+    data = progressData.toQML();
+    data.insert("operation", operation);
+
+    emit loadProjectUpdate(data);
+}
+
+void LoadingController::onLoadProjectDone(LoadingDone done)
+{
+    QVariantMap map;
+    map.insert("badVideos", done.badVideos);
+    map.insert("numVideos", done.numVideos);
+    emit loadProjectDone(map);
+}
+
 void LoadingController::onLoadProjectError(LoadingError error)
 {
-    qDebug() << "ERROR" << error.message;
+    QVariantMap data;
+    QString title = "Error loading project";
+
+    switch (error.progress.stepID) {
+        case CREATE_PROJECT_FOLDER:
+        case CREATE_PROJECT_SD:
+            title = "Error creating project";
+    }
+
+    data["title"] = title;
+    data["message"] = error.message;
+
+
+    emit loadProjectError(data);
 }

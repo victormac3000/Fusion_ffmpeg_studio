@@ -1,0 +1,15 @@
+{
+    "CREATE_RECENT_PROJECTS": "
+        CREATE TABLE IF NOT EXISTS recent_projects (
+            uuid TEXT PRIMARY KEY,
+            path TEXT NOT NULL,
+            name TEXT NOT NULL,
+            saved_on INTEGER NOT NULL
+        );",
+    "UPDATE_RECENT_PROJECTS": "
+        INSERT OR REPLACE INTO recent_projects
+            (uuid, path, name, saved_on)
+        VALUES
+            (:uuid, :path, :name, :saved_on)
+        ;"
+}

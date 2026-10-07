@@ -494,13 +494,14 @@ Rectangle {
                         }
 
                         if (sourceTabBar.currentIndex === 0) {
-                            args.operation = "CREATE_PROJECT_SD"
+                            args.operation = constants.createProjectSD
                             args.frontPath = frontSDComboBox.model.get(frontSDComboBox.currentIndex).volumeInfo["mountPath"]
                             args.backPath = backSDComboBox.model.get(backSDComboBox.currentIndex).volumeInfo["mountPath"]
+                            args.dcimCopy = true
                         }
 
                         if (sourceTabBar.currentIndex === 1) {
-                            args.operation = "CREATE_PROJECT_DCIM"
+                            args.operation = constants.createProjectFolder
                             args.dcimPath = dcimPathTextField.text
                             args.dcimCopy = copyCheckbox.checked
                         }
