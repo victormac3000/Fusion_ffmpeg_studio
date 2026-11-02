@@ -10,6 +10,7 @@ Item {
     readonly property int generateProjectDirs: 0
     readonly property int copyDCIMFolder: 1
     readonly property int indexVideos: 2
+    readonly property int readProjectDir: 3
 
     property double fontSizeScale: 1.0
 

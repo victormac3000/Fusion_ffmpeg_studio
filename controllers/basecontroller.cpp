@@ -70,6 +70,7 @@ void BaseController::backgroundTask(const QJSValue &args, const QJSValue &output
                 results = workFunction(arguments);
             } catch (const CustomException& e) {
                 userError = QString::fromStdString(e.userMessage());
+                qWarning() << "An CustomException was thrown:" << e.what();
             } catch (const std::exception& e) {
                 userError = QStringLiteral("Unknown error");
                 qWarning() << "An unknwon exception was thrown:" << e.what();

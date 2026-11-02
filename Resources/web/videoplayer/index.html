@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fusion 360 Viewer</title>
+    <link rel="stylesheet" href="viewer.css">
+</head>
+<body>
+<div id="viewer">
+    <canvas id="glCanvas"></canvas>
+
+    <!-- Hidden videos used as WebGL texture sources -->
+    <video id="frontVideo" crossorigin="anonymous" playsinline muted preload="auto"></video>
+    <video id="backVideo" crossorigin="anonymous" playsinline muted preload="auto"></video>
+
+    <div id="loading">Loading...</div>
+
+    <div id="controls">
+        <button id="playButton">▶</button>
+        <input id="progress" type="range" min="0" max="1" step="0.001" value="0">
+        <span id="time">00:00 / 00:00</span>
+        <button id="fullscreenButton">⛶</button>
+    </div>
+
+    <!-- ============================================================
+         Stitcher calibration panel
+         ============================================================ -->
+    <div id="debugPanel" class="collapsed">
+        <div id="debugHeader">
+            <span>Stitcher Calibration</span>
+            <button id="debugToggle" title="Expand/collapse">+</button>
+        </div>
+
+        <div id="debugBody">
+
+            <div class="debug-section">
+                <label class="debug-label">View mode</label>
+                <select id="viewMode">
+                    <option value="0">Normal blend</option>
+                    <option value="1">Front lens only</option>
+                    <option value="2">Back lens only</option>
+                    <option value="3">Split screen (F | B)</option>
+                    <option value="4">Coverage (R=front, G=back)</option>
+                </select>
+            </div>
+
+            <div class="debug-section">
+                <label class="debug-check">
+                    <input type="checkbox" id="showEdges" checked>
+                    Show fisheye boundary rings
+                </label>
+                <label class="debug-check">
+                    <input type="checkbox" id="autoExposure" checked>
+                    Auto exposure compensation
+                </label>
+                <label class="debug-check">
+                    <input type="checkbox" id="frontMirror">
+                    Mirror front lens
+                </label>
+
+                <label class="debug-check">
+                    <input type="checkbox" id="backMirror">
+                    Mirror back lens
+                </label>
+            </div>
+
+            <div id="slidersContainer"></div>
+
+            <div class="debug-section debug-actions">
+                <button id="copyCalibration" class="debug-btn">Copy JSON</button>
+                <button id="resetCalibration" class="debug-btn">Reset</button>
+                <button id="resetView" class="debug-btn">Recenter view</button>
+            </div>
+
+        </div>
+    </div>
+    <!-- ============================================================ -->
+
+</div>
+<script src="qrc:/qtwebchannel/qwebchannel.js"></script>
+<script src="viewer.js"></script>
+</body>
+</html>

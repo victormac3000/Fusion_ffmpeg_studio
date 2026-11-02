@@ -5,12 +5,17 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 
+import FusionFFmpegStudio
+
 Rectangle {
-    id: editorPaneRectangle
-    width: 1280
-    height: 720
-    clip: true
+    id: root
+    //clip: true
     color: "#2e2e2e"
+
+    EditorController {
+        id: controller
+        appController: mainController
+    }
 
     SplitView {
         id: editorPaneSplitView
@@ -26,26 +31,29 @@ Rectangle {
 
         VideosGrid {
             id: videosGrid
-            objectName: "videosGrid"
             SplitView.fillHeight: true
             SplitView.preferredWidth: 260
+            SplitView.minimumWidth: 200
+            controller: controller
+            videoPlayer: videoPlayerRoot
         }
 
         VideoPlayer {
             id: videoPlayerRoot
-            objectName: "videoPlayerRoot"
             SplitView.fillHeight: true
             SplitView.fillWidth: true
-            SplitView.minimumWidth: 650
+            SplitView.minimumWidth: 250
             color: "#666666"
+            controller: controller
         }
 
         QueueGrid {
+            // TODO autoresize when extended queueItem
             id: queueGrid
             SplitView.fillHeight: true
             SplitView.preferredWidth: 250
-            // TODO autoresize when extended queueItem
+            SplitView.minimumWidth: 100
+            controller: controller
         }
-
     }
 }

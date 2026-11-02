@@ -35,8 +35,14 @@ signals:
     void loadProjectDone(LoadingDone done);
     void loadProjectError(LoadingError error);
 
+    void videosReady(QList<FVideo> videos);
+
 protected slots:
+    // Loads or creates the project
     void create(LoadingInfo info);
+
+    void getVideos();
+
 
 private:
     // Project attributes
@@ -49,30 +55,29 @@ private:
     bool dcimLinked = false;
     QDir frontDir;
     QDir backDir;
-
+    QDateTime lastSaved;
 
     // Other
+
     ProjectDB* dbManager;
     LocalDB* localDBManager;
     QList<FVideo> videos;
     QMap<QString,QString> badVideos;
-
     LoadingInfo loadingInfo;
     LoadingProgress loadingProgress;
 
-    QDateTime lastSaved;
 
     void createProjectFolder();
     void createProjectSD();
     void loadProject();
+
+    void checkVersions(QVariantMap projectInfo);
 
     void createProjectTGenerate();
     void createProjectTCopyDCIM();
     bool createProjectTHCopy(QString src, QString dst);
 
     void indexVideos();
-    void addToRecent();
-
     void indexSegmentComplete();
     void indexVideoComplete();
 

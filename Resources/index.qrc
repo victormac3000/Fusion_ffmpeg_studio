@@ -24,5 +24,8 @@
         <file>icons/dialogs/warning.png</file>
         <file>documents/json/projectdb.json</file>
         <file>documents/json/local.json</file>
+        <file>web/videoplayer/index.html</file>
+        <file>web/videoplayer/viewer.css</file>
+        <file>web/videoplayer/viewer.js</file>
     </qresource>
 </RCC>

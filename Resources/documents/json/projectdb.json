@@ -42,5 +42,8 @@
             (id, video, dualFisheye, dualFisheyeLow)
         VALUES
             (:id, :video, :dualFisheye, :dualFisheyeLow)
-        ;"
+        ;",
+    "GET_PROJECT_INFO":"
+        SELECT * FROM project_info LIMIT 1
+    "
 }

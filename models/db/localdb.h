@@ -3,11 +3,21 @@
 
 #include "models/db/basedb.h"
 
+#include <QDateTime>
+
+struct RecentProject {
+    QString uuid;
+    QString path;
+    QString name;
+    QDateTime savedOn;
+};
+
 class LocalDB: public BaseDB
 {
 public:
-    LocalDB(QString dbPath);
+    LocalDB(QString dbPath = "");
     void updateRecentProjects(QString uuid, QString path, QString name, QDateTime savedOn);
+    QList<RecentProject> getRecentProjects();
 
 };
 

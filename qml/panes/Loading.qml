@@ -11,6 +11,7 @@ Rectangle {
     required property int operation
     property string projectName
     property string projectPath
+    property string projectUUID
     property string frontPath
     property string backPath
     property string dcimPath
@@ -35,8 +36,10 @@ Rectangle {
                     msg = msg.slice(0, -1)
                 }
                 dialogs.warning(msg, "Invalid videos", () => {
-                    console.log("LOAD EDITOR")
+                    controller.loadEditor()
                 })
+            } else {
+                controller.loadEditor()
             }
         }
 
@@ -88,7 +91,7 @@ Rectangle {
         }
 
         function onLoadProjectError(data) {
-            dialogs.warning(data.message, data.title, () => {
+            dialogs.error(data.message, data.title, () => {
                 mainController.back()
             })
         }
@@ -113,6 +116,7 @@ Rectangle {
             operation: operation,
             projectName: projectName,
             projectPath: projectPath,
+            projectUUID: projectUUID,
             frontPath: frontPath,
             backPath: backPath,
             dcimPath: dcimPath,
@@ -120,13 +124,10 @@ Rectangle {
         }
         controller.startLoading(
             args,
-            () => {
-                console.log("Project loaded ok")
-            },
+            () => {},
             (error) => {
-                dialogs.warning(error, "Loading error", () => {
+                dialogs.error(error, "Loading error", () => {
                     mainController.back()
-
                 })
             }
         )

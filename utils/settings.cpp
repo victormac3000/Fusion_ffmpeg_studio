@@ -502,6 +502,17 @@ QString Settings::getLocalDBPath()
     return QDir(getAppDataPath()).filePath("local.db");
 }
 
+QList<int> Settings::getAppVersionNumbers()
+{
+    QString version = QCoreApplication::applicationVersion();
+    QStringList versionList = version.split(".");
+    return {
+        (versionList.length()>0) ? versionList.at(0).toInt() : 0,
+        (versionList.length()>1) ? versionList.at(1).toInt() : 0,
+        (versionList.length()>2) ? versionList.at(2).toInt() : 0
+    };
+}
+
 void Settings::qexit(int code)
 {
     QGuiApplication::exit(code);

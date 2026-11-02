@@ -31,6 +31,7 @@ void LoadingController::startLoading(const QJSValue& args,
                 .type = result.value("operation").toInt(),
                 .projectPath = result.value("projectPath").toString(),
                 .projectName = result.value("projectName").toString(),
+                .projectUUID = result.value("projectUUID").toString(),
                 .dcimPath = result.value("dcimPath").toString(),
                 .frontVolumePath = result.value("frontPath").toString(),
                 .backVolumePath = result.value("backPath").toString(),
@@ -49,6 +50,11 @@ void LoadingController::startLoading(const QJSValue& args,
     );
 }
 
+void LoadingController::loadEditor()
+{
+    m_appController->navigateToM(MainController::Pane::Editor);
+}
+
 void LoadingController::onLoadProjectUpdate(LoadingProgress progressData)
 {
     QVariantMap data;
@@ -57,6 +63,9 @@ void LoadingController::onLoadProjectUpdate(LoadingProgress progressData)
     switch (progressData.stepID) {
         case GENERATE_PROJECT_DIRS:
             operation = "Generating project files";
+            break;
+        case READ_PROJECT_DIR:
+            operation = "Reading project files";
             break;
         case COPY_DCIM_FOLDER:
             operation = "Copying video files";

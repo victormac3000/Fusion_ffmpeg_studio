@@ -59,6 +59,12 @@ VideoInfo MediaInfo::getVideoInfo(QString path)
         if (stream->duration != AV_NOPTS_VALUE) {
             videoInfo.length_s = stream->duration * av_q2d(timeBase);
         }
+
+        AVDictionaryEntry* creationTime = av_dict_get(formatContext->metadata, "creation_time", nullptr, 0);
+        if (creationTime) {
+            videoInfo.date = QDateTime::fromString(QString::fromUtf8(creationTime->value), Qt::ISODate);
+        }
+
     }
 
     return videoInfo;

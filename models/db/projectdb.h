@@ -10,14 +10,17 @@
 class ProjectDB: public BaseDB
 {
 public:
+    ProjectDB(QString dbPath);
     ProjectDB(QString dbPath, QString uuid,
               QString name, QDir dcimDir,
               bool dcimLinked);
     void updateVideos(QList<FVideo> videos);
+    QVariantMap getProjectInfo();
+
     void addProjectToRecent();
 
 private:
-    QList<int> getVersionNumbers();
+
 };
 
 #endif // PROJECTDB_H

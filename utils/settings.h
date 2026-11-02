@@ -28,6 +28,7 @@ public:
     static QString getDefaultEncoder();
     static QString getDefaultFormat();
     static QString getLocalDBPath();
+    static QList<int> getAppVersionNumbers();
 
     static void setDefaultCodec(QString defaultCodec);
     static void setDefaultEncoder(QString defaultEncoder);

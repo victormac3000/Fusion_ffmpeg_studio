@@ -12,12 +12,14 @@ set(CMAKE_AUTOUIC ON)
 find_package(Qt6 6.5 REQUIRED COMPONENTS
     Core
     Gui
+    HttpServer
     Widgets
     Sql
     Multimedia
     MultimediaWidgets
     Quick
     QuickWidgets
+    WebEngineCore
     QuickControls2
     WebEngineWidgets
     Qml
@@ -105,8 +107,18 @@ set(QML_FILES
     qml/windows/preferences/Preferences.qml
     qml/windows/preferences/PreferencesGeneral.qml
     qml/windows/preferences/PreferencesRendering.qml
-    qml/panes/Welcome.qml
+    qml/panes/Loading.qml
+    qml/panes/welcome/RecentProject.qml
+    qml/panes/welcome/Welcome.qml
     qml/panes/NewProject.qml
+    qml/panes/editor/EditorPane.qml
+    qml/panes/editor/VideosGrid.qml
+    qml/panes/editor/VideoItem.qml
+    qml/panes/editor/RenderOptions.qml
+    qml/panes/editor/VideoPlayer.qml
+    qml/panes/editor/VideoPlayerSeekerBar.qml
+    qml/panes/editor/QueueGrid.qml
+    qml/panes/editor/QueueItem.qml
 )
 
 set(RESOURCES
@@ -144,7 +156,6 @@ qt_add_qml_module(FusionFFmpegStudio
     QML_FILES qml/components/MyTextField.qml
     SOURCES utils/exceptions/newprojectexception.h
     QML_FILES
-    QML_FILES qml/panes/Loading.qml
     SOURCES controllers/panes/loadingcontroller.h controllers/panes/loadingcontroller.cpp
     SOURCES utils/exceptions/loadingexception.h
     SOURCES utils/exceptions/projectexception.h
@@ -153,6 +164,8 @@ qt_add_qml_module(FusionFFmpegStudio
     SOURCES models/db/localdb.h models/db/localdb.cpp
     SOURCES models/db/basedb.h models/db/basedb.cpp
     SOURCES utils/exceptions/DBException.h
+    SOURCES controllers/panes/editorcontroller.h controllers/panes/editorcontroller.cpp
+    SOURCES controllers/panes/editorviewercontroller.h controllers/panes/editorviewercontroller.cpp
 )
 
 set_target_properties(FusionFFmpegStudio PROPERTIES
@@ -166,6 +179,7 @@ target_include_directories(FusionFFmpegStudio PRIVATE
 target_link_libraries(FusionFFmpegStudio PRIVATE
     Qt6::Core
     Qt6::Gui
+    Qt6::HttpServer
     Qt6::Widgets
     Qt6::Sql
     Qt6::Multimedia

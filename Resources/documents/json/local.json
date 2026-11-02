@@ -11,5 +11,9 @@
             (uuid, path, name, saved_on)
         VALUES
             (:uuid, :path, :name, :saved_on)
+        ;",
+    "GET_RECENT_PROJECTS": "
+        SELECT * FROM recent_projects
+        ORDER BY saved_on DESC
         ;"
 }

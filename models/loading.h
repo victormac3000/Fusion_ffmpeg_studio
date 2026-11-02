@@ -14,16 +14,16 @@ enum {
 enum {
     GENERATE_PROJECT_DIRS,
     COPY_DCIM_FOLDER,
-    INDEX_VIDEOS
+    INDEX_VIDEOS,
+    READ_PROJECT_DIR
 };
 
 struct LoadingInfo {
     int type = -1;
-    /* DEPRECATED */ QString rootProjectPath;    // Root folder of project. Example: /Users/username/Documents
     QString projectPath;        // Base folder of project. Example: /Users/username/Documents/Project1
     QString projectName;        // Only used on create type
+    QString projectUUID;        // Only used on load type
     QString dcimPath;
-    /* DEPRECATED */ QString dcimFrontPath, dcimBackPath;
     QString frontVolumePath, backVolumePath;
     bool copyDCIM = true;
 };

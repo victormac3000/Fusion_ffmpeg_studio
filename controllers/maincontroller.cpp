@@ -14,6 +14,8 @@ MainController::MainController(QObject *parent)
             this, &MainController::loadProjectDone);
     connect(this->project, &Project::loadProjectError,
             this, &MainController::loadProjectError);
+    connect(this->project, &Project::videosReady,
+            this, &MainController::videosReady);
     this->project->moveToThread(&projectThread);
     projectThread.start();
 }
@@ -32,13 +34,16 @@ QString MainController::paneToUrl(Pane pane) const
     switch (pane)
     {
         case Pane::Welcome:
-            return baseUrl + "/Welcome.qml";
+            return baseUrl + "/welcome/Welcome.qml";
 
         case Pane::NewProject:
             return baseUrl + "/NewProject.qml";
 
         case Pane::Loading:
             return baseUrl + "/Loading.qml";
+
+        case Pane::Editor:
+            return baseUrl + "/editor/EditorPane.qml";
     }
 
     return "";

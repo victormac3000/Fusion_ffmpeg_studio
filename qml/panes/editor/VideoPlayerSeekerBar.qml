@@ -73,7 +73,7 @@ Rectangle {
 
         Image {
             anchors.fill: parent
-            source: "Images/red_triangle.svg"
+            source: "qrc:/images/red_triangle.svg"
             fillMode: Image.Stretch
         }
     }
@@ -104,7 +104,7 @@ Rectangle {
 
         Image {
             anchors.fill: parent
-            source: "Images/red_triangle.svg"
+            source: "qrc:/images/red_triangle.svg"
             fillMode: Image.Stretch
         }
     }

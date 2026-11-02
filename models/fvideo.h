@@ -35,6 +35,7 @@ public:
     QString getBackThumbnail();
     FFormat getFormat();
     QList<FSegment> getSegments();
+    QVariantMap toVariantMap();
 
 private:
     int id;

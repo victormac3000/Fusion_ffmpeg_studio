@@ -12,6 +12,7 @@ public:
     Q_INVOKABLE void startLoading(const QJSValue& args,
                                   const QJSValue& outputCallback,
                                   const QJSValue& errorCallback);
+    Q_INVOKABLE void loadEditor();
 
 private slots:
     void onLoadProjectUpdate(LoadingProgress progressData);

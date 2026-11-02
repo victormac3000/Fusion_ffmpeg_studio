@@ -12,6 +12,15 @@ Rectangle {
         appController: mainController
     }
 
+    Dialogs {
+        id: dialogs
+    }
+
+    Constants {
+        id: constants
+        visible: false
+    }
+
     ColumnLayout {
         anchors.fill: parent
 
@@ -138,47 +147,73 @@ Rectangle {
 
                         ColumnLayout {
                             id: recentProjectsLayout
-                            objectName: "recentProjectsLayout"
                             width: parent.width
-                            /*
+                            property bool projectLoading: false
+
                             Component.onCompleted: {
+                                controller.getRecentProjects({}, (recentProjects) => {
+                                    borderRectangle.color = (recentProjects.length < 1) ? "lightgrey" : "transparent"
 
-                                //for (var i = 0; i < 10; i++) {
-                                //    addRecentProject("Project " + (i + 1), "/test/x" + i + ".ffs")
-                                //}
+                                    recentProjects.forEach((recentProject) => {
+                                        addRecentProject(recentProject)
+                                    })
+                                }, (error) => {
+                                    dialogs.warning(error)
+                                })
+                            }
 
-                                if (recentProjectsLayout.children.length < 1) {
-                                    borderRectangle.color = "lightgrey"
+                            function onRecentProjectClicked(uuid, name, path) {
+                                if (projectLoading) return
+                                var args = {
+                                    operation: constants.loadProject,
+                                    projectName: name,
+                                    projectPath: path,
+                                    projectUUID: uuid
+                                }
+                                controller.loadRecentProject(args, () => {
+                                    projectLoading = false
+                                }, (error) => {
+                                    dialogs.error("Could not load project", "Error loading project", () => {
+                                        projectLoading = false
+                                    })
+                                })
+                            }
+
+                            function addRecentProject(recentProject) {
+                                var uuid = recentProject.uuid
+                                var name = recentProject.name
+                                var path = recentProject.path
+
+                                var recentProjectComponent = Qt.createComponent("RecentProject.qml")
+                                if (recentProjectComponent.status === Component.Ready) {
+                                    var recentProjectElement = recentProjectComponent.createObject(recentProjectsLayout)
+                                    if (recentProjectElement !== null) {
+                                        recentProjectElement.uuid = uuid
+                                        recentProjectElement.name = name
+                                        recentProjectElement.path = path
+                                        recentProjectElement.anchors.margins = 5
+                                        recentProjectElement.Layout.fillWidth = true
+                                        recentProjectElement.Layout.minimumHeight = 100
+                                        recentProjectElement.Layout.maximumHeight = 100
+                                        recentProjectElement.clickHandler = onRecentProjectClicked
+                                    } else {
+                                        dialogs.warning("Failed to load a recent project")
+                                        console.error("Failed to create RecentProject element")
+                                    }
                                 } else {
-                                    borderRectangle.color = "transparent"
-
+                                    dialogs.warning("Failed to load a recent project")
+                                    console.error("Failed to load RecentProject.qml:", recentProjectComponent.errorString())
                                 }
                             }
 
+                            /*
                             function filter(name) {
                                 for (let i=0; i<children.length; i++) {
                                     let child = children[i]
                                     children[i].visible = child.name.toLowerCase().includes(name.toLowerCase())
                                 }
                             }
-
-                            function addRecentProject(name, path) {
-                                var recentProjectComponent = Qt.createComponent("RecentProject.qml")
-                                if (recentProjectComponent.status === Component.Ready) {
-                                    var recentProjectElement = recentProjectComponent.createObject(recentProjectsLayout)
-                                    if (recentProjectElement !== null) {
-                                        recentProjectElement.name = name
-                                        recentProjectElement.path = path
-                                        recentProjectElement.anchors.margins = 5
-                                    } else {
-                                        console.error("Failed to create RecentProject element")
-                                    }
-                                } else {
-                                    console.error("Failed to load RecentProject.qml:", recentProjectComponent.errorString())
-                                }
-                            }
                             */
-                            signal recentProjectClicked(var recentProject)
                         }
 
                         ScrollBar.vertical: ScrollBar {

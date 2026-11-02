@@ -1,10 +1,15 @@
 #include "projectdb.h"
+#include "utils/settings.h"
 
 #include <QCoreApplication>
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QJsonDocument>
 #include <QJsonObject>
+
+ProjectDB::ProjectDB(QString dbPath):
+    BaseDB(dbPath, ":/documents/json/projectdb.json")
+{}
 
 ProjectDB::ProjectDB(QString dbPath, QString uuid,
                      QString name, QDir dcimDir,
@@ -18,7 +23,7 @@ ProjectDB::ProjectDB(QString dbPath, QString uuid,
 
     // Insert project data
     QVariantMap params;
-    QList<int> versions = getVersionNumbers();
+    QList<int> versions = Settings::getAppVersionNumbers();
 
     params.insert("uuid", uuid);
     params.insert("name", name);
@@ -58,13 +63,11 @@ void ProjectDB::updateVideos(QList<FVideo> videos)
     }
 }
 
-QList<int> ProjectDB::getVersionNumbers()
+QVariantMap ProjectDB::getProjectInfo()
 {
-    QString version = QCoreApplication::applicationVersion();
-    QStringList versionList = version.split(".");
-    return {
-        (versionList.length()>0) ? versionList.at(0).toInt() : 0,
-        (versionList.length()>1) ? versionList.at(1).toInt() : 0,
-        (versionList.length()>2) ? versionList.at(2).toInt() : 0
-    };
+    QVariantList rows = query("GET_PROJECT_INFO");
+    if (rows.length() > 0) {
+        return rows.first().toMap();
+    }
+    return {};
 }

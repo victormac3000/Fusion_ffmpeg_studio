@@ -2,42 +2,43 @@ import QtQuick 2.1
 import QtQuick.Controls 2.15
 import QtQuick.Layouts
 
+import FusionFFmpegStudio
+
 Rectangle {
-    property string name: "Sample project"
-    property string path: "/Users/username/randomfolder/sproj.pro"
+    property string uuid: ""
+    property string name: ""
+    property string path: ""
     property string rectColor: "#00C0FF"
     property string rectColorHover: "#8AE2FF"
+    property var clickHandler
 
-
-    id: rectangle
-    Layout.minimumHeight: 100
-    Layout.maximumHeight: 100
-    Layout.fillWidth: true
+    id: root
     color: rectColor
 
     MouseArea {
         hoverEnabled: true
-        anchors.fill: parent
+        anchors.fill: root
         onEntered: {
-            parent.color = rectColorHover
+            root.color = rectColorHover
         }
         onExited: {
-            parent.color = rectColor
+            root.color = rectColor
         }
         onClicked: {
-            parent.parent.recentProjectClicked(parent)
+            clickHandler(uuid, name, path)
         }
     }
 
     RowLayout {
-        anchors.fill: parent
+        id: rowLayout
+        anchors.fill: root
 
         Text {
             id: capitalsLetters
             Layout.fillWidth: true
             Layout.fillHeight: true
             Layout.margins: 10
-            Layout.maximumWidth: parent.width * 0.2
+            Layout.maximumWidth: rowLayout.width * 0.2
             text: getText()
             font.bold: true
             font.family: "Arial"
@@ -48,7 +49,7 @@ Rectangle {
             horizontalAlignment: Text.AlignHCenter
 
             Rectangle {
-                anchors.fill: parent
+                anchors.fill: capitalsLetters
                 border.color: "black"
                 border.width: 5
                 color: "#eb7762"
@@ -56,12 +57,12 @@ Rectangle {
             }
 
             function getText() {
-                let parts = rectangle.name.toUpperCase().trim().split(" ")
+                let parts = root.name.toUpperCase().trim().split(" ")
                 if (parts.length < 2) {
                     let first = -1;
                     let second = -1;
-                    for (let i=0; i<rectangle.name.length; i++) {
-                        let character = rectangle.name.charAt(i);
+                    for (let i=0; i<root.name.length; i++) {
+                        let character = root.name.charAt(i);
                         if (character == character.toUpperCase()) {
                             if (first >= 0) {
                                 second = i;
@@ -73,9 +74,9 @@ Rectangle {
                     }
 
                     if (first >= 0 && second >= 0) {
-                        return rectangle.name.charAt(first) + rectangle.name.charAt(second)
+                        return root.name.charAt(first) + root.name.charAt(second)
                     } else {
-                        return rectangle.name.toUpperCase().slice(0,2)
+                        return root.name.toUpperCase().slice(0,2)
                     }
                 }
                 return parts[0].charAt(0) + parts[1].charAt(0)

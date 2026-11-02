@@ -14,7 +14,8 @@ public:
     enum class Pane {
         Welcome,
         NewProject,
-        Loading
+        Loading,
+        Editor
     };
     Q_ENUM(Pane)
 
@@ -50,6 +51,8 @@ signals:
     void loadProjectUpdate(LoadingProgress progress);
     void loadProjectDone(LoadingDone done);
     void loadProjectError(LoadingError error);
+
+    void videosReady(QList<FVideo> videos);
 };
 
 #endif // MAINCONTROLLER_H

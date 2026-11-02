@@ -7,52 +7,39 @@ import QtQuick.Controls
 */
 
 Rectangle {
+    id: root
+
+    required property var video
+    required property var clickHandler
     property bool selected: false
-    property int id: -1
-    property string idString: "000"
-    property string b64image
-    property string recorded: "DD/MM/YYYY"
 
     Layout.minimumHeight: 125
     Layout.minimumWidth: 125
     Layout.fillWidth: true
 
     border.color: { selected ? "red" : "green"}
-    border.width: 10
+    border.width: 5
     radius: 20
     color: "#0000FF"
-
-    function setSelected(selected) {
-       this.selected = selected
-    }
-
-    function setData(id, idString, b64image, rec) {
-        if (id >= 0 && idString !== "" && rec !== "") {
-            this.id = id
-            this.idString = idString
-            this.b64image = b64image
-            this.recorded = rec
-        }
-    }
 
     MouseArea {
         id: mouseArea
         anchors.fill: parent
         onClicked: {
-            parent.parent.videoItemClicked(parent)
+            clickHandler(root)
         }
     }
 
     ColumnLayout {
         anchors.fill: parent
+        anchors.margins: 10
         spacing: 0
 
         Text {
-            Layout.topMargin: 15
             Layout.fillHeight: true
             color: "#ffffff"
             Layout.fillWidth: true
-            text: "VIDEO " + idString
+            text: "VIDEO " + root.video.idString
             horizontalAlignment: Text.AlignHCenter
             font.pointSize: 100
             minimumPointSize: 10
@@ -65,15 +52,14 @@ Rectangle {
             Layout.fillHeight: true
             Layout.fillWidth: true
             Layout.margins: 5
-            source: "data:image/jpeg;base64," + b64image
+            source: "data:image/jpeg;base64," + video.frontThumbnailB64
             fillMode: Image.PreserveAspectFit
         }
 
         Text {
-            Layout.bottomMargin: 30
             Layout.fillHeight: true
             color: "#ffffff"
-            text: "DD/MM/YYYY"
+            text: video.recordedOnDate
             Layout.fillWidth: true
             horizontalAlignment: Text.AlignHCenter
             font.pointSize: 100
