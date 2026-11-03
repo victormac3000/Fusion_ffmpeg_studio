@@ -19,11 +19,14 @@ Rectangle {
     }
 
     function setVideo(video) {
+        /*
         const base = "http://localhost:15000/video?path=";
         webView.loadVideos(
             base + encodeURIComponent(video.front),
             base + encodeURIComponent(video.back)
         );
+        */
+        webView.loadVideos(video.frontURL, video.backURL);
     }
 
     ColumnLayout {
@@ -47,8 +50,6 @@ Rectangle {
                     webChannel: WebChannel {
                         registeredObjects: [bridge]
                     }
-                    settings.localContentCanAccessFileUrls: true
-                    settings.localContentCanAccessRemoteUrls: true
 
                     property var  pendingVideos: null
                     property bool viewerInitialized: false
@@ -112,18 +113,14 @@ Rectangle {
                     function cameraChanged(data) {
                         //console.log("Camera:", JSON.stringify(data))
                     }
+                    function profileChanged(data) {
+                        console.log("Active profile:", data.name)
+                    }
                 }
 
-                EditorViewerController {
-                    id: fusionViewerBridge
-
-                    onViewerReady: function(data) {
-                        console.log("Viewer ready:", data.frontWidth, data.frontHeight, data.duration)
-                    }
-
-                    onCameraChangedSignal: function(data) {
-                        console.log("Yaw:", data.yaw, "Pitch:", data.pitch)
-                    }
+                Shortcut {
+                    sequence: "Space"
+                    onActivated: webView.runJavaScript("window.fusionViewer.togglePlayback()")
                 }
             }
 

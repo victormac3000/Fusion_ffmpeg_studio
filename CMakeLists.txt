@@ -165,7 +165,7 @@ qt_add_qml_module(FusionFFmpegStudio
     SOURCES models/db/basedb.h models/db/basedb.cpp
     SOURCES utils/exceptions/DBException.h
     SOURCES controllers/panes/editorcontroller.h controllers/panes/editorcontroller.cpp
-    SOURCES controllers/panes/editorviewercontroller.h controllers/panes/editorviewercontroller.cpp
+    SOURCES
 )
 
 set_target_properties(FusionFFmpegStudio PROPERTIES

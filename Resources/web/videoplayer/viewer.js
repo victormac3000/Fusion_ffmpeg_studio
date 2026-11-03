@@ -16,6 +16,8 @@ const MOCK = false;
 const frontVideoPath = "";
 const backVideoPath  = "";
 
+const SHOW_CALIBRATION_PANEL = false;
+
 /* ============================================================
  * Early stub: QML may call loadVideos() before this script
  * has finished. Queue and replay instead of throwing.
@@ -433,25 +435,54 @@ let focal = 1.0;
  * ============================================================
  */
 
-const calibration = {
-    fov: 190.0,
-    blendWidth: 5.0,
-    ghostSharpness: 1.0,
-    front: {
-        center:   [0.4974, 0.4965],
-        radius:   [0.5100, 0.5100],
-        rotation: 0.0,
-        mirror:   1.0
-    },
-    back: {
-        center:   [0.4944, 0.4965],
-        radius:   [0.5100, 0.5100],
-        rotation: Math.PI,
-        mirror:   1.0
+/* ============================================================
+ * Calibration profiles
+ * ============================================================
+ *
+ * Each profile is a complete stitcher configuration. The
+ * "fusion_3k_50" profile is the built-in default.
+ *
+ * QML can select a profile by name via
+ *     window.fusionViewer.setProfile("some_name")
+ * or supply a fresh object via
+ *     window.fusionViewer.setCalibration({...})
+ * ============================================================ */
+
+const DEFAULT_PROFILE_NAME = "fusion_3k_50";
+
+const PROFILES = {
+    "fusion_3k_50": {
+        fov: 201,
+        blendWidth: 5,
+        ghostSharpness: 1,
+        front: {
+            center:   [0.4974, 0.4965],
+            radius:   [0.51, 0.51],
+            rotation: -Math.PI,
+            mirror:   -1
+        },
+        back: {
+            center:   [0.4944, 0.4965],
+            radius:   [0.51, 0.51],
+            rotation: Math.PI,
+            mirror:   1
+        }
     }
 };
 
-const initialCalibration = JSON.parse(JSON.stringify(calibration));
+/* Deep-copy a profile so the live calibration object never
+ * aliases the stored one. */
+function cloneProfile(p) {
+    return JSON.parse(JSON.stringify(p));
+}
+
+/* Live calibration – always a copy of whatever profile is active. */
+const calibration = cloneProfile(PROFILES[DEFAULT_PROFILE_NAME]);
+
+/* Kept in sync with whatever profile is active, so "Reset"
+ * restores that profile rather than the boot-time one. */
+let initialCalibration = cloneProfile(PROFILES[DEFAULT_PROFILE_NAME]);
+let currentProfileName  = DEFAULT_PROFILE_NAME;
 
 /*
  * ============================================================
@@ -637,7 +668,7 @@ document.getElementById("viewMode").addEventListener("change", function (e) {
 });
 
 document.getElementById("showEdges").addEventListener("change", function (e) {
-    currentShowEdges = e.target.checked ? 1.0 : 0.0;
+    currentShowEdges = (ALLOW_EDGE_OVERLAY && e.target.checked) ? 1.0 : 0.0;
 });
 
 document.getElementById("autoExposure").addEventListener("change", function (e) {
@@ -663,6 +694,32 @@ function syncMirrorCheckboxes() {
 }
 
 syncMirrorCheckboxes();
+
+if (!SHOW_CALIBRATION_PANEL) {
+    debugPanel.style.display = "none";
+
+    const edgeCheckbox = document.getElementById("showEdges");
+    if (edgeCheckbox) {
+        edgeCheckbox.checked = false;
+        edgeCheckbox.disabled = true;
+    }
+    currentShowEdges = 0.0;
+}
+
+function applyProfile(profile, name) {
+    calibration.fov            = profile.fov;
+    calibration.blendWidth     = profile.blendWidth;
+    calibration.ghostSharpness = profile.ghostSharpness;
+
+    calibration.front = cloneProfile(profile.front);
+    calibration.back  = cloneProfile(profile.back);
+
+    initialCalibration = cloneProfile(profile);
+    if (name !== undefined) currentProfileName = name;
+
+    syncAllSliders();
+    syncMirrorCheckboxes();
+}
 
 /* --- Buttons --- */
 
@@ -692,14 +749,7 @@ document.getElementById("copyCalibration").addEventListener("click", function (e
 });
 
 document.getElementById("resetCalibration").addEventListener("click", function () {
-    calibration.fov            = initialCalibration.fov;
-    calibration.blendWidth     = initialCalibration.blendWidth;
-    calibration.ghostSharpness = initialCalibration.ghostSharpness;
-    calibration.front          = JSON.parse(JSON.stringify(initialCalibration.front));
-    calibration.back           = JSON.parse(JSON.stringify(initialCalibration.back));
-
-    syncAllSliders();
-    syncMirrorCheckboxes();
+    applyProfile(initialCalibration, currentProfileName);
 });
 
 document.getElementById("resetView").addEventListener("click", function () {
@@ -1075,6 +1125,7 @@ Object.assign(window.fusionViewer = {
     loadVideos(front, back) { setVideoSources(front, back); },
     play()  { if (frontVideo.paused)  togglePlayback(); },
     pause() { if (!frontVideo.paused) togglePlayback(); },
+    togglePlayback() { togglePlayback(); },
     seek(seconds) {
         frontVideo.currentTime = seconds;
         backVideo.currentTime  = seconds;
@@ -1087,7 +1138,6 @@ Object.assign(window.fusionViewer = {
     setFrontRotation(v) { calibration.front.rotation = v; },
     setBackRotation(v)  { calibration.back.rotation  = v; },
 
-    /* NEW: mirror control */
     setFrontMirror(v) {
         calibration.front.mirror = v ? -1.0 : 1.0;
         syncMirrorCheckboxes();
@@ -1096,6 +1146,43 @@ Object.assign(window.fusionViewer = {
         calibration.back.mirror = v ? -1.0 : 1.0;
         syncMirrorCheckboxes();
     },
+
+    /* ============================================
+     * Profiles
+     * ============================================ */
+
+    /** Apply a stored profile by name. Returns true on success. */
+    setProfile(name) {
+        const profile = PROFILES[name];
+        if (!profile) {
+            console.warn("[viewer] unknown profile:", name);
+            return false;
+        }
+        applyProfile(profile, name);
+        notifyQML("profileChanged", { name: name });
+        return true;
+    },
+
+    /** List available profile names. */
+    getProfileNames() {
+        return Object.keys(PROFILES);
+    },
+
+    /** Currently active profile name (may be null after raw setCalibration). */
+    getProfileName() {
+        return currentProfileName;
+    },
+
+    /** Register / overwrite a profile at runtime. */
+    registerProfile(name, profile) {
+        if (!name || !profile) return false;
+        PROFILES[name] = cloneProfile(profile);
+        return true;
+    },
+
+    /* ============================================
+     * Raw calibration (unchanged semantics)
+     * ============================================ */
 
     setExposure(front, back) {
         if (front > 0) { targetFrontExposure = currentFrontExposure = front; }
@@ -1107,6 +1194,11 @@ Object.assign(window.fusionViewer = {
         if (config.ghostSharpness !== undefined) calibration.ghostSharpness = config.ghostSharpness;
         if (config.front) Object.assign(calibration.front, config.front);
         if (config.back)  Object.assign(calibration.back,  config.back);
+
+        /* Detach from any named profile – the user hand-tuned it. */
+        currentProfileName = null;
+        initialCalibration = cloneProfile(calibration);
+
         syncAllSliders();
         syncMirrorCheckboxes();
     },
@@ -1206,7 +1298,7 @@ function render(timestamp) {
     gl.uniform1f(uniforms.focal, focal);
 
     gl.uniform1f(uniforms.viewMode,  currentViewMode);
-    gl.uniform1f(uniforms.showEdges, currentShowEdges);
+    gl.uniform1f(uniforms.showEdges, SHOW_CALIBRATION_PANEL ? currentShowEdges : 0.0);
 
     gl.drawArrays(gl.TRIANGLES, 0, 6);
 

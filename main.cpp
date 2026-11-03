@@ -15,9 +15,16 @@
 #include <QQuickStyle>
 #include <QElapsedTimer>
 #include <QQmlContext>
+#include <QWebEngineUrlScheme>
 
 int main(int argc, char *argv[])
 {
+    QWebEngineUrlScheme qrcScheme("qrc");
+    qrcScheme.setFlags(
+        QWebEngineUrlScheme::LocalAccessAllowed
+    );
+    QWebEngineUrlScheme::registerScheme(qrcScheme);
+
     QGuiApplication a(argc, argv);
 
     QQuickStyle::setStyle("Imagine");

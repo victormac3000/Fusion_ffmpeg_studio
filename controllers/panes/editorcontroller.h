@@ -20,8 +20,7 @@ signals:
     void videosReady(QVariantList videos);
 
 private:
-    QHttpServer httpServer;
-    QTcpServer* tcpserver;
+
 
 };
 
