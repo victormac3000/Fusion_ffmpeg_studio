@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 project(FusionFFmpegStudio VERSION 1.0 LANGUAGES CXX)
 
-# Require C++17
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
@@ -42,84 +41,28 @@ endif()
 
 set(SOURCES
     main.cpp
-    models/fsegment.cpp
-    models/fvideo.cpp
-    models/project.cpp
-    models/renderwork.cpp
-
-    utils/ffmpeg.cpp
-    utils/logger.cpp
-    utils/mediainfo.cpp
-    utils/myqsysinfo.cpp
-    utils/renderer.cpp
-    utils/settings.cpp
-    utils/dialogs.cpp
-    utils/copier.cpp
-    utils/fformats.cpp
-
-
-    controllers/maincontroller.cpp
-    controllers/panes/welcomecontroller.cpp
-    controllers/panes/newprojectcontroller.cpp
 )
-
-set(HEADERS
-    models/fformat.h
-    models/fsegment.h
-    models/fvideo.h
-    models/loading.h
-    models/project.h
-    models/renderwork.h
-
-    utils/exitcodes.h
-    utils/ffmpeg.h
-    utils/logger.h
-    utils/mediainfo.h
-    utils/renderer.h
-    utils/settings.h
-    utils/myqsysinfo.h
-    utils/dialogs.h
-    utils/copier.h
-    utils/fformats.h
-
-
-    controllers/maincontroller.h
-    controllers/panes/welcomecontroller.h
-    controllers/panes/newprojectcontroller.h
+file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/models/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/utils/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/controllers/*.cpp"
 )
+list(APPEND SOURCES ${PROJECT_SOURCES})
 
-set(QML_FILES
-    qml/components/MyButton.qml
-    qml/components/MyComboBox.qml
-    qml/components/MySlider.qml
-    qml/components/MyRangeSlider.qml
-    qml/components/Constants.qml
-    qml/components/NiceProgressBar.qml
-    qml/components/ScrollableTextArea.qml
-    qml/components/dialogs/Dialogs.qml
-    qml/components/dialogs/DialogContent.qml
-    qml/components/dialogs/DialogFooter.qml
-    qml/components/dialogs/DialogHeader.qml
-    qml/windows/main/Main.qml
-    qml/windows/about/About.qml
-    qml/windows/about/BuildInfo.qml
-    qml/windows/about/Libraries.qml
-    qml/windows/preferences/Preferences.qml
-    qml/windows/preferences/PreferencesGeneral.qml
-    qml/windows/preferences/PreferencesRendering.qml
-    qml/panes/Loading.qml
-    qml/panes/welcome/RecentProject.qml
-    qml/panes/welcome/Welcome.qml
-    qml/panes/NewProject.qml
-    qml/panes/editor/EditorPane.qml
-    qml/panes/editor/VideosGrid.qml
-    qml/panes/editor/VideoItem.qml
-    qml/panes/editor/RenderOptions.qml
-    qml/panes/editor/VideoPlayer.qml
-    qml/panes/editor/VideoPlayerSeekerBar.qml
-    qml/panes/editor/QueueGrid.qml
-    qml/panes/editor/QueueItem.qml
+
+file(GLOB_RECURSE PROJECT_HEADERS CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/models/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/utils/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/controllers/*.h"
 )
+list(APPEND HEADERS ${PROJECT_HEADERS})
+
+file(GLOB_RECURSE QML_FILES
+    CONFIGURE_DEPENDS
+    RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+    "qml/*.qml"
+)
+list(APPEND QML_FILES ${PROJECT_QML_FILES})
 
 set(RESOURCES
     Resources/index.qrc
@@ -134,38 +77,7 @@ qt_add_executable(FusionFFmpegStudio
 qt_policy(SET QTP0004 NEW)
 qt_add_qml_module(FusionFFmpegStudio
     URI FusionFFmpegStudio
-    QML_FILES
-    ${QML_FILES}
-    SOURCES controllers/windows/aboutcontroller.h controllers/windows/aboutcontroller.cpp
-    SOURCES controllers/basecontroller.h controllers/basecontroller.cpp
-    QML_FILES qml/windows/about/BuildItem.qml
-    SOURCES controllers/windows/preferencescontroller.h controllers/windows/preferencescontroller.cpp
-    QML_FILES qml/components/dialogs/DialogButton.qml
-    SOURCES utils/exceptions/settingsexception.h
-    SOURCES  utils/copier.cpp
-    SOURCES utils/exceptions/copierexception.h
-    QML_FILES qml/components/dialogs/DialogSpinnerContent.qml
-    QML_FILES qml/components/Spinner.qml
-    QML_FILES qml/components/Utils.qml
-    SOURCES utils/exceptions/customexception.h
-    SOURCES utils/exceptions/preferencescontrollerexception.h
-    SOURCES utils/remover.h utils/remover.cpp
-    SOURCES utils/toolbox.h utils/toolbox.cpp
-    SOURCES utils/exceptions/toolboxexception.h
-    SOURCES utils/exceptions/removerexception.h
-    QML_FILES qml/components/MyTextField.qml
-    SOURCES utils/exceptions/newprojectexception.h
-    QML_FILES
-    SOURCES controllers/panes/loadingcontroller.h controllers/panes/loadingcontroller.cpp
-    SOURCES utils/exceptions/loadingexception.h
-    SOURCES utils/exceptions/projectexception.h
-    SOURCES models/db/projectdb.h models/db/projectdb.cpp
-    SOURCES
-    SOURCES models/db/localdb.h models/db/localdb.cpp
-    SOURCES models/db/basedb.h models/db/basedb.cpp
-    SOURCES utils/exceptions/DBException.h
-    SOURCES controllers/panes/editorcontroller.h controllers/panes/editorcontroller.cpp
-    SOURCES
+    QML_FILES ${QML_FILES}
 )
 
 set_target_properties(FusionFFmpegStudio PROPERTIES
@@ -197,17 +109,12 @@ target_compile_definitions(FusionFFmpegStudio PRIVATE
     QT_DISABLE_DEPRECATED_BEFORE=0x060000
 )
 
-# Link ffmpeg
 if(WIN32)
+    # Link WIN32 APIs
     target_link_libraries(FusionFFmpegStudio PRIVATE wbemuuid advapi32)
 elseif(APPLE OR LINUX)
+    # Link ffmpeg
     target_link_libraries(FusionFFmpegStudio PRIVATE PkgConfig::FFMPEG)
-endif()
-
-if(UNIX AND NOT APPLE)
-    install(TARGETS FusionFFmpegStudio DESTINATION /opt/FusionFFmpegStudio/bin)
-elseif(QNX)
-    install(TARGETS FusionFFmpegStudio DESTINATION /tmp/FusionFFmpegStudio/bin)
 endif()
 
 
