@@ -9,7 +9,7 @@ import FusionFFmpegStudio
 Rectangle {
     required property var controller
     property string disableMessage: "MEDIA\n NOT\n FOUND"
-    property bool disabled: false
+    property bool disabled: true
 
     color: "#2e2e2e"
 

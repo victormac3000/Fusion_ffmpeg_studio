@@ -9,8 +9,11 @@ import FusionFFmpegStudio
 
 Rectangle {
     id: root
-    //clip: true
     color: "#2e2e2e"
+
+    Component.onCompleted: {
+        parent.windowMaximize()
+    }
 
     EditorController {
         id: controller

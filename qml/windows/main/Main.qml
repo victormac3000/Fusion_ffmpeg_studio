@@ -6,19 +6,90 @@ import FusionFFmpegStudio
 Window {
     id: mainWindow
     visible: true
-
     width: 800
-    minimumWidth: 600
-
     height: 600
-    minimumHeight: 400
-
     title: "Fusion FFmpeg Studio"
+
+    property double resizeAnimationTime: 350
+
+    Behavior on width {
+        NumberAnimation {
+            duration: resizeAnimationTime
+            easing.type: Easing.InOutCubic
+        }
+    }
+
+    Behavior on height {
+        NumberAnimation {
+            duration: resizeAnimationTime
+            easing.type: Easing.InOutCubic
+        }
+    }
+
+    Behavior on x {
+        NumberAnimation {
+            duration: resizeAnimationTime
+            easing.type: Easing.InOutCubic
+        }
+    }
+
+    Behavior on y {
+        NumberAnimation {
+            duration: resizeAnimationTime
+            easing.type: Easing.InOutCubic
+        }
+    }
 
     StackView {
         id: stack
         anchors.fill: parent
         initialItem: Welcome {}
+
+        function windowMaximize() {
+            windowResize(
+                mainWindow.screen.desktopAvailableWidth,
+                mainWindow.screen.desktopAvailableHeight
+            )
+        }
+
+        function windowFullscreen() {
+            mainWindow.showFullScreen()
+        }
+
+        function windowResizePercent(widthPercent, heightPercent) {
+            if (!widthPercent || widthPercent <= 0 || widthPercent > 100 ||
+                !heightPercent || heightPercent <= 0 || heightPercent > 100) {
+                console.error("Could not resize main window: Invalid percent dimensions: " + widthPercent + "x" + heightPercent)
+            }
+            windowResize(
+                mainWindow.screen.desktopAvailableWidth * (widthPercent/100),
+                mainWindow.screen.desktopAvailableHeight * (heightPercent/100)
+            )
+        }
+
+        function windowResize(width, height) {
+            if (width <= 0 || height <= 0) {
+                console.error("Could not resize main window: Invalid dimensions: " + width + "x" + height)
+                return
+            }
+
+            console.debug("Resizing main window to " + width + "x" + height)
+
+            const screen = mainWindow.screen
+
+            const availableWidth = screen.desktopAvailableWidth
+            const availableHeight = screen.desktopAvailableHeight
+
+            const targetWidth = Math.min(width, availableWidth)
+            const targetHeight = Math.min(height, availableHeight)
+
+            mainWindow.width = targetWidth
+            mainWindow.height = targetHeight
+
+            // Center window on the screen
+            mainWindow.x = screen.virtualX + (screen.width - targetWidth) / 2
+            mainWindow.y = screen.virtualY + (screen.height - targetHeight) / 2
+        }
     }
 
     Connections {
