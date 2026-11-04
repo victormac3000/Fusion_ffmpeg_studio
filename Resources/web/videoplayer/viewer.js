@@ -18,6 +18,10 @@ const backVideoPath  = "";
 
 const SHOW_CALIBRATION_PANEL = false;
 
+/* When the panel is hidden, fisheye boundary rings are never drawn,
+ * regardless of the checkbox or any QML-set value. */
+const ALLOW_EDGE_OVERLAY = SHOW_CALIBRATION_PANEL;
+
 /* ============================================================
  * Early stub: QML may call loadVideos() before this script
  * has finished. Queue and replay instead of throwing.
@@ -1042,21 +1046,33 @@ function synchronizeVideos() {
 
 async function togglePlayback() {
     if (frontVideo.paused) {
-        try {
-            frontVideo.playbackRate = 1.0;
-            backVideo.playbackRate  = 1.0;
+        frontVideo.playbackRate = 1.0;
+        backVideo.playbackRate  = 1.0;
 
-            await Promise.allSettled([
-                frontVideo.play(),
-                backVideo.play()
-            ]);
+        // Try with audio first.
+        frontVideo.muted = false;
+        backVideo.muted  = false;
 
-            playButton.textContent = "❚❚";
-            notifyQML("playingChanged", true);
-        } catch (error) {
-            console.error("Unable to play videos:", error);
-            showError("Unable to play video.");
+        let results  = await Promise.allSettled([frontVideo.play(), backVideo.play()]);
+        let blocked  = results.some(r => r.status === "rejected");
+
+        if (blocked) {
+            // Autoplay policy refused audio (happens when the call came
+            // from QML and not from a real click). Fall back to muted
+            // playback so at least the video runs.
+            console.warn("[viewer] Audio blocked by autoplay policy – playing muted.");
+            frontVideo.muted = true;
+            backVideo.muted  = true;
+
+            results = await Promise.allSettled([frontVideo.play(), backVideo.play()]);
+            if (results.some(r => r.status === "rejected")) {
+                showError("Unable to play video.");
+                return;
+            }
         }
+
+        playButton.textContent = "❚❚";
+        notifyQML("playingChanged", true);
     } else {
         frontVideo.pause();
         backVideo.pause();
@@ -1212,6 +1228,34 @@ Object.assign(window.fusionViewer = {
         backVideo.currentTime  = frontVideo.currentTime;
         frontVideo.playbackRate = 1.0;
         backVideo.playbackRate  = 1.0;
+    },
+
+    /* ============================================
+    *  Audio settings
+    *  ============================================ */
+
+    setMuted(muted) {
+      frontVideo.muted = !!muted;
+      backVideo.muted  = !!muted;
+    },
+    setVolume(v) {
+      const vol = Math.max(0, Math.min(1, v));
+      frontVideo.volume = vol;
+      backVideo.volume  = vol;
+      // Setting volume > 0 on a muted video does not unmute it in some
+      // browsers; make it explicit.
+      if (vol > 0) { frontVideo.muted = false; backVideo.muted = false; }
+    },
+    unmute() {
+      frontVideo.muted = false;
+      backVideo.muted  = false;
+      // If the media was paused by the autoplay policy when we unmuted,
+      // try to resume it. If this runs outside a user gesture it may
+      // still be blocked – that's the browser's call.
+      if (frontVideo.paused) togglePlayback();
+    },
+    isMuted() {
+      return frontVideo.muted && backVideo.muted;
     }
 });
 
