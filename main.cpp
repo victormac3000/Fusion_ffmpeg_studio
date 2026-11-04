@@ -6,7 +6,6 @@
 #include "controllers/panes/welcomecontroller.h"
 #include "controllers/panes/loadingcontroller.h"
 #include "controllers/panes/editorcontroller.h"
-#include "controllers/panes/editorviewercontroller.h"
 #include "controllers/windows/aboutcontroller.h"
 #include "controllers/windows/preferencescontroller.h"
 
@@ -51,7 +50,6 @@ int main(int argc, char *argv[])
     qmlRegisterType<WelcomeController>("FusionFFmpegStudio", 1, 0, "WelcomeController");
     qmlRegisterType<LoadingController>("FusionFFmpegStudio", 1, 0, "LoadingController");
     qmlRegisterType<EditorController>("FusionFFmpegStudio", 1, 0, "EditorController");
-    qmlRegisterType<EditorViewerController>("FusionFFmpegStudio", 1, 0, "EditorViewerController");
 
     qmlRegisterType<AboutController>("FusionFFmpegStudio", 1, 0, "AboutController");
     qmlRegisterType<PreferencesController>("FusionFFmpegStudio", 1, 0, "PreferencesController");
