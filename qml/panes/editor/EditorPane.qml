@@ -3,7 +3,6 @@
 
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Controls
 
 import FusionFFmpegStudio
 
@@ -12,7 +11,7 @@ Rectangle {
     color: "#2e2e2e"
 
     Component.onCompleted: {
-        parent.windowMaximize()
+        //parent.windowMaximize()
     }
 
     EditorController {
@@ -20,43 +19,19 @@ Rectangle {
         appController: mainController
     }
 
-    SplitView {
-        id: editorPaneSplitView
+    ColumnLayout {
+        id: mainLayout
         anchors.fill: parent
+        spacing: 0
 
-        handle: Rectangle {
-            id: handleDelegate
-            implicitWidth: 4
-            implicitHeight: parent.height
-            color: SplitHandle.pressed ? "#81e889"
-                : (SplitHandle.hovered ? Qt.lighter("#c2f4c6", 1.1) : "#c2f4c6")
-        }
-
-        VideosGrid {
-            id: videosGrid
-            SplitView.fillHeight: true
-            SplitView.preferredWidth: 260
-            SplitView.minimumWidth: 200
-            controller: controller
-            videoPlayer: videoPlayerRoot
-        }
-
-        VideoPlayer {
-            id: videoPlayerRoot
-            SplitView.fillHeight: true
-            SplitView.fillWidth: true
-            SplitView.minimumWidth: 250
-            color: "#666666"
-            controller: controller
-        }
-
-        QueueGrid {
-            // TODO autoresize when extended queueItem
-            id: queueGrid
-            SplitView.fillHeight: true
-            SplitView.preferredWidth: 250
-            SplitView.minimumWidth: 100
-            controller: controller
+        EditorPaneHeader {
+            id: header
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            Layout.alignment: Qt.AlignTop
+            Layout.maximumHeight: 60
         }
     }
+
+
 }

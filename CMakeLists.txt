@@ -78,6 +78,7 @@ qt_policy(SET QTP0004 NEW)
 qt_add_qml_module(FusionFFmpegStudio
     URI FusionFFmpegStudio
     QML_FILES ${QML_FILES}
+    QML_FILES qml/panes/editor/EditorPaneHeader.qml
 )
 
 set_target_properties(FusionFFmpegStudio PROPERTIES
