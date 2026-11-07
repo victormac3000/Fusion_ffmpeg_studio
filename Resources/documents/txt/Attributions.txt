@@ -21,3 +21,12 @@ SD CARD LOGO ATTRIUBUTION END
 FOLDER ICON LOGO ATTRIBUTION START
 <a href="https://www.flaticon.com/free-icons/folder" title="folder icons">Folder icons created by juicy_fish - Flaticon</a>
 FOLDER ICON LOGO ATTRIBUTION END
+
+TRASH ICON
+<a href="https://www.flaticon.com/free-icons/delete" title="delete icons">Delete icons created by bqlqn - Flaticon</a>
+
+PICTURE FRAME ICON
+<a href="https://www.flaticon.com/free-icons/picture" title="picture icons">Picture icons created by meaicon - Flaticon</a>
+
+CHECK ICON
+<a href="https://www.flaticon.com/free-icons/checkbox" title="checkbox icons">Checkbox icons created by inkubators - Flaticon</a>

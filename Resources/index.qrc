@@ -27,5 +27,11 @@
         <file>web/videoplayer/index.html</file>
         <file>web/videoplayer/viewer.css</file>
         <file>web/videoplayer/viewer.js</file>
+        <file>icons/editor/trash-bin.png</file>
+        <file>icons/editor/trash-bin-white.png</file>
+        <file>icons/editor/picture-frame-white.png</file>
+        <file>icons/editor/picture-frame.png</file>
+        <file>icons/editor/checkbox-white.png</file>
+        <file>icons/editor/checkbox.png</file>
     </qresource>
 </RCC>

@@ -7,6 +7,7 @@ Rectangle {
     color: "#141414"
 
     property int renderItems: 1
+    property int currentIndex: headerTabBar.currentIndex
 
     RowLayout {
         id: headerLayout
@@ -26,15 +27,14 @@ Rectangle {
         }
 
         TabBar {
+            id: headerTabBar
             Layout.preferredWidth: 300
             Layout.fillHeight: true
-            contentHeight: height
+            contentHeight: headerLayout.height
             spacing: 0
 
             TabButton {
                 text: qsTr("EDIT")
-                Layout.fillWidth: true
-                Layout.fillHeight: true
                 background: Rectangle {
                     border.color: "#666666"
                     border.width: 2
@@ -44,8 +44,6 @@ Rectangle {
 
             TabButton {
                 id: renderTabButton
-                Layout.fillWidth: true
-                Layout.fillHeight: true
                 text: qsTr("RENDER")
                 background: Rectangle {
                     border.color: "#666666"
@@ -63,7 +61,7 @@ Rectangle {
                             Layout.margins: 10
 
                             Layout.maximumHeight: 20
-                            Layout.maximumWidth: Layout.maximumHeight
+                            Layout.maximumWidth: 20
 
                             color: "#00C1F5"
                             radius: 180

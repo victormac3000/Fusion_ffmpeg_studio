@@ -79,6 +79,13 @@ qt_add_qml_module(FusionFFmpegStudio
     URI FusionFFmpegStudio
     QML_FILES ${QML_FILES}
     QML_FILES qml/panes/editor/EditorPaneHeader.qml
+    QML_FILES qml/panes/editor/EditorPaneEdit.qml
+    QML_FILES qml/panes/editor/EditorPaneRender.qml
+    QML_FILES qml/panes/editor/EditorPaneEditVideos.qml
+    QML_FILES qml/panes/editor/EditorPaneEditPlayer.qml
+    RESOURCES
+    QML_FILES qml/panes/editor/VideoItemNew.qml
+    QML_FILES qml/components/MyText.qml
 )
 
 set_target_properties(FusionFFmpegStudio PROPERTIES

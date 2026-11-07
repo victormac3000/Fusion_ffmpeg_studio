@@ -31,7 +31,21 @@ Rectangle {
             Layout.alignment: Qt.AlignTop
             Layout.maximumHeight: 60
         }
+
+        StackLayout {
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            currentIndex: header.currentIndex
+
+            EditorPaneEdit {
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+            }
+
+            EditorPaneRender {
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+            }
+        }
     }
-
-
 }
