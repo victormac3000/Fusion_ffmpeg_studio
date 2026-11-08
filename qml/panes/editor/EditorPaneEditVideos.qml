@@ -2,9 +2,24 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 
+import FusionFFmpegStudio
+
 Rectangle {
     id: root
     color: "#141414"
+
+    EditorController {
+        id: controller
+        appController: mainController
+    }
+
+    Dialogs {
+        id: dialogs
+    }
+
+    Component.onCompleted: {
+        controller.getVideos()
+    }
 
     ColumnLayout {
         id: editVideosLayout
@@ -213,12 +228,20 @@ Rectangle {
             Layout.fillWidth: true
 
             contentWidth: width
-            contentHeight: videoFlow.height + 20
+            contentHeight: videosFlow.height + 20
 
             boundsBehavior: Flickable.StopAtBounds
 
             Flow {
-                id: videoFlow
+                id: videosFlow
+
+                Connections {
+                    target: controller
+
+                    function onVideosReady(videos) {
+                        videosFlow.addVideos(videos)
+                    }
+                }
 
                 anchors {
                     left: parent.left
@@ -228,30 +251,79 @@ Rectangle {
                     top: parent.top
                     topMargin: 10
                 }
-
                 height: implicitHeight
-
                 spacing: 10
 
-                Repeater {
-                    model: 20
+                Component.onCompleted: {
+                    slider.from = videosFlow.width/4
+                    slider.to = videosFlow.width
+                    slider.value = videosFlow.width/2 - 10
+                }
 
-                    Component.onCompleted: {
-                        slider.from = videoFlow.width/4
-                        slider.to = videoFlow.width
-                        slider.value = videoFlow.width/2 - 10
-                    }
-
-                    delegate: VideoItemNew {
-                        video: {
-                            idString: "0006"
-                            dateString: "01/03/2025"
-                            durationString: "01:29"
+                function hideVideoGroup(videoGroup) {
+                    children.forEach((child) => {
+                        if (child instanceof VideoItemNew &&
+                            child.video.recordedOnDateString === videoGroup.dateString) {
+                            child.visible = !child.visible
                         }
+                    })
+                }
 
-                        width: slider.value
-                        height: slider.value
+                function addVideos(videos) {
+                    console.log("Received videos:", videos.length)
+                    console.log("Slider value:", slider.value)
+
+                    let currentDate
+                    let loadError = []
+
+                    videos.forEach((video) => {
+                        if (!currentDate || (currentDate !== video.recordedOnDateString)) {
+                            currentDate = video.recordedOnDateString
+                            addComponent("VideosGroup.qml", {
+                                dateString: video.recordedOnDateString,
+                                width: videosFlow.width,
+                                height: 30,
+                                toggleCallback: videosFlow.hideVideoGroup
+                            })
+                        }
+                        if (!addComponent("VideoItemNew.qml", {
+                            video: video,
+                            width: slider.value,
+                            height: slider.value
+                        })) {
+                            loadError.push(video.idString)
+                        }
+                    })
+                    if (loadError && loadError.length > 0) {
+                        console.error("Could not load videos:", loadError)
+                        dialogs.warning(qsTr("Some videos could not be loaded"), qsTr("Video loading error"))
                     }
+
+                    console.log("Flow children:", videosFlow.children.length)
+                    console.log("Flow dimensions:", videosFlow.width, videosFlow.height)
+
+                    for (const child of videosFlow.children) {
+                        console.log(
+                            "Child size:", child.width, child.height,
+                            "Implicit size:", child.implicitWidth, child.implicitHeight,
+                            "Position:", child.x, child.y
+                        )
+                    }
+                }
+
+                function addComponent(componentUrl, properties = {}) {
+                    const component = Qt.createComponent(componentUrl)
+
+                    if (component.status === Component.Ready) {
+                        return component.createObject(videosFlow, properties)
+                    }
+
+                    if (component.status === Component.Error) {
+                        console.error("Could not create component " + componentUrl + ": " + component.errorString())
+                        return null
+                    }
+
+                    return null
                 }
 
                 move: Transition {

@@ -113,7 +113,8 @@ QVariantMap FVideo::toVariantMap()
     map.insert("frontURL", QUrl::fromLocalFile(this->segments.first().getFrontVideo()));
     map.insert("back", this->segments.first().getBackVideo());
     map.insert("backURL", QUrl::fromLocalFile(this->segments.first().getBackVideo()));
-    map.insert("recordedOnDate", recordedOn.toString("dd/MM/yyyy"));
+    map.insert("recordedOnDateString", recordedOn.toString("dd/MM/yyyy"));
+    map.insert("durationString", "01:30");
 
     return map;
 }

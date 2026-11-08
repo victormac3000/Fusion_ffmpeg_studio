@@ -30,3 +30,9 @@ PICTURE FRAME ICON
 
 CHECK ICON
 <a href="https://www.flaticon.com/free-icons/checkbox" title="checkbox icons">Checkbox icons created by inkubators - Flaticon</a>
+
+ARROW DOWN ICON
+<a href="https://www.flaticon.com/free-icons/drop-down-menu" title="drop down menu icons">Drop down menu icons created by Smashicons - Flaticon</a>
+
+RIGHT ARROW
+<a href="https://www.flaticon.com/free-icons/next" title="next icons">Next icons created by Smashicons - Flaticon</a>

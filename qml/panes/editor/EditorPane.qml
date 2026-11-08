@@ -14,11 +14,6 @@ Rectangle {
         //parent.windowMaximize()
     }
 
-    EditorController {
-        id: controller
-        appController: mainController
-    }
-
     ColumnLayout {
         id: mainLayout
         anchors.fill: parent

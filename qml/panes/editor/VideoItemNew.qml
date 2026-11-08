@@ -31,7 +31,7 @@ Rectangle {
             MyText {
                 Layout.fillHeight: true
                 Layout.fillWidth: true
-                text: root.video.dateString
+                text: root.video.recordedOnDateString
             }
         }
 
