@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Shapes
 
 import FusionFFmpegStudio
 import QtQuick.Controls 2.15
@@ -9,7 +8,7 @@ Rectangle {
     id: root
     color: "grey"
 
-    required property string dateString
+    required property var date
     required property var toggleCallback
 
     RowLayout {
@@ -58,7 +57,8 @@ Rectangle {
         }
 
         MyText {
-            text: root.dateString
+            text: Qt.formatDateTime(root.date, "dd/MM/yyyy")
+            fontSizeMode: Text.Fit
         }
 
         Item {

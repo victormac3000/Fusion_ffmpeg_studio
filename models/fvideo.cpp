@@ -106,14 +106,14 @@ QVariantMap FVideo::toVariantMap()
     map.insert("id", this->id);
     map.insert("idString", this->getIdString());
     map.insert("frontThumbnail", this->frontThumbnail);
-    map.insert("frontThumbnailB64", frontThumbnailB64);
+    //map.insert("frontThumbnailB64", frontThumbnailB64);
     map.insert("backThumbnail", this->backThumbnail);
-    map.insert("backThumbnailB64", backThumbnailB64);
+    //map.insert("backThumbnailB64", backThumbnailB64);
     map.insert("front", this->segments.first().getFrontVideo());
     map.insert("frontURL", QUrl::fromLocalFile(this->segments.first().getFrontVideo()));
     map.insert("back", this->segments.first().getBackVideo());
     map.insert("backURL", QUrl::fromLocalFile(this->segments.first().getBackVideo()));
-    map.insert("recordedOnDateString", recordedOn.toString("dd/MM/yyyy"));
+    map.insert("recordedOn", recordedOn);
     map.insert("durationString", "01:30");
 
     return map;

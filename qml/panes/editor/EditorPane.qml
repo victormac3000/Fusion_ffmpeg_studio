@@ -12,6 +12,7 @@ Rectangle {
 
     Component.onCompleted: {
         //parent.windowMaximize()
+        parent.windowSetLimits(0, 0, 800, 600)
     }
 
     ColumnLayout {

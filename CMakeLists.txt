@@ -88,6 +88,8 @@ qt_add_qml_module(FusionFFmpegStudio
     QML_FILES qml/components/MyText.qml
     QML_FILES qml/panes/editor/VideosGroup.qml
     QML_FILES qml/components/Triangle.qml
+    QML_FILES qml/components/MyTextField.qml
+    QML_FILES qml/components/MySwitch.qml
 )
 
 set_target_properties(FusionFFmpegStudio PROPERTIES

@@ -12,11 +12,13 @@ Rectangle {
         spacing: 0
 
         EditorPaneEditVideos {
+            id: videosPane
             Layout.fillHeight: true
             Layout.fillWidth: true
         }
 
         EditorPaneEditPlayer {
+            selectedVideo: videosPane.selectedVideo
             Layout.fillHeight: true
             Layout.fillWidth: true
         }

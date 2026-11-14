@@ -8,6 +8,8 @@ Rectangle {
     id: root
     color: "#141414"
 
+    property var selectedVideo
+
     EditorController {
         id: controller
         appController: mainController
@@ -69,32 +71,21 @@ Rectangle {
                         Layout.rightMargin: 10
                         fillMode: Image.PreserveAspectFit
                         source: "qrc:/icons/editor/picture-frame-white.png"
+
+                        MouseArea {
+                            anchors.fill: parent
+
+                            onClicked: {
+                                slider.value = slider.from
+                            }
+                        }
                     }
 
-                    Slider {
+                    MySlider {
                         id: slider
                         Layout.fillHeight: true
                         Layout.fillWidth: true
                         Layout.maximumWidth: 100
-
-                        handle: Rectangle {
-                            width: 15
-                            height: 15
-                            radius: width / 2
-                            color: "#f6fbf9"
-
-                            x: parent.leftPadding + parent.visualPosition *
-                               (parent.availableWidth - width)
-                            y: parent.topPadding + (parent.availableHeight - height) / 2
-
-                            Rectangle {
-                                width: parent.width/2
-                                height: parent.height/2
-                                radius: width / 2
-                                anchors.centerIn: parent
-                                color: "#00A0FF"
-                            }
-                        }
                     }
 
                     Image {
@@ -105,6 +96,14 @@ Rectangle {
                         Layout.leftMargin: 10
                         fillMode: Image.PreserveAspectFit
                         source: "qrc:/icons/editor/picture-frame-white.png"
+
+                        MouseArea {
+                            anchors.fill: parent
+
+                            onClicked: {
+                                slider.value = slider.to
+                            }
+                        }
                     }
 
                     Image {
@@ -120,6 +119,7 @@ Rectangle {
                             anchors.fill: parent
 
                             onClicked: {
+                                videosFlow.selectedVideosCount = 1
                                 stackLayout.currentIndex = 1
                             }
                         }
@@ -171,7 +171,7 @@ Rectangle {
                             Layout.fillHeight: true
                             verticalAlignment: Text.AlignVCenter
                             color: "#F6FBF9"
-                            text: "1"
+                            text: videosFlow.selectedVideosCount
                             font.bold: true
                         }
 
@@ -196,6 +196,7 @@ Rectangle {
                         Layout.maximumWidth: parent.height * 0.7
                         fillMode: Image.PreserveAspectFit
                         source: "qrc:/icons/editor/trash-bin-white.png"
+                        visible: false // TODO: Implement video deletion
                     }
 
                     Image {
@@ -211,6 +212,9 @@ Rectangle {
                             anchors.fill: parent
 
                             onClicked: {
+                                if (videosFlow.selectedVideosCount < 1) {
+                                    videosFlow.selectLastVideo()
+                                }
                                 stackLayout.currentIndex = 0
                             }
                         }
@@ -235,6 +239,9 @@ Rectangle {
             Flow {
                 id: videosFlow
 
+                property var videoGroups: []
+                property int selectedVideosCount: 1
+
                 Connections {
                     target: controller
 
@@ -255,60 +262,101 @@ Rectangle {
                 spacing: 10
 
                 Component.onCompleted: {
-                    slider.from = videosFlow.width/4
+                    var from = videosFlow.width/4
+                    // If from is less than minimum video width
+                    if (from < 200) {
+                        from = 200
+                    }
+                    slider.from = from
                     slider.to = videosFlow.width
                     slider.value = videosFlow.width/2 - 10
+                }
+
+                onWidthChanged: {
+                    slider.from = videosFlow.width/4
+                    slider.to = videosFlow.width
+                }
+
+                function selectLastVideo() {
+                    var lastVideo = videoGroups[videoGroups.length-1].video
+                    lastVideo.selected = true
+                    root.selectedVideo = lastVideo
                 }
 
                 function hideVideoGroup(videoGroup) {
                     children.forEach((child) => {
                         if (child instanceof VideoItemNew &&
-                            child.video.recordedOnDateString === videoGroup.dateString) {
+                            child.video.recordedOn.getDate() === videoGroup.date.getDate()) {
                             child.visible = !child.visible
                         }
                     })
                 }
 
-                function addVideos(videos) {
-                    console.log("Received videos:", videos.length)
-                    console.log("Slider value:", slider.value)
+                function canSelectVideo(video) {
+                    if (stackLayout.currentIndex === 0) {
+                        videoGroups.forEach((videoGroup) => {
+                            if (videoGroup.video.selected) {
+                                videoGroup.video.selected = false
+                            }
+                        })
+                        root.selectedVideo = video
+                    }
+                    selectedVideosCount++
 
+                    return true
+                }
+
+                function canDeselectVideo() {
+                    if (selectedVideosCount-1 >= 0) {
+                        selectedVideosCount--;
+                    }
+                    return true
+                }
+
+                function addVideos(videos) {
                     let currentDate
-                    let loadError = []
+                    let loadErrors = []
 
                     videos.forEach((video) => {
-                        if (!currentDate || (currentDate !== video.recordedOnDateString)) {
-                            currentDate = video.recordedOnDateString
-                            addComponent("VideosGroup.qml", {
-                                dateString: video.recordedOnDateString,
-                                width: videosFlow.width,
+                        if (!currentDate || (currentDate.getDate() !== video.recordedOn.getDate())) {
+                            currentDate = video.recordedOn
+                            var videoGroup = addComponent("VideosGroup.qml", {
+                                date: video.recordedOn,
+                                width: Qt.binding(() => videosFlow.width),
                                 height: 30,
                                 toggleCallback: videosFlow.hideVideoGroup
                             })
                         }
-                        if (!addComponent("VideoItemNew.qml", {
+
+                        var videoComponent = addComponent("VideoItemNew.qml", {
                             video: video,
-                            width: slider.value,
-                            height: slider.value
-                        })) {
-                            loadError.push(video.idString)
+                            width: Qt.binding(() => slider.value),
+                            height: Qt.binding(() => slider.value),
+                            canSelect: canSelectVideo,
+                            canDeselect: canDeselectVideo
+                        });
+
+                        videoGroups.push({
+                            video: videoComponent,
+                            group: videoGroup
+                        })
+
+                        if (!videoGroup || !videoComponent) {
+                            if (!videoGroup) {
+                                console.error("Could not create video group for video ", video.idString)
+                            }
+                            if (!videoComponent) {
+                                console.error("Could not create video component for video ", video.idString)
+                            }
+                            loadErrors.push(video.idString)
                         }
                     })
-                    if (loadError && loadError.length > 0) {
-                        console.error("Could not load videos:", loadError)
+
+                    if (loadErrors && loadErrors.length > 0) {
                         dialogs.warning(qsTr("Some videos could not be loaded"), qsTr("Video loading error"))
                     }
 
-                    console.log("Flow children:", videosFlow.children.length)
-                    console.log("Flow dimensions:", videosFlow.width, videosFlow.height)
-
-                    for (const child of videosFlow.children) {
-                        console.log(
-                            "Child size:", child.width, child.height,
-                            "Implicit size:", child.implicitWidth, child.implicitHeight,
-                            "Position:", child.x, child.y
-                        )
-                    }
+                    selectLastVideo()
                 }
 
                 function addComponent(componentUrl, properties = {}) {

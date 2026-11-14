@@ -90,6 +90,17 @@ Window {
             mainWindow.x = screen.virtualX + (screen.width - targetWidth) / 2
             mainWindow.y = screen.virtualY + (screen.height - targetHeight) / 2
         }
+
+        function windowSetLimits(maxWidth, maxHeight, minWidth, minHeight) {
+            if (maxHeight && maxHeight > 0 && maxWidth && maxWidth > 0) {
+                mainWindow.maximumHeight = maxHeight
+                mainWindow.maximumWidth = maxWidth
+            }
+            if (minHeight && minHeight > 0 && minWidth && minWidth > 0) {
+                mainWindow.minimumHeight = minHeight
+                mainWindow.minimumWidth = minWidth
+            }
+        }
     }
 
     Connections {

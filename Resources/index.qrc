@@ -33,5 +33,7 @@
         <file>icons/editor/picture-frame.png</file>
         <file>icons/editor/checkbox-white.png</file>
         <file>icons/editor/checkbox.png</file>
+        <file>icons/editor/reset-white.png</file>
+        <file>icons/editor/reset.png</file>
     </qresource>
 </RCC>
