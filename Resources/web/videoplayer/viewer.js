@@ -17,6 +17,7 @@ const frontVideoPath = "";
 const backVideoPath  = "";
 
 const SHOW_CALIBRATION_PANEL = false;
+const SHOW_HTML_PLAYER = SHOW_CALIBRATION_PANEL;
 
 /* When the panel is hidden, fisheye boundary rings are never drawn,
  * regardless of the checkbox or any QML-set value. */
@@ -53,6 +54,30 @@ const playButton      = document.getElementById("playButton");
 const progress        = document.getElementById("progress");
 const timeLabel       = document.getElementById("time");
 const fullscreenButton= document.getElementById("fullscreenButton");
+
+/* ============================================================
+ * HTML player bar visibility
+ * ============================================================ */
+
+const controlsBar = document.getElementById("controls");
+
+let playerUIVisible = SHOW_HTML_PLAYER;
+
+function applyPlayerVisibility() {
+    if (controlsBar) {
+        controlsBar.style.display = playerUIVisible ? "" : "none";
+    }
+}
+
+applyPlayerVisibility();
+
+/* Disable the browser's right-click menu inside the viewer.
+ * QML-embedded WebEngineView does not need it, and it usually
+ * looks out of place (and can intercept the drag interactions). */
+document.addEventListener("contextmenu", function (e) {
+    e.preventDefault();
+    return false;
+});
 
 /*
  * ============================================================
@@ -149,6 +174,7 @@ uniform float u_ghostSharpness;
 
 uniform float u_yaw;
 uniform float u_pitch;
+uniform float u_roll;
 uniform float u_focal;
 
 uniform float u_viewMode;
@@ -168,6 +194,13 @@ mat3 rotationY(float a) {
     return mat3( c,   0.0, s,
                  0.0, 1.0, 0.0,
                 -s,   0.0, c);
+}
+
+mat3 rotationZ(float a) {     // <-- add after rotationY
+    float c = cos(a); float s = sin(a);
+    return mat3( c,  -s, 0.0,
+                 s,   c, 0.0,
+                0.0, 0.0, 1.0);
 }
 
 vec3 fisheyeUV(vec3 direction, vec3 lensForward,
@@ -223,7 +256,7 @@ void main() {
     p.x *= aspect;
 
     vec3 direction = normalize(vec3(p.x, -p.y, u_focal));
-    direction = rotationY(u_yaw) * rotationX(u_pitch) * direction;
+    direction = rotationY(u_yaw) * rotationX(u_pitch) * rotationZ(u_roll) * direction;
 
     vec3 frontForward = vec3(0.0, 0.0,  1.0);
     vec3 backForward  = vec3(0.0, 0.0, -1.0);
@@ -394,6 +427,7 @@ const uniforms = {
     ghostSharpness: gl.getUniformLocation(program, "u_ghostSharpness"),
     yaw:            gl.getUniformLocation(program, "u_yaw"),
     pitch:          gl.getUniformLocation(program, "u_pitch"),
+    roll: gl.getUniformLocation(program, "u_roll"),
     focal:          gl.getUniformLocation(program, "u_focal"),
     viewMode:       gl.getUniformLocation(program, "u_viewMode"),
     showEdges:      gl.getUniformLocation(program, "u_showEdges")
@@ -426,6 +460,7 @@ initializeTexture(backTexture);
 
 let yaw   = 0.0;
 let pitch = 0.0;
+let roll  = 0.0;
 let focal = 1.0;
 
 /*
@@ -862,6 +897,20 @@ function resize() {
 
 window.addEventListener("resize", resize);
 
+/* ============================================================
+ * Frame stepping
+ * ============================================================ */
+
+let assumedFps = 30;
+
+/* ============================================================
+ * Selection / loop
+ * ============================================================ */
+
+let selStartFrac  = 0.0;    // 0..1
+let selEndFrac    = 1.0;    // 0..1
+let selLoopActive = true;
+
 /*
  * ============================================================
  * Mouse camera controls
@@ -898,7 +947,7 @@ window.addEventListener("mousemove", function (event) {
     const limit = Math.PI / 2 - 0.01;
     pitch = Math.max(-limit, Math.min(limit, pitch));
 
-    notifyQML("cameraChanged", { yaw: yaw, pitch: pitch });
+    notifyQML("cameraChanged", { yaw: yaw, pitch: pitch, roll: roll });
 });
 
 canvas.addEventListener("wheel", function (event) {
@@ -1038,6 +1087,8 @@ function synchronizeVideos() {
     }
 }
 
+
+
 /*
  * ============================================================
  * Play / pause
@@ -1063,6 +1114,16 @@ async function togglePlayback() {
             console.warn("[viewer] Audio blocked by autoplay policy – playing muted.");
             frontVideo.muted = true;
             backVideo.muted  = true;
+
+            const dur = frontVideo.duration;
+            if (isFinite(dur) && dur > 0) {
+                const startT = selStartFrac * dur;
+                const endT   = selEndFrac   * dur;
+                if (frontVideo.currentTime < startT || frontVideo.currentTime >= endT) {
+                    frontVideo.currentTime = startT;
+                    backVideo.currentTime  = startT;
+                }
+            }
 
             results = await Promise.allSettled([frontVideo.play(), backVideo.play()]);
             if (results.some(r => r.status === "rejected")) {
@@ -1143,11 +1204,72 @@ Object.assign(window.fusionViewer = {
     pause() { if (!frontVideo.paused) togglePlayback(); },
     togglePlayback() { togglePlayback(); },
     seek(seconds) {
+        if (!isFinite(seconds)) return;
         frontVideo.currentTime = seconds;
         backVideo.currentTime  = seconds;
+        frontVideo.playbackRate = 1.0;
+        backVideo.playbackRate  = 1.0;
+    },
+    seekFraction(fraction) {
+        const duration = frontVideo.duration;
+        if (!isFinite(duration) || duration <= 0) return;
+        if (!isFinite(fraction)) return;
+        const t = Math.max(0, Math.min(1, fraction)) * duration;
+        frontVideo.currentTime = t;
+        backVideo.currentTime  = t;
+        frontVideo.playbackRate = 1.0;
+        backVideo.playbackRate  = 1.0;
+    },
+    setSelection(startFrac, endFrac) {
+        const s = Math.max(0, Math.min(1, startFrac));
+        const e = Math.max(s + 0.001, Math.min(1, endFrac));
+        selStartFrac = s;
+        selEndFrac   = e;
+    },
+    getSelection() {
+        return { start: selStartFrac, end: selEndFrac };
+    },
+    setLoopActive(active) {
+        selLoopActive = !!active;
+        if (selLoopActive && isFinite(frontVideo.duration)) {
+            const dur    = frontVideo.duration;
+            const startT = selStartFrac * dur;
+            const endT   = selEndFrac   * dur;
+            if (frontVideo.currentTime < startT || frontVideo.currentTime >= endT) {
+                frontVideo.currentTime = startT;
+                backVideo.currentTime  = startT;
+            }
+        }
+    },
+    setFps(fps) {
+      if (isFinite(fps) && fps > 0) assumedFps = fps;
+    },
+    getFps() { return assumedFps; },
+    /* Paused-only single-frame step. Direction is +1 or -1. */
+    stepFrame(direction) {
+      if (!frontVideo.paused || !backVideo.paused) return;
+      const dur = frontVideo.duration;
+      if (!isFinite(dur) || dur <= 0) return;
+
+      const step = (direction >= 0 ? 1 : -1) / assumedFps;
+      let t = frontVideo.currentTime + step;
+      t = Math.max(0, Math.min(dur, t));
+
+      frontVideo.currentTime = t;
+      backVideo.currentTime  = t;
+      frontVideo.playbackRate = 1.0;
+      backVideo.playbackRate  = 1.0;
+    },
+    setPlayerUIVisible(visible) {
+        playerUIVisible = !!visible;
+        applyPlayerVisibility();
     },
     setYaw(v)   { yaw = v; },
-    setPitch(v) { pitch = v; },
+    setPitch(v) {
+        const limit = Math.PI / 2 - 0.01;
+        pitch = Math.max(-limit, Math.min(limit, v));
+    },
+    setRoll(v)  { roll = v; },
     setFov(v)   { calibration.fov = v; },
     setBlendWidth(v) { calibration.blendWidth = v; },
     setGhostSharpness(v) { calibration.ghostSharpness = v; },
@@ -1221,7 +1343,7 @@ Object.assign(window.fusionViewer = {
     getCalibration() {
         return JSON.parse(JSON.stringify(calibration));
     },
-    resetView() { yaw = 0.0; pitch = 0.0; focal = 1.0; },
+    resetView() { yaw = 0.0; pitch = 0.0; roll = 0.0; focal = 1.0; },
 
     getDrift() { return backVideo.currentTime - frontVideo.currentTime; },
     forceSync() {
@@ -1287,6 +1409,26 @@ function updateTexture(texture, video) {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
 }
 
+/* ---- Throttled time notification to QML ---- */
+let lastTimeNotifyTimestamp = 0;
+const TIME_NOTIFY_INTERVAL_MS = 100;
+
+function enforceSelectionLoop() {
+    if (!selLoopActive) return;
+    const dur = frontVideo.duration;
+    if (!isFinite(dur) || dur <= 0) return;
+    if (frontVideo.paused || backVideo.paused) return;
+
+    const endT = selEndFrac * dur;
+    if (frontVideo.currentTime >= endT) {
+        const startT = selStartFrac * dur;
+        frontVideo.currentTime = startT;
+        backVideo.currentTime  = startT;
+        frontVideo.playbackRate = 1.0;
+        backVideo.playbackRate  = 1.0;
+    }
+}
+
 /*
  * ============================================================
  * Rendering
@@ -1296,6 +1438,7 @@ function updateTexture(texture, video) {
 function render(timestamp) {
     resize();
     synchronizeVideos();
+    enforceSelectionLoop();
     updateExposureTargets(timestamp || 0);
     smoothExposure();
 
@@ -1339,6 +1482,7 @@ function render(timestamp) {
 
     gl.uniform1f(uniforms.yaw,   yaw);
     gl.uniform1f(uniforms.pitch, pitch);
+    gl.uniform1f(uniforms.roll,  roll);
     gl.uniform1f(uniforms.focal, focal);
 
     gl.uniform1f(uniforms.viewMode,  currentViewMode);
@@ -1350,6 +1494,16 @@ function render(timestamp) {
         progress.value = frontVideo.currentTime / frontVideo.duration;
         timeLabel.textContent =
             formatTime(frontVideo.currentTime) + " / " + formatTime(frontVideo.duration);
+
+        /* Push to QML at ~10 Hz so the seek bar and clock stay in sync. */
+        if (timestamp - lastTimeNotifyTimestamp >= TIME_NOTIFY_INTERVAL_MS) {
+            lastTimeNotifyTimestamp = timestamp;
+            notifyQML("timeChanged", {
+                currentTime: frontVideo.currentTime,
+                duration:    frontVideo.duration,
+                fraction:    frontVideo.currentTime / frontVideo.duration
+            });
+        }
     }
 
     requestAnimationFrame(render);
