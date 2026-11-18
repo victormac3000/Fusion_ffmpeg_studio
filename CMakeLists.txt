@@ -82,7 +82,7 @@ qt_add_qml_module(FusionFFmpegStudio
     QML_FILES qml/panes/editor/EditorPaneEdit.qml
     QML_FILES qml/panes/editor/EditorPaneRender.qml
     QML_FILES qml/panes/editor/EditorPaneEditVideos.qml
-    QML_FILES qml/panes/editor/EditorPaneEditPlayer.qml
+    QML_FILES qml/panes/editor/EditorPaneEditSection.qml
     RESOURCES
     QML_FILES qml/panes/editor/VideoItemNew.qml
     QML_FILES qml/components/MyText.qml
@@ -90,6 +90,7 @@ qt_add_qml_module(FusionFFmpegStudio
     QML_FILES qml/components/Triangle.qml
     QML_FILES qml/components/MyTextField.qml
     QML_FILES qml/components/MySwitch.qml
+    QML_FILES qml/panes/editor/EditorPaneEditPlayer.qml
 )
 
 set_target_properties(FusionFFmpegStudio PROPERTIES

@@ -292,7 +292,7 @@ Rectangle {
                     })
                 }
 
-                function canSelectVideo(video) {
+                function canSelectVideo(video) {                   
                     if (stackLayout.currentIndex === 0) {
                         videoGroups.forEach((videoGroup) => {
                             if (videoGroup.video.selected) {
@@ -301,16 +301,31 @@ Rectangle {
                         })
                         root.selectedVideo = video
                     }
-                    selectedVideosCount++
 
+                    selectedVideosCount++
                     return true
                 }
 
                 function canDeselectVideo() {
-                    if (selectedVideosCount-1 >= 0) {
+                    var decision = true
+
+                    if (stackLayout.currentIndex === 0) {
+                        let countSelected = 0
+                        videoGroups.forEach((videoGroup) => {
+                            if (videoGroup.video.selected) {
+                                countSelected++
+                            }
+                        })
+                        if (countSelected <= 1) {
+                            decision = false
+                        }
+                    }
+
+                    if (decision && selectedVideosCount-1 >= 0) {
                         selectedVideosCount--;
                     }
-                    return true
+
+                    return decision
                 }
 
                 function addVideos(videos) {

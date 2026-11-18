@@ -17,7 +17,7 @@ Rectangle {
             Layout.fillWidth: true
         }
 
-        EditorPaneEditPlayer {
+        EditorPaneEditSection {
             selectedVideo: videosPane.selectedVideo
             Layout.fillHeight: true
             Layout.fillWidth: true

@@ -8,269 +8,296 @@ import FusionFFmpegStudio
 
 Rectangle {
     id: root
-    color: "#141414"
+    color: "transparent"
 
-    property var selectedVideo
+    /* ==================== Public API ==================== */
 
-    onSelectedVideoChanged: {
-        root.selectedVideo.onDataChanged.connect((videoData) => {
-            videoInfoLayout.name = videoData.name
-        })
-        webView.loadVideos(
-            root.selectedVideo.video.frontURL,
-            root.selectedVideo.video.backURL
-        )
+    // Video sources — setting both auto-loads.
+    property url frontURL: ""
+    property url backURL:  ""
+
+    // Live, read-only state mirrored from the WebView.
+    readonly property real currentTime:       webView.currentTime
+    readonly property real totalTime:         webView.totalTime
+    readonly property bool viewerInitialized: webView.viewerInitialized
+    readonly property bool isPlaying:         webView.isPlaying
+
+    // Editable selection / cut mode.
+    property alias selStart:    webView.selStart
+    property alias selEnd:      webView.selEnd
+    property alias cuttingMode: webView.cuttingMode
+
+    // Signals mirrored from the JS bridge.
+    signal ready(var info)
+    signal playingChanged(bool playing)
+    signal cameraChanged(var data)
+    signal profileChanged(var data)
+    signal settingsChanged(var settings)
+
+    // Process button
+    property string processButtonText: qsTr("PROCESS")
+    signal processRequested(var settings)
+
+    property bool _applyingSettings:   false
+    property bool _suppressAutoLoad:   false
+
+    // Methods.
+    function loadVideos(front, back) { webView.loadVideos(front, back) }
+    function togglePlayback()        { webView.togglePlayback() }
+    function seekToFraction(f)       { webView.seekToFraction(f) }
+    function stepFrame(dir)          { webView.stepFrame(dir) }
+    function setYaw(v)               { webView.setYaw(v) }
+    function setPitch(v)             { webView.setPitch(v) }
+    function setRoll(v)              { webView.setRoll(v) }
+    function formatTime(sec)         { return webView.formatTime(sec) }
+
+    function resetView() {
+        webView.runJavaScript("window.fusionViewer && window.fusionViewer.resetView()")
+        yawSlider.value   = 0
+        pitchSlider.value = 0
+        rollSlider.value  = 0
     }
 
+    onFrontURLChanged: _tryLoad()
+    onBackURLChanged:  _tryLoad()
+    function _tryLoad() {
+        if (root._suppressAutoLoad) return
+        if (frontURL && backURL) loadVideos(frontURL, backURL)
+    }
+
+    onSelStartChanged:     root._scheduleSettingsEmit()
+    onSelEndChanged:       root._scheduleSettingsEmit()
+    onCuttingModeChanged:  root._scheduleSettingsEmit()
+
+    Connections {
+        target: webView
+        function onCuttingModeChanged() { cutMode.checked = webView.cuttingMode }
+    }
+
+    Timer {
+        id: settingsDebounce
+        interval: 120
+        onTriggered: {
+            if (!root._applyingSettings)
+                root.settingsChanged(root.getSettings())
+        }
+    }
+
+    function _scheduleSettingsEmit() {
+        if (root._applyingSettings) return
+        settingsDebounce.restart()
+    }
+
+    function getSettings() {
+        return {
+            yaw:         yawSlider.value,
+            pitch:       pitchSlider.value,
+            roll:        rollSlider.value,
+            cuttingMode: webView.cuttingMode,
+            selStart:    webView.selStart,
+            selEnd:      webView.selEnd,
+            playerMode:  playerMode.checked
+        }
+    }
+
+    function applySettings(settings) {
+        if (!settings) return
+        root._applyingSettings = true
+        settingsDebounce.stop()
+        try {
+            if (settings.yaw         !== undefined) yawSlider.value         = settings.yaw
+            if (settings.pitch       !== undefined) pitchSlider.value       = settings.pitch
+            if (settings.roll        !== undefined) rollSlider.value        = settings.roll
+            if (settings.cuttingMode !== undefined) webView.cuttingMode     = settings.cuttingMode
+            if (settings.selStart    !== undefined) webView.selStart        = settings.selStart
+            if (settings.selEnd      !== undefined) webView.selEnd          = settings.selEnd
+            if (settings.playerMode  !== undefined) playerMode.checked      = settings.playerMode
+
+            // Push camera immediately — the slider onValueChanged handlers
+            // are gated on `pressed` and would otherwise skip this.
+            setYaw(yawSlider.value)
+            setPitch(pitchSlider.value)
+            setRoll(rollSlider.value)
+        } finally {
+            root._applyingSettings = false
+        }
+    }
+
+    function loadVideo(front, back, settings) {
+        // Suppress the URL change handlers so loadVideos isn't invoked twice.
+        root._suppressAutoLoad = true
+        root.frontURL = front
+        root.backURL  = back
+        root._suppressAutoLoad = false
+
+        loadVideos(front, back)
+        if (settings) root.applySettings(settings)
+    }
+
+    /* ==================== Layout ==================== */
+
     ColumnLayout {
-        id: editPlayerLayout
         anchors.fill: parent
         spacing: 0
 
-        Rectangle {
-            Layout.fillHeight: true
-            Layout.fillWidth: true
-            Layout.maximumHeight: 60
-            color: "#222222"
-
-            ColumnLayout {
-                id: videoInfoLayout
-                anchors.fill: parent
-                anchors.leftMargin: 20
-                anchors.rightMargin: 20
-                anchors.topMargin: 5
-                anchors.bottomMargin: 5
-                spacing: 0
-
-                property var name: root.selectedVideo ? root.selectedVideo.video.name   : ""
-                property var recordedOn: root.selectedVideo ? root.selectedVideo.video.recordedOn : null
-
-                Item {
-                    Layout.fillHeight: true
-                    Layout.fillWidth: true
-                }
-
-                MyText {
-                    Layout.fillWidth: true
-                    font.bold: true
-                    text: videoInfoLayout.name
-                    elide: Text.ElideRight
-                }
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: 0
-
-                    MyText {
-                        text: {
-                            if (videoInfoLayout.recordedOn) {
-                                return Qt.formatDate(videoInfoLayout.recordedOn, "dd MMM, yyyy").toUpperCase() + " - "
-                            }
-                            return ""
-                        }
-                        font.pointSize: 12
-                    }
-
-                    MyText {
-                        font.bold: true
-                        font.pointSize: 12
-                        text: {
-                            if (videoInfoLayout.recordedOn) {
-                                return Qt.formatTime(videoInfoLayout.recordedOn, "hh:mm")
-                            }
-                            return ""
-                        }
-                    }
-                }
-
-                Item {
-                    Layout.fillHeight: true
-                    Layout.fillWidth: true
-                }
-
-
-            }
-        }
-
+        // ---------- Video area ----------
         Rectangle {
             Layout.fillHeight: true
             Layout.fillWidth: true
             color: "grey"
 
-            StackLayout {
+            WebEngineView {
+                id: webView
                 anchors.fill: parent
-                currentIndex: 1
+                url: "qrc:/web/videoplayer/index.html"
+                settings.playbackRequiresUserGesture: false
+                webChannel: WebChannel { registeredObjects: [webViewBridge] }
 
-                Rectangle {
-                    Layout.fillHeight: true
-                    Layout.fillWidth: true
-                    color: "grey"
+                property var  pendingVideos: null
+                property bool viewerInitialized: false
+                property real currentTime: 0
+                property real totalTime: 0
+                property real selStart: 0
+                property real selEnd: 1
+                property bool cuttingMode: false
+                property bool isPlaying: false
 
-                    Spinner {
-                        anchors.centerIn: parent
-                        spinnerText: qsTr("Generating preview\n10%")
-                        spinnerColor: "#F6FBF9"
-                        spinnerSize: 40
-                        lineWidth: 4
-                    }
+                onSelStartChanged: pushSelection()
+                onSelEndChanged:   pushSelection()
+
+                onJavaScriptConsoleMessage: function(level, message, lineNumber, sourceID) {
+                    console.log("[JS]", sourceID, ":", lineNumber, "->", message)
                 }
 
-                WebEngineView {
-                    id: webView
-                    Layout.fillHeight: true
-                    Layout.fillWidth: true
-                    url: "qrc:/web/videoplayer/index.html"
-                    settings.playbackRequiresUserGesture: false
-                    webChannel: WebChannel {
-                        registeredObjects: [webViewBridge]
-                    }
+                onCuttingModeChanged: {
+                    if (viewerInitialized)
+                        runJavaScript(
+                            "window.fusionViewer && window.fusionViewer.setLoopActive(" + cuttingMode + ")")
+                }
 
-                    property var  pendingVideos: null
-                    property bool viewerInitialized: false
-                    property real currentTime: 0
-                    property real totalTime: 0
-                    property real selStart: 0
-                    property real selEnd: 1
-                    property bool cuttingMode: false
+                function pushSelection() {
+                    if (!viewerInitialized) return
+                    runJavaScript(
+                        "window.fusionViewer && window.fusionViewer.setSelection("
+                        + selStart + "," + selEnd + ")")
+                }
 
-                    onSelStartChanged: pushSelection()
-                    onSelEndChanged:   pushSelection()
+                function formatTime(seconds) {
+                    if (!isFinite(seconds) || seconds < 0) return "00:00"
+                    var m = Math.floor(seconds / 60)
+                    var s = Math.floor(seconds % 60)
+                    return (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s
+                }
 
-                    onJavaScriptConsoleMessage: function(level, message, lineNumber, sourceID) {
-                        console.log("[JS]", sourceID, ":", lineNumber, "->", message)
-                    }
+                function seekToFraction(fraction) {
+                    if (!viewerInitialized) return
+                    runJavaScript(
+                        "window.fusionViewer && window.fusionViewer.seekFraction(" + fraction + ")")
+                }
 
-                    onCuttingModeChanged: {
-                        if (viewerInitialized)
+                function togglePlayback() {
+                    runJavaScript("window.fusionViewer.togglePlayback()")
+                }
+
+                function stepFrame(direction) {
+                    if (!viewerInitialized) return
+                    runJavaScript(
+                        "window.fusionViewer && window.fusionViewer.stepFrame(" + direction + ")")
+                }
+
+                function setYaw(v)   { if (viewerInitialized) runJavaScript("window.fusionViewer && window.fusionViewer.setYaw("   + v + ")") }
+                function setPitch(v) { if (viewerInitialized) runJavaScript("window.fusionViewer && window.fusionViewer.setPitch(" + v + ")") }
+                function setRoll(v)  { if (viewerInitialized) runJavaScript("window.fusionViewer && window.fusionViewer.setRoll("  + v + ")") }
+
+                function loadVideos(frontUrl, backUrl) {
+                    pendingVideos = [frontUrl, backUrl]
+                    if (viewerInitialized) _doLoadVideos()
+                    else console.log("loadVideos queued – waiting for viewer ready")
+                }
+
+                function _doLoadVideos() {
+                    if (!pendingVideos) return
+                    const frontUrl = pendingVideos[0]
+                    const backUrl  = pendingVideos[1]
+                    pendingVideos  = null
+
+                    const js = `
+                        (window.fusionViewer &&
+                         typeof window.fusionViewer.loadVideos === 'function')
+                            ? (window.fusionViewer.loadVideos(
+                                    ${JSON.stringify(frontUrl)},
+                                    ${JSON.stringify(backUrl)}), 'ok')
+                            : 'viewer-not-ready';
+                    `
+                    runJavaScript(js, function(result) {
+                        console.log("loadVideos() returned:", result)
+                        if (result === 'viewer-not-ready') {
+                            pendingVideos = [frontUrl, backUrl]
+                            retryTimer.restart()
+                        }
+                    })
+                }
+
+                Timer {
+                    id: retryTimer
+                    interval: 200
+                    onTriggered: webView._doLoadVideos()
+                }
+
+                QtObject {
+                    id: webViewBridge
+                    WebChannel.id: "fusionViewerBridge"
+
+                    function ready(data) {
+                        console.log("Viewer ready:", JSON.stringify(data))
+                        if (data && data.initialized === true) {
+                            webView.viewerInitialized = true
+                            webView._doLoadVideos()
+                            webView.pushSelection()
                             webView.runJavaScript(
-                                "window.fusionViewer && window.fusionViewer.setLoopActive(" + cuttingMode + ")")
-                    }
+                                "window.fusionViewer && window.fusionViewer.setLoopActive(" + webView.cuttingMode + ")")
 
-                    function pushSelection() {
-                        if (!viewerInitialized) return
-                        webView.runJavaScript(
-                            "window.fusionViewer && window.fusionViewer.setSelection("
-                            + webView.selStart + "," + webView.selEnd + ")")
-                    }
-
-                    function formatTime(seconds) {
-                        if (!isFinite(seconds) || seconds < 0) return "00:00"
-                        var m = Math.floor(seconds / 60)
-                        var s = Math.floor(seconds % 60)
-                        return (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s
-                    }
-
-                    function seekToFraction(fraction) {
-                        if (!viewerInitialized) return
-                        webView.runJavaScript(
-                            "window.fusionViewer && window.fusionViewer.seekFraction(" + fraction + ")")
-                    }
-
-                    function togglePlayback() {
-                        webView.runJavaScript("window.fusionViewer.togglePlayback()")
-                    }
-
-                    function stepFrame(direction) {
-                        if (!viewerInitialized) return
-                        webView.runJavaScript(
-                            "window.fusionViewer && window.fusionViewer.stepFrame(" + direction + ")")
-                    }
-
-                    function setYaw(v)   {
-                        if (viewerInitialized) {
-                            webView.runJavaScript("window.fusionViewer && window.fusionViewer.setYaw("   + v + ")")
+                            // Re-push the camera state that applySettings() may have set
+                            // while the viewer was still booting.
+                            webView.setYaw(yawSlider.value)
+                            webView.setPitch(pitchSlider.value)
+                            webView.setRoll(rollSlider.value)
                         }
-                    }
-                    function setPitch(v) {
-                        if (viewerInitialized) {
-                            webView.runJavaScript("window.fusionViewer && window.fusionViewer.setPitch(" + v + ")")
-                        }
-                    }
-                    function setRoll(v)  {
-                        if (viewerInitialized) {
-                            webView.runJavaScript("window.fusionViewer && window.fusionViewer.setRoll("  + v + ")")
-                        }
+                        root.ready(data)
                     }
 
-                    function loadVideos(frontURL, backURL) {
-                        pendingVideos = [frontURL, backURL]
-                        if (viewerInitialized) _doLoadVideos()
-                        else console.log("loadVideos queued – waiting for viewer ready")
+                    function playingChanged(playing) {
+                        console.log("Playing:", playing)
+                        webView.isPlaying = playing
+                        root.playingChanged(playing)
                     }
 
-                    function _doLoadVideos() {
-                        if (!pendingVideos) return
-                        const frontURL = pendingVideos[0]
-                        const backURL  = pendingVideos[1]
-                        pendingVideos  = null
-
-                        const js = `
-                            (window.fusionViewer &&
-                             typeof window.fusionViewer.loadVideos === 'function')
-                                ? (window.fusionViewer.loadVideos(
-                                        ${JSON.stringify(frontURL)},
-                                        ${JSON.stringify(backURL)}), 'ok')
-                                : 'viewer-not-ready';
-                        `
-                        webView.runJavaScript(js, function(result) {
-                            console.log("loadVideos() returned:", result)
-                            if (result === 'viewer-not-ready') {
-                                pendingVideos = [frontURL, backURL]   // retry
-                                retryTimer.restart()
-                            }
-                        })
+                    function cameraChanged(data) {
+                        if (!data) return
+                        if (!yawSlider.pressed)   yawSlider.value   = data.yaw   || 0
+                        if (!pitchSlider.pressed) pitchSlider.value = data.pitch || 0
+                        if (!rollSlider.pressed)  rollSlider.value  = data.roll  || 0
+                        root.cameraChanged(data)
                     }
 
-                    Timer {
-                        id: retryTimer
-                        interval: 200
-                        onTriggered: webView._doLoadVideos()
+                    function profileChanged(data) {
+                        console.log("Active profile:", data.name)
+                        root.profileChanged(data)
                     }
 
-                    QtObject {
-                        id: webViewBridge
-                        WebChannel.id: "fusionViewerBridge"
-
-                        function ready(data) {
-                            console.log("Viewer ready:", JSON.stringify(data))
-                            if (data && data.initialized === true) {
-                                webView.viewerInitialized = true
-                                webView._doLoadVideos()
-                                webView.pushSelection()
-                                webView.runJavaScript(
-                                    "window.fusionViewer && window.fusionViewer.setLoopActive(" + webView.cuttingMode + ")"
-                                )
-                            }
-                        }
-
-                        function playingChanged(playing) {
-                            console.log("Playing:", playing)
-                        }
-
-                        function cameraChanged(data) {
-                            if (!data) return
-                            if (!yawSlider.pressed)   yawSlider.value   = data.yaw   || 0
-                            if (!pitchSlider.pressed) pitchSlider.value = data.pitch || 0
-                            if (!rollSlider.pressed)  rollSlider.value  = data.roll  || 0
-                        }
-
-                        function profileChanged(data) {
-                            console.log("Active profile:", data.name)
-                        }
-
-                        function timeChanged(data) {
-                            if (!data) return
-                            webView.currentTime = data.currentTime || 0
-                            webView.totalTime   = data.duration    || 0
-                            if (seekInteraction.dragMode !== 3 && webView.totalTime > 0) {
-                                seekSlider.value = data.fraction
-                            }
+                    function timeChanged(data) {
+                        if (!data) return
+                        webView.currentTime = data.currentTime || 0
+                        webView.totalTime   = data.duration    || 0
+                        if (seekInteraction.dragMode !== 3 && webView.totalTime > 0) {
+                            seekSlider.value = data.fraction
                         }
                     }
                 }
             }
         }
 
+        // ---------- Seek bar ----------
         RowLayout {
             Layout.fillHeight: true
             Layout.fillWidth: true
@@ -284,7 +311,6 @@ Rectangle {
                 Layout.fillHeight: true
                 Layout.fillWidth: true
 
-                // ---- Selection highlight (blue band) ----
                 Rectangle {
                     z: 1
                     x: seekContainer.width * webView.selStart
@@ -295,7 +321,6 @@ Rectangle {
                     visible: width > 0 && webView.cuttingMode
                 }
 
-                // ---- Slider (visual only) ----
                 MySlider {
                     id: seekSlider
                     anchors.fill: parent
@@ -304,7 +329,6 @@ Rectangle {
                     value: 0
                 }
 
-                // ---- Start wall: vertical bar ----
                 Rectangle {
                     id: startBar
                     z: 100
@@ -317,14 +341,11 @@ Rectangle {
                         seekContainer.width - width))
                     color: "#FF3355"
                 }
-                // ---- Start wall: circular grab handle ----
                 Rectangle {
                     id: startGrab
                     z: 101
                     visible: webView.cuttingMode
-                    width: 18
-                    height: 18
-                    radius: 9
+                    width: 18; height: 18; radius: 9
                     anchors.horizontalCenter: startBar.horizontalCenter
                     anchors.verticalCenter: parent.verticalCenter
                     color: "#FF3355"
@@ -332,12 +353,11 @@ Rectangle {
                     border.width: 2
                 }
 
-                // ---- End wall: vertical bar ----
                 Rectangle {
                     id: endBar
                     z: 100
-                    visible: webView.cuttingMode
                     width: 3
+                    visible: webView.cuttingMode
                     anchors.top: parent.top
                     anchors.bottom: parent.bottom
                     x: Math.max(0, Math.min(
@@ -345,14 +365,11 @@ Rectangle {
                         seekContainer.width - width))
                     color: "#FF3355"
                 }
-                // ---- End wall: circular grab handle ----
                 Rectangle {
                     id: endGrab
                     z: 101
                     visible: webView.cuttingMode
-                    width: 18
-                    height: 18
-                    radius: 9
+                    width: 18; height: 18; radius: 9
                     anchors.horizontalCenter: endBar.horizontalCenter
                     anchors.verticalCenter: parent.verticalCenter
                     color: "#FF3355"
@@ -360,16 +377,15 @@ Rectangle {
                     border.width: 2
                 }
 
-                // ---- Unified interaction layer ----
                 MouseArea {
                     id: seekInteraction
                     anchors.fill: parent
                     hoverEnabled: true
                     acceptedButtons: Qt.LeftButton
 
-                    readonly property int grabPx:    14
-                    readonly property int minGapPx:  10
-                    property int dragMode: 0         // 0 idle, 1 start, 2 end, 3 seek
+                    readonly property int grabPx:   14
+                    readonly property int minGapPx: 10
+                    property int dragMode: 0
 
                     function fracAt(mx) {
                         return Math.max(0, Math.min(1, mx / Math.max(1, width)))
@@ -382,7 +398,6 @@ Rectangle {
                         var dEnd    = Math.abs(mouse.x - endPx)
 
                         if (dStart < grabPx && dEnd < grabPx) {
-                            // handles overlap — pick by side of midpoint
                             dragMode = mouse.x < (startPx + endPx) / 2 ? 1 : 2
                         } else if (dStart < grabPx) {
                             dragMode = 1
@@ -390,14 +405,11 @@ Rectangle {
                             dragMode = 2
                         } else {
                             var f = fracAt(mouse.x)
-
-                            // When cutting mode is ON, seeking is only allowed inside the cut.
                             if (webView.cuttingMode &&
                                 (f < webView.selStart || f > webView.selEnd)) {
                                 dragMode = 0
                                 return
                             }
-
                             dragMode = 3
                             seekSlider.value = f
                             if (webView.totalTime > 0) webView.seekToFraction(f)
@@ -406,12 +418,10 @@ Rectangle {
 
                     onPositionChanged: function(mouse) {
                         if (!pressed || dragMode === 0) return
-                        var frac = fracAt(mouse.x)
-
+                        var frac   = fracAt(mouse.x)
                         var minGap = minGapPx / Math.max(1, width)
 
                         if (dragMode === 1) {
-                            // clamp: never let start pass end
                             webView.selStart = Math.max(0, Math.min(frac, webView.selEnd - minGap))
                         } else if (dragMode === 2) {
                             webView.selEnd = Math.min(1, Math.max(frac, webView.selStart + minGap))
@@ -425,7 +435,6 @@ Rectangle {
                     }
 
                     onReleased: dragMode = 0
-
                     onDoubleClicked: { webView.selStart = 0; webView.selEnd = 1 }
 
                     cursorShape: {
@@ -434,15 +443,12 @@ Rectangle {
                         var endPx   = webView.selEnd   * seekContainer.width
                         if (Math.abs(mouseX - startPx) < grabPx ||
                             Math.abs(mouseX - endPx)   < grabPx) return Qt.SizeHorCursor
-
                         if (webView.cuttingMode &&
                             (mouseX < startPx || mouseX > endPx)) return Qt.ForbiddenCursor
-
                         return Qt.PointingHandCursor
                     }
                 }
 
-                // ---- Hover tooltip ----
                 Rectangle {
                     z: 200
                     visible: seekInteraction.containsMouse && webView.totalTime > 0
@@ -475,6 +481,7 @@ Rectangle {
             MyText { text: webView.formatTime(webView.totalTime) }
         }
 
+        // ---------- Frame controls ----------
         RowLayout {
             Layout.fillHeight: true
             Layout.fillWidth: true
@@ -484,7 +491,6 @@ Rectangle {
 
             Item { Layout.fillHeight: true; Layout.fillWidth: true }
 
-            // ---------- Prev frame ----------
             Item {
                 id: prevBtn
                 Layout.fillHeight: true
@@ -508,10 +514,9 @@ Rectangle {
                 }
             }
 
-            // ---------- Pause ----------
             Item {
                 id: pauseBtn
-                visible: false
+                visible: webView.isPlaying
                 Layout.fillHeight: true
                 Layout.preferredWidth: 24
                 property color color: "#F6FBF9"
@@ -529,14 +534,13 @@ Rectangle {
                     hoverEnabled: true
                     onEntered: pauseBtn.color = "#00A0FF"
                     onExited:  pauseBtn.color = "#F6FBF9"
-                    onClicked: { pauseBtn.visible = false; playBtn.visible = true
-                                 webView.togglePlayback() }
+                    onClicked: webView.togglePlayback()
                 }
             }
 
-            // ---------- Play ----------
             Item {
                 id: playBtn
+                visible: !webView.isPlaying
                 Layout.fillHeight: true
                 Layout.preferredWidth: 25
                 property color color: "#F6FBF9"
@@ -551,12 +555,10 @@ Rectangle {
                     hoverEnabled: true
                     onEntered: playBtn.color = "#00A0FF"
                     onExited:  playBtn.color = "#F6FBF9"
-                    onClicked: { playBtn.visible = false; pauseBtn.visible = true
-                                 webView.togglePlayback() }
+                    onClicked: webView.togglePlayback()
                 }
             }
 
-            // ---------- Next frame ----------
             Item {
                 id: nextBtn
                 Layout.fillHeight: true
@@ -583,18 +585,18 @@ Rectangle {
             Item { Layout.fillHeight: true; Layout.fillWidth: true }
         }
 
+        // ---------- 360 / OVERCAPTURE / CUT MODE ----------
         Rectangle {
             Layout.fillHeight: true
             Layout.fillWidth: true
             Layout.maximumHeight: 50
-
             color: "#222222"
 
             RowLayout {
                 anchors.fill: parent
                 anchors.margins: 10
 
-                MyText { text: "360";          color: playerMode.checked ? "#879899" : "#00A1E1" }
+                MyText { text: "360";         color: playerMode.checked ? "#879899" : "#00A1E1" }
                 MySwitch {
                     id: playerMode
                     knobMargin: 1
@@ -605,21 +607,22 @@ Rectangle {
                     trackBorderWidth: 3
                     trackBorderColorOn:  "#F6FBF9"
                     trackBorderColorOff: "#F6FBF9"
+                    onCheckedChanged: root._scheduleSettingsEmit()
                 }
-                MyText { text: "OVERCAPTURE";  color: playerMode.checked ? "#00A1E1" : "#879899" }
+                MyText { text: "OVERCAPTURE"; color: playerMode.checked ? "#00A1E1" : "#879899" }
 
-                // --- NEW: cutting mode toggle ---
                 Item { Layout.fillWidth: true }
                 MyText { text: qsTr("CUT MODE"); color: "#F6FBF9" }
                 MySwitch {
                     id: cutMode
                     Layout.fillHeight: true
-                    checked: false
-                    onCheckedChanged: webView.cuttingMode = checked
+                    checked: webView.cuttingMode          // reflect external changes
+                    onToggled: webView.cuttingMode = checked
                 }
             }
         }
 
+        // ---------- Reset ----------
         Rectangle {
             Layout.fillHeight: true
             Layout.fillWidth: true
@@ -630,10 +633,7 @@ Rectangle {
                 anchors.fill: parent
                 anchors.margins: 20
 
-                Item {
-                    Layout.fillHeight: true
-                    Layout.fillWidth: true
-                }
+                Item { Layout.fillHeight: true; Layout.fillWidth: true }
 
                 Image {
                     Layout.fillHeight: true
@@ -654,28 +654,15 @@ Rectangle {
                     MouseArea {
                         anchors.fill: parent
                         hoverEnabled: true
-
-                        onEntered: {
-                            resetButtonText.color = "grey"
-                        }
-
-                        onExited: {
-                            resetButtonText.color = resetButtonText.defaultColor
-                        }
-
-                        onClicked: {
-                            webView.runJavaScript(
-                                    "window.fusionViewer && window.fusionViewer.resetView()")
-                            yawSlider.value   = 0
-                            pitchSlider.value = 0
-                            rollSlider.value  = 0
-                        }
+                        onEntered: resetButtonText.color = "grey"
+                        onExited:  resetButtonText.color = resetButtonText.defaultColor
+                        onClicked: root.resetView()
                     }
                 }
             }
         }
 
-
+        // ---------- Yaw / Pitch / Roll ----------
         Rectangle {
             Layout.minimumHeight: 100
             Layout.fillWidth: true
@@ -696,7 +683,10 @@ Rectangle {
                         Layout.fillWidth: true
                         from: -Math.PI
                         to:    Math.PI
-                        onValueChanged: if (pressed) webView.setYaw(value)
+                        onValueChanged: {
+                            if (pressed) webView.setYaw(value)
+                            root._scheduleSettingsEmit()
+                        }
                     }
                     MyText { Layout.minimumWidth: 50
                              text: (yawSlider.value * 180 / Math.PI).toFixed(1) + "°"
@@ -712,7 +702,10 @@ Rectangle {
                         Layout.fillWidth: true
                         from: -(Math.PI / 2 - 0.01)
                         to:   (Math.PI / 2 - 0.01)
-                        onValueChanged: if (pressed) webView.setPitch(value)
+                        onValueChanged: {
+                            if (pressed) webView.setPitch(value)
+                            root._scheduleSettingsEmit()
+                        }
                     }
                     MyText { Layout.minimumWidth: 50
                              text: (pitchSlider.value * 180 / Math.PI).toFixed(1) + "°"
@@ -728,7 +721,10 @@ Rectangle {
                         Layout.fillWidth: true
                         from: -Math.PI
                         to:    Math.PI
-                        onValueChanged: if (pressed) webView.setRoll(value)
+                        onValueChanged: {
+                            if (pressed) webView.setRoll(value)
+                            root._scheduleSettingsEmit()
+                        }
                     }
                     MyText { Layout.minimumWidth: 50
                              text: (rollSlider.value * 180 / Math.PI).toFixed(1) + "°"
@@ -737,6 +733,7 @@ Rectangle {
             }
         }
 
+        // ---------- Footer buttons ----------
         Rectangle {
             Layout.fillHeight: true
             Layout.fillWidth: true
@@ -747,16 +744,14 @@ Rectangle {
                 anchors.fill: parent
                 anchors.margins: 10
 
-                Item {
-                    Layout.fillHeight: true
-                    Layout.fillWidth: true
-                }
+                Item { Layout.fillHeight: true; Layout.fillWidth: true }
 
                 MyButton {
                     Layout.fillHeight: true
                     Layout.fillWidth: true
-                    Layout.maximumWidth: parent.width/2
-                    text: qsTr("Process".toUpperCase())
+                    Layout.maximumWidth: parent.width / 2
+                    text: root.processButtonText
+                    onClicked: root.processRequested(root.getSettings())
                 }
             }
         }

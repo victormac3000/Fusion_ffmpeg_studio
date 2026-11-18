@@ -25,6 +25,9 @@ TextField {
     // ── Signals ──────────────────────────────────────────────
     signal committed(string text)
     signal cancelled()
+    // ── Auto-scaling ─────────────────────────────────────────
+    property bool autoScale:                    false
+    property real autoScaleReferencePointSize:  100
 
     // ── Appearance ───────────────────────────────────────────
     readOnly: !editing

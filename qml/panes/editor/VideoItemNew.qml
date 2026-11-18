@@ -46,61 +46,106 @@ Rectangle {
 
     ColumnLayout {
         anchors.fill: parent
+        spacing: 0
 
         RowLayout {
-            Layout.fillHeight: true
+            spacing: 5
             Layout.fillWidth: true
-            Layout.margins: 10
+            Layout.preferredHeight: parent.height*0.1
+
+            Layout.margins: 10 + root.border.width
+            Layout.bottomMargin: 5 + root.border.width
+            Layout.topMargin: 5 + root.border.width
 
             MyTextField {
                 Layout.fillHeight: true
                 Layout.fillWidth: true
+                autoScale: true
 
+                bottomPadding: 0
+
+                font.bold: true
                 text: qsTr("VIDEO") + " " + root.video.idString
+                horizontalAlignment: Text.AlignLeft
                 maximumLength: 100
                 idleColor:   "#F6FBF9"
                 hoverColor:  "#00A1E1"
                 editingColor:"#00A1E1"
-                minimumLength: 1
+                minimumLength: 1                
 
-                onTextChanged: root.video.name = text
+                onTextChanged: {
+                    root.video.name = text
+                }
+
                 onCommitted: (value) => {
                     root.video.name = value
                     onDataChanged(root.video)
                 }
             }
 
-            Item {
-                Layout.fillHeight: true
-                Layout.fillWidth: true
-            }
-
             MyText {
+                id: textLabel
                 Layout.fillHeight: true
+                Layout.fillWidth: false
+                Layout.maximumWidth: parent.width*0.4
+                autoScale: true
                 elide: Text.ElideRight
+                Layout.alignment: Qt.AlignVCenter
                 wrapMode: Text.NoWrap
                 verticalAlignment: Text.AlignVCenter
                 text: Qt.formatDateTime(root.video.recordedOn, "dd/MM/yyyy")
+
             }
         }
 
-        Image {
-            id: image
+        StackLayout {
             Layout.fillHeight: true
             Layout.fillWidth: true
-            fillMode: Image.Stretch
-            source: "qrc:/images/Snow.jpg"
+            Layout.preferredHeight: parent.height*0.8
+
+            Layout.rightMargin: root.border.width
+            Layout.leftMargin: root.border.width
+            Layout.topMargin: 0
+            Layout.bottomMargin: 0
+
+
+            Rectangle {
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+                color: "blue"
+
+                Spinner {
+                    anchors.fill: parent
+                    anchors.margins: parent.width*0.05
+                    spinnerInnerText: "0%"
+                    spinnerInnerSize: 75
+                }
+            }
+
+            Image {
+                id: image
+                Layout.fillHeight: true
+                Layout.preferredWidth:  Layout.preferredHeight   // keep square
+                Layout.maximumWidth:  implicitWidth
+                Layout.maximumHeight: implicitHeight
+                fillMode: Image.Stretch
+                source: "qrc:/images/Snow.jpg"
+            }
         }
+
 
         RowLayout {
             Layout.fillHeight: true
             Layout.fillWidth: true
-            Layout.margins: 10
+            Layout.preferredHeight: parent.height*0.1
+
+            Layout.margins: 10 + root.border.width
+            Layout.bottomMargin: 5 + root.border.width
+            Layout.topMargin: 5 + root.border.width
 
             Image {
-                Layout.fillHeight: true
                 Layout.fillWidth: true
-                Layout.maximumHeight: parent.height
+                Layout.fillHeight: true
                 Layout.maximumWidth: parent.height
                 Layout.rightMargin: 10
                 Layout.topMargin: 0
@@ -109,8 +154,9 @@ Rectangle {
             }
 
             MyText {
-                Layout.fillHeight: true
                 Layout.fillWidth: true
+                Layout.fillHeight: true
+                autoScale: true
                 text: root.video.durationString
                 verticalAlignment: Text.AlignVCenter
             }
