@@ -28,6 +28,74 @@ TextField {
     // ── Auto-scaling ─────────────────────────────────────────
     property bool autoScale:                    false
     property real autoScaleReferencePointSize:  100
+    property int  autoScaleMinimumPointSize:    13
+    property int  autoScaleMaximumPointSize:    600
+
+    // The design/natural size that the field should *never* shrink below.
+    // When autoScale is off, this is simply font.pointSize. When autoScale
+    // is on, we latch font.pointSize at the moment autoScale flips on, so
+    // turning autoScale on doesn't overwrite itself in a loop.
+    property real autoScaleFloorPointSize: 0
+
+    onAutoScaleChanged: {
+        if (autoScale && autoScaleFloorPointSize <= 0)
+            autoScaleFloorPointSize = font.pointSize > 0 ? font.pointSize
+                                                         : 13   // sensible default
+    }
+
+    TextMetrics {
+        id: autoScaleMetrics
+        font.family:            root.font.family
+        font.weight:            root.font.weight
+        font.styleName:         root.font.styleName
+        font.capitalization:    root.font.capitalization
+        font.letterSpacing:     root.font.letterSpacing
+        font.wordSpacing:       root.font.wordSpacing
+        font.hintingPreference: root.font.hintingPreference
+        font.preferShaping:     root.font.preferShaping
+        font.pointSize:         root.autoScaleReferencePointSize
+        text: root.text.length > 0 ? root.text : "X"
+    }
+
+    readonly property real _autoScaleAvailableWidth:
+        Math.max(1, root.width  - root.leftPadding - root.rightPadding)
+    readonly property real _autoScaleAvailableHeight:
+        Math.max(1, root.height - root.topPadding  - root.bottomPadding)
+    readonly property real _autoScaleRefWidth:
+        Math.max(1, autoScaleMetrics.advanceWidth)
+    readonly property real _autoScaleRefHeight:
+        Math.max(1, autoScaleMetrics.height)
+    readonly property real _autoScaleFactor:
+        Math.min(_autoScaleAvailableWidth  / _autoScaleRefWidth,
+                 _autoScaleAvailableHeight / _autoScaleRefHeight)
+
+    readonly property real _autoScaleRawPointSize:
+        root.autoScaleReferencePointSize * _autoScaleFactor
+
+    // The size we actually apply: grow above the design size when there is
+    // room, but never fall below it. This is what makes the field scroll
+    // (like with autoScale off) when the text doesn't fit instead of
+    // shrinking it to fit.
+    readonly property real _autoScaleFittedPointSize:
+        Math.max(
+            Math.max(root.autoScaleMinimumPointSize,
+                     root.autoScaleFloorPointSize),
+            Math.min(root.autoScaleMaximumPointSize,
+                     root._autoScaleRawPointSize))
+
+    Binding on font.pointSize {
+        when: root.autoScale
+        value: root._autoScaleFittedPointSize
+        restoreMode: Binding.RestoreBindingOrValue
+    }
+
+    // Prevent a leftover pixelSize (e.g. -1 from a style or from a previous
+    // explicit set) from shadowing the pointSize we just computed.
+    Binding on font.pixelSize {
+        when: root.autoScale
+        value: -1
+        restoreMode: Binding.RestoreBindingOrValue
+    }
 
     // ── Appearance ───────────────────────────────────────────
     readOnly: !editing
