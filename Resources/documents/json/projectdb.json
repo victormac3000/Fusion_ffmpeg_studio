@@ -12,18 +12,25 @@
     "CREATE_VIDEOS":"
         CREATE TABLE IF NOT EXISTS videos (
             id INTEGER PRIMARY KEY,
-            dualFisheye INTEGER,
-            dualFisheyeLow INTEGER,
-            equirectangular INTEGER,
-            equirectangularLow INTEGER
+            name TEXT NOT NULL,
+            frontThumbnail TEXT NOT NULL,
+            backThumbnail TEXT NOT NULL,
+            format_name TEXT NOT NULL,
+            format_firmware TEXT NOT NULL,
+            format_height INTEGER NOT NULL,
+            format_width INTEGER NOT NULL,
+            format_fps REAL NOT NULL
         );",
     "CREATE_SEGMENTS":"
         CREATE TABLE IF NOT EXISTS segments (
             id INTEGER PRIMARY KEY,
-            video INTEGER NOT NULL,
-            dualFisheye INTEGER,
-            dualFisheyeLow INTEGER,
-            FOREIGN KEY(video) REFERENCES videos(id) ON UPDATE CASCADE ON DELETE CASCADE
+            vid INTEGER NOT NULL,
+            frontMP4 TEXT NOT NULL,
+            frontLRV TEXT NOT NULL,
+            backMP4 TEXT NOT NULL,
+            backLRV TEXT NOT NULL,
+            backWAV TEXT NOT NULL,
+            FOREIGN KEY(vid) REFERENCES videos(id) ON UPDATE CASCADE ON DELETE CASCADE
         );",
     "UPDATE_PROJECT_INFO":"
         INSERT OR REPLACE INTO project_info
@@ -33,17 +40,26 @@
         ;",
     "UPDATE_VIDEO":"
         INSERT OR REPLACE INTO videos
-            (id, dualFisheye, dualFisheyeLow, equirectangular, equirectangularLow)
+            (id, name, frontThumbnail, backThumbnail, format_name, format_firmware,
+            format_height, format_width, format_fps)
         VALUES
-            (:id, :dualFisheye, :dualFisheyeLow, :equirectangular, :equirectangularLow)
+            (:id, :name, :frontThumbnail, :backThumbnail, :format_name, :format_firmware,
+            :format_height, :format_width, :format_fps)
         ;",
     "UPDATE_SEGMENT":"
         INSERT OR REPLACE INTO segments
-            (id, video, dualFisheye, dualFisheyeLow)
+            (id, vid, frontMP4, frontLRV, backMP4, backLRV, backWAV)
         VALUES
-            (:id, :video, :dualFisheye, :dualFisheyeLow)
+            (:id, :vid, :frontMP4, :frontLRV, :backMP4, :backLRV, :backWAV)
         ;",
     "GET_PROJECT_INFO":"
         SELECT * FROM project_info LIMIT 1
-    "
+        ",
+    "GET_VIDEOS":"
+        SELECT * FROM videos
+        ",
+    "GET_SEGMENTS":"
+        SELECT * FROM segments
+        WHERE vid = :vid
+        "
 }

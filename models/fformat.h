@@ -2,6 +2,7 @@
 #define FFORMAT_H
 
 #include <QString>
+#include <QVariantMap>
 
 struct FFormat {
     QString name;

@@ -23,26 +23,32 @@ class FVideo
 {
 public:
     FVideo(int id = -1);
+    static FVideo fromRow(const QVariant& row);
+
     int getId();
     QString getIdString();
 
     bool setFrontThumbnail(QString thumbnailPath);
     bool setBackThumbnail(QString thumbnailPath);
     void setFormat(FFormat format);
+    void setName(QString name);
     bool addSegment(FSegment segment);
 
     QString getFrontThumbnail();
     QString getBackThumbnail();
     FFormat getFormat();
     QList<FSegment> getSegments();
+
     QVariantMap toVariantMap();
 
 private:
     int id;
 
+    QString name;
     QString frontThumbnail;
     QString backThumbnail;
     FFormat format;
+
 
     QList<FSegment> segments;
 };

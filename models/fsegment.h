@@ -17,6 +17,7 @@ class FSegment
 {
 public:
     FSegment(int vid, int id);
+    static FSegment fromRow(int vid, const QVariant& row);
 
     int getVideoId();
     int getId();
@@ -33,9 +34,11 @@ public:
     QString getBackLVideo();
     QString getBackAudio();
 
+    QVariantMap toVariantMap();
+
 private:
-    int vid;
     int id;
+    int vid;
 
     QString frontMP4;
     QString frontLRV;

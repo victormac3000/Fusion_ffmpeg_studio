@@ -1,12 +1,30 @@
 #include "fsegment.h"
-#include "models/fvideo.h"
 #include "utils/fformats.h"
-#include "utils/mediainfo.h"
 
 FSegment::FSegment(int vid, int id)
 {
     this->vid = vid;
     this->id = id;
+}
+
+FSegment FSegment::fromRow(int vid, const QVariant &row)
+{
+    QVariantMap map = row.toMap();
+
+    FSegment instance(vid, map.value("id").toInt());
+
+    instance.setFrontFiles(
+        map.value("frontMP4").toString(),
+        map.value("frontLRV").toString()
+    );
+
+    instance.setBackFiles(
+        map.value("backMP4").toString(),
+        map.value("backLRV").toString(),
+        map.value("backWAV").toString()
+    );
+
+    return instance;
 }
 
 int FSegment::getId()
@@ -88,4 +106,21 @@ QString FSegment::getBackLVideo()
 QString FSegment::getBackAudio()
 {
     return this->backWAV;
+}
+
+QVariantMap FSegment::toVariantMap()
+{
+    QVariantMap map;
+
+    map.insert("id", id);
+    map.insert("vid", vid);
+
+    map.insert("frontMP4", frontMP4);
+    map.insert("frontLRV", frontLRV);
+
+    map.insert("backMP4", backMP4);
+    map.insert("backLRV", backLRV);
+    map.insert("backWAV", backWAV);
+
+    return map;
 }

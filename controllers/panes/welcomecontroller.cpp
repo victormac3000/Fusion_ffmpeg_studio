@@ -2,6 +2,7 @@
 #include "models/db/localdb.h"
 
 #include <QDebug>
+#include <QFile>
 
 WelcomeController::WelcomeController(QObject *parent)
     : BaseController{parent}
@@ -38,6 +39,11 @@ void WelcomeController::getRecentProjects(const QJSValue &args, const QJSValue &
             QList<RecentProject> recentProjects = localDB.getRecentProjects();
 
             for (RecentProject& recentProject: recentProjects) {
+                if (!QFile::exists(recentProject.path)) {
+                    qDebug() << "Skipped recent project " + recentProject.name + " (" + recentProject.path + ")"
+                             + " because it does not exist";
+                    break;
+                }
                 recentProjectsList.append(QVariantMap{
                     {"uuid", recentProject.uuid},
                     {"name", recentProject.name},

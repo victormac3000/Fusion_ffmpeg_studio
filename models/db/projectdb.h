@@ -16,6 +16,7 @@ public:
               bool dcimLinked);
     void updateVideos(QList<FVideo> videos);
     QVariantMap getProjectInfo();
+    QList<FVideo> getVideos();
 
     void addProjectToRecent();
 

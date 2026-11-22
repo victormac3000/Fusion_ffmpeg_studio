@@ -8,14 +8,6 @@ MainController::MainController(QObject *parent)
     : QObject{parent}
 {
     this->project = new Project();
-    connect(this->project, &Project::loadProjectUpdate,
-            this, &MainController::loadProjectUpdate);
-    connect(this->project, &Project::loadProjectDone,
-            this, &MainController::loadProjectDone);
-    connect(this->project, &Project::loadProjectError,
-            this, &MainController::loadProjectError);
-    connect(this->project, &Project::videosReady,
-            this, &MainController::videosReady);
     this->project->moveToThread(&projectThread);
     projectThread.start();
 }

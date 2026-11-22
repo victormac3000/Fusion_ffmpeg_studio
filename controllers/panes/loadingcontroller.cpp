@@ -1,5 +1,4 @@
 #include "loadingcontroller.h"
-#include "utils/exceptions/loadingexception.h"
 
 LoadingController::LoadingController(QObject *parent)
     : BaseController{parent}
@@ -13,11 +12,11 @@ void LoadingController::startLoading(const QJSValue& args,
 {
     project = m_appController->getProject();
 
-    connect(m_appController, &MainController::loadProjectUpdate,
+    connect(project, &Project::loadProjectUpdate,
             this, &LoadingController::onLoadProjectUpdate);
-    connect(m_appController, &MainController::loadProjectDone,
+    connect(project, &Project::loadProjectDone,
             this, &LoadingController::onLoadProjectDone);
-    connect(m_appController, &MainController::loadProjectError,
+    connect(project, &Project::loadProjectError,
             this, &LoadingController::onLoadProjectError);
 
     this->task(

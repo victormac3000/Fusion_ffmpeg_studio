@@ -12,7 +12,7 @@ EditorController::EditorController(QObject *parent)
 
 void EditorController::getVideos()
 {
-    connect(m_appController, &MainController::videosReady,
+    connect(m_appController->getProject(), &Project::videosReady,
             this, &EditorController::onVideosReady);
 
     QMetaObject::invokeMethod(

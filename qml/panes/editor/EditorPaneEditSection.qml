@@ -95,8 +95,35 @@ Rectangle {
             Layout.fillWidth: true
             currentIndex: 0
 
-            Rectangle {
-                color: "blue"
+            ColumnLayout {
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+
+                NiceProgressBar {
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    Layout.margins: 10
+                    Layout.bottomMargin: 5
+                    Layout.maximumHeight: 31
+                    insideText: "0.00% (10:30 remaining)"
+                }
+
+                MyText {
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    Layout.margins: 10
+                    Layout.topMargin: 0
+                    Layout.maximumHeight: 20
+
+                    text: qsTr("Loading video preview")
+                    horizontalAlignment: Text.AlignHCenter
+                    autoScale: true
+                }
+
+                Item {
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                }
             }
 
             EditorPaneEditPlayer {

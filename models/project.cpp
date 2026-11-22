@@ -2,7 +2,6 @@
 #include "fsegment.h"
 #include "fvideo.h"
 #include "loading.h"
-#include "utils/exceptions/DBException.h"
 #include "utils/settings.h"
 #include "utils/exceptions/projectexception.h"
 
@@ -201,7 +200,10 @@ void Project::loadProject()
     this->frontDir = QDir(frontPath);
     this->backDir = QDir(backPath);
 
-    this->indexVideos();
+    //this->indexVideos();
+
+    this->videos = this->dbManager->getVideos();
+
     this->save();
 }
 
@@ -219,9 +221,15 @@ void Project::checkVersions(QVariantMap projectInfo)
                              QString::number(v_mid) + "." +
                              QString::number(v_minor);
 
-    if (v_major <= appVersionNumbers.at(0) ||
-        v_mid <= appVersionNumbers.at(1) ||
-        v_minor <= appVersionNumbers.at(2)) {
+    if (v_major == appVersionNumbers.at(0) &&
+        v_mid == appVersionNumbers.at(1) &&
+        v_minor == appVersionNumbers.at(2)) {
+        return;
+    }
+
+    if (v_major < appVersionNumbers.at(0) ||
+        v_mid < appVersionNumbers.at(1) ||
+        v_minor < appVersionNumbers.at(2)) {
         // Upgrade
         qInfo() << QString("Project upgraded from version %1 to %2").arg(projectVersion, appVersion);
     } else {
@@ -300,6 +308,7 @@ void Project::createProjectTCopyDCIM()
     emit loadProjectUpdate(this->loadingProgress);
 
     QDir sourceFrontDir(this->loadingInfo.frontVolumePath);
+    qDebug() << "sourceFrontDir" << sourceFrontDir.absolutePath();
     if (!sourceFrontDir.cd("DCIM") || !sourceFrontDir.cd("100GFRNT")) {
         throw ProjectException(
             "Could not find DCIM/100GFRNT folder on source front dir: " +
@@ -596,8 +605,6 @@ void Project::indexVideoComplete()
 
 void Project::save()
 {
-    this->lastSaved = QDateTime::currentDateTime();
-
     if (this->dbManager == nullptr) {
         qWarning() << "dbManager is nullptr";
     } else {
@@ -612,4 +619,6 @@ void Project::save()
             this->name, this->lastSaved
         );
     }
+
+    this->lastSaved = QDateTime::currentDateTime();
 }

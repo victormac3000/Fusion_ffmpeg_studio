@@ -6,6 +6,30 @@
 FVideo::FVideo(int id)
 {
     this->id = id;
+    this->name = getIdString();
+}
+
+FVideo FVideo::fromRow(const QVariant& row)
+{
+    QVariantMap map = row.toMap();
+
+    FVideo instance(map.value("id").toInt());
+
+    instance.setName(map.value("name").toString());
+    instance.setFrontThumbnail(map.value("frontThumbnail").toString());
+    instance.setBackThumbnail(map.value("backThumbnail").toString());
+
+    FFormat format {
+        .name = map.value("format_name").toString(),
+        .firmware = map.value("format_firmware").toString(),
+        .height = map.value("format_height").toInt(),
+        .width = map.value("format_width").toInt(),
+        .fps = map.value("format_fps").toDouble()
+    };
+
+    instance.setFormat(format);
+
+    return instance;
 }
 
 int FVideo::getId()
@@ -49,6 +73,11 @@ bool FVideo::setBackThumbnail(QString thumbnailPath)
 void FVideo::setFormat(FFormat format)
 {
     this->format = format;
+}
+
+void FVideo::setName(QString name)
+{
+    this->name = name;
 }
 
 bool FVideo::addSegment(FSegment segment)
@@ -103,12 +132,20 @@ QVariantMap FVideo::toVariantMap()
 
     QVariantMap map;
 
-    map.insert("id", this->id);
+    // Stored
+    map.insert("id", id);
+    map.insert("name", name);
+    map.insert("frontThumbnail", frontThumbnail);
+    map.insert("backThumbnail", backThumbnail);
+    map.insert("format_name", format.name);
+    map.insert("format_firmware", format.firmware);
+    map.insert("format_height", format.height);
+    map.insert("format_width", format.width);
+    map.insert("format_fps", format.fps);
+
+    // Calculated
+
     map.insert("idString", this->getIdString());
-    map.insert("frontThumbnail", this->frontThumbnail);
-    //map.insert("frontThumbnailB64", frontThumbnailB64);
-    map.insert("backThumbnail", this->backThumbnail);
-    //map.insert("backThumbnailB64", backThumbnailB64);
     map.insert("front", this->segments.first().getFrontVideo());
     map.insert("frontURL", QUrl::fromLocalFile(this->segments.first().getFrontVideo()));
     map.insert("back", this->segments.first().getBackVideo());

@@ -47,12 +47,6 @@ signals:
     void navigateTo(MainController::Pane pane, const QVariantMap &attributes = {});
     void addWindow(MainController::Window window, bool modal);
     void back();
-
-    void loadProjectUpdate(LoadingProgress progress);
-    void loadProjectDone(LoadingDone done);
-    void loadProjectError(LoadingError error);
-
-    void videosReady(QList<FVideo> videos);
 };
 
 #endif // MAINCONTROLLER_H

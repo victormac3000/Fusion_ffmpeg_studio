@@ -83,6 +83,32 @@ TextField {
             Math.min(root.autoScaleMaximumPointSize,
                      root._autoScaleRawPointSize))
 
+    // ── Break the implicit-size ↔ font-size feedback loop ─────
+    // When autoScale is active, our actual width/height is provided by the
+    // container (Layout fill, explicit width/height, …). If we let implicitWidth
+    // and implicitHeight depend on font.pointSize (which is normal for a TextField),
+    // the chain
+    //     implicitWidth → implicitContentWidth → font.pointSize
+    //                   → _autoScaleFittedPointSize → _autoScaleAvailableWidth
+    //                   → width → (default) width = implicitWidth → …
+    // closes into a binding loop the moment we are put inside a Layout, because
+    // Layout uses implicitWidth as its default preferred/min sizing hint.
+    //
+    // Pin the implicit sizes to a small constant while autoScale is on: the
+    // layout will then set width/height from the container, the fitted font size
+    // stabilises in one pass, and implicitWidth/Height stop feeding back into it.
+    Binding on implicitWidth {
+        when: root.autoScale
+        value: 1
+        restoreMode: Binding.RestoreBindingOrValue
+    }
+
+    Binding on implicitHeight {
+        when: root.autoScale
+        value: 1
+        restoreMode: Binding.RestoreBindingOrValue
+    }
+
     Binding on font.pointSize {
         when: root.autoScale
         value: root._autoScaleFittedPointSize

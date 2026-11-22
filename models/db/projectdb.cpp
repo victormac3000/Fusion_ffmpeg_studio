@@ -39,26 +39,11 @@ ProjectDB::ProjectDB(QString dbPath, QString uuid,
 void ProjectDB::updateVideos(QList<FVideo> videos)
 {
     for (FVideo& video: videos) {
-        QVariantMap params;
-
-        params.insert("id", video.getId());
-        params.insert("dualFisheye", false);
-        params.insert("dualFisheyeLow", false);
-        params.insert("equirectangular", false);
-        params.insert("equirectangularLow", false);
-
-        execute("UPDATE_VIDEO", params);
+        execute("UPDATE_VIDEO", video.toVariantMap());
 
         QList<FSegment> segments = video.getSegments();
         for (FSegment& segment: segments) {
-            params = QVariantMap{};
-
-            params.insert("id", segment.getId());
-            params.insert("video", video.getId());
-            params.insert("dualFisheye", false);
-            params.insert("dualFisheyeLow", false);
-
-            execute("UPDATE_SEGMENT", params);
+            execute("UPDATE_SEGMENT", segment.toVariantMap());
         }
     }
 }
@@ -70,4 +55,25 @@ QVariantMap ProjectDB::getProjectInfo()
         return rows.first().toMap();
     }
     return {};
+}
+
+QList<FVideo> ProjectDB::getVideos()
+{
+    QList<FVideo> videos;
+
+    QVariantList rows = query("GET_VIDEOS");
+
+    for (QVariant& videoRow: rows) {
+        FVideo video = FVideo::fromRow(videoRow);
+
+        QVariantList sRows = query("GET_SEGMENTS", {{"vid", video.getId()}});
+        for (QVariant& segmentRow: sRows) {
+            FSegment segment = FSegment::fromRow(video.getId(), segmentRow);
+            video.addSegment(segment);
+        }
+
+        videos.append(video);
+    }
+
+    return videos;
 }
