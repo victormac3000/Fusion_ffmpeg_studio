@@ -14,9 +14,9 @@ public:
     ProjectDB(QString dbPath, QString uuid,
               QString name, QDir dcimDir,
               bool dcimLinked);
-    void updateVideos(QList<FVideo> videos);
+    void updateVideos(QList<FVideo> videos, QString projectDirPath = "");
     QVariantMap getProjectInfo();
-    QList<FVideo> getVideos();
+    QList<FVideo> getVideos(QString projectDirPath = "");
 
     void addProjectToRecent();
 

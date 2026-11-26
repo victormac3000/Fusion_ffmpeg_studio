@@ -15,5 +15,9 @@
     "GET_RECENT_PROJECTS": "
         SELECT * FROM recent_projects
         ORDER BY saved_on DESC
+        ;",
+    "DELETE_RECENT_PROJECT": "
+        DELETE FROM recent_projects
+        WHERE uuid = :uuid
         ;"
 }

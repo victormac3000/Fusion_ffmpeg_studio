@@ -1,5 +1,6 @@
 #include "fsegment.h"
 #include "utils/fformats.h"
+#include "utils/toolbox.h"
 
 FSegment::FSegment(int vid, int id)
 {
@@ -7,22 +8,28 @@ FSegment::FSegment(int vid, int id)
     this->id = id;
 }
 
-FSegment FSegment::fromRow(int vid, const QVariant &row)
+FSegment FSegment::fromRow(int vid, const QVariant &row, QString projectDirPath)
 {
     QVariantMap map = row.toMap();
 
     FSegment instance(vid, map.value("id").toInt());
 
-    instance.setFrontFiles(
+    QStringList mediaPaths = {
         map.value("frontMP4").toString(),
-        map.value("frontLRV").toString()
-    );
-
-    instance.setBackFiles(
+        map.value("frontLRV").toString(),
         map.value("backMP4").toString(),
         map.value("backLRV").toString(),
         map.value("backWAV").toString()
-    );
+    };
+
+    if (!projectDirPath.isEmpty()) {
+        for (int i=0; i<mediaPaths.length(); i++) {
+            mediaPaths[i] = Toolbox::toAbsolutePath(mediaPaths[i], projectDirPath);
+        }
+    }
+
+    instance.setFrontFiles(mediaPaths[0], mediaPaths[1]);
+    instance.setBackFiles(mediaPaths[2], mediaPaths[3], mediaPaths[4]);
 
     return instance;
 }
@@ -44,6 +51,16 @@ QString FSegment::getIdString()
     return idString;
 }
 
+void FSegment::generateVideosInfo()
+{
+    if (!this->frontMP4.isEmpty()) {
+        this->front_video_info = MediaInfo::getVideoInfo(this->frontMP4);
+    }
+    if (!this->backMP4.isEmpty()) {
+        this->back_video_info = MediaInfo::getVideoInfo(this->frontMP4);
+    }
+}
+
 bool FSegment::setFrontFiles(QString videoPath, QString lrvPath)
 {   
     FFormat videoFormat = FFormats::get(videoPath, FUSION_VIDEO);
@@ -56,6 +73,8 @@ bool FSegment::setFrontFiles(QString videoPath, QString lrvPath)
 
     this->frontMP4 = videoPath;
     this->frontLRV = lrvPath;
+
+    this->generateVideosInfo();
 
     return true;
 }
@@ -74,6 +93,8 @@ bool FSegment::setBackFiles(QString videoPath, QString lrvPath, QString audioPat
     this->backMP4 = videoPath;
     this->backLRV = lrvPath;
     this->backWAV = audioPath;
+
+    this->generateVideosInfo();
 
     return true;
 }
@@ -108,19 +129,40 @@ QString FSegment::getBackAudio()
     return this->backWAV;
 }
 
-QVariantMap FSegment::toVariantMap()
+VideoInfo FSegment::getFrontVideoInfo()
+{
+    return this->front_video_info;
+}
+
+VideoInfo FSegment::getBackVideoInfo()
+{
+    return this->back_video_info;
+}
+
+QVariantMap FSegment::toVariantMap(QString projectDirPath)
 {
     QVariantMap map;
+
+    QStringList mediaPaths = {
+        frontMP4, frontLRV,
+        backMP4, backLRV, backWAV
+    };
+
+    if (!projectDirPath.isEmpty()) {
+        for (int i=0; i<mediaPaths.length(); i++) {
+            mediaPaths[i] = Toolbox::toRelativePath(mediaPaths[i], projectDirPath);
+        }
+    }
 
     map.insert("id", id);
     map.insert("vid", vid);
 
-    map.insert("frontMP4", frontMP4);
-    map.insert("frontLRV", frontLRV);
+    map.insert("frontMP4", mediaPaths[0]);
+    map.insert("frontLRV", mediaPaths[1]);
 
-    map.insert("backMP4", backMP4);
-    map.insert("backLRV", backLRV);
-    map.insert("backWAV", backWAV);
+    map.insert("backMP4", mediaPaths[2]);
+    map.insert("backLRV", mediaPaths[3]);
+    map.insert("backWAV", mediaPaths[4]);
 
     return map;
 }

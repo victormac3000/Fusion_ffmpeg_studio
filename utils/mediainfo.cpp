@@ -41,8 +41,9 @@ VideoInfo MediaInfo::getVideoInfo(QString path)
         AVStream* stream = formatContext->streams[i];
         const AVCodecParameters *codecPar = stream->codecpar;
 
-        if (codecPar->codec_type != AVMEDIA_TYPE_VIDEO)
+        if (codecPar->codec_type != AVMEDIA_TYPE_VIDEO) {
             continue;
+        }
 
         const AVCodec* codec = avcodec_find_decoder(codecPar->codec_id);
 

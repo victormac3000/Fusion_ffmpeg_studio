@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts
+import QtQuick.Dialogs
 
 import FusionFFmpegStudio
 
@@ -19,6 +20,22 @@ Rectangle {
     Constants {
         id: constants
         visible: false
+    }
+
+    FolderDialog {
+        id: loadProjectDialog
+
+        onAccepted: {
+            var args = {
+                operation: constants.loadProject,
+                projectPath: selectedFolder
+            }
+            controller.loadProject(args, () => {},
+                (error) => {
+                    dialogs.warning(error, qsTr("Error loading project"), () => {
+                })
+            })
+        }
     }
 
     ColumnLayout {
@@ -75,7 +92,9 @@ Rectangle {
                     Layout.fillWidth: true
                     Layout.alignment: Qt.AlignRight
                     text: "Load project"
-                    onClicked: controller.onLoadProjectClicked()
+                    onClicked: {
+                        loadProjectDialog.open()
+                    }
                 }
 
                 MyButton {
@@ -113,8 +132,7 @@ Rectangle {
                 placeholderTextColor: "grey"
 
                 onTextChanged: {
-                    console.log("Text changed: " + text)
-                    //recentProjectsLayout.filter(text)
+                    recentProjectsLayout.filter(text)
                 }
             }
 
@@ -151,6 +169,25 @@ Rectangle {
                             property bool projectLoading: false
 
                             Component.onCompleted: {
+                                reloadRecentProjects()
+                            }
+
+                            function filter(name) {
+                                recentProjectsLayout.children.forEach((child) => {
+                                    if (name.trim() === '') {
+                                        child.visible = true
+                                        return
+                                    }
+                                    child.visible = child.name.toLowerCase().includes(name.toLowerCase())
+                                })
+                            }
+
+                            function reloadRecentProjects() {
+                                // Clear the layout
+                                for (let i = recentProjectsLayout.children.length - 1; i >= 0; i--) {
+                                    recentProjectsLayout.children[i].destroy()
+                                }
+
                                 controller.getRecentProjects({}, (recentProjects) => {
                                     borderRectangle.color = (recentProjects.length < 1) ? "lightgrey" : "transparent"
 
@@ -170,12 +207,24 @@ Rectangle {
                                     projectPath: path,
                                     projectUUID: uuid
                                 }
-                                controller.loadRecentProject(args, () => {
+                                controller.loadProject(args, () => {
                                     projectLoading = false
                                 }, (error) => {
-                                    dialogs.error("Could not load project", "Error loading project", () => {
+                                    console.error("Could not load project", error)
+                                    dialogs.warning(qsTr("Could not load project"), qsTr("Error loading project"), () => {
                                         projectLoading = false
                                     })
+                                })
+                            }
+
+                            function onDeleteRecentProjectClicked(uuid) {
+                                var args = {
+                                    uuid: uuid
+                                }
+                                controller.deleteRecentProject(args, () => {
+                                    reloadRecentProjects()
+                                }, (error) => {
+                                    dialogs.error(error, qsTr("Error removing recent project"))
                                 })
                             }
 
@@ -183,6 +232,7 @@ Rectangle {
                                 var uuid = recentProject.uuid
                                 var name = recentProject.name
                                 var path = recentProject.path
+                                var enabled = recentProject.enabled
 
                                 var recentProjectComponent = Qt.createComponent("RecentProject.qml")
                                 if (recentProjectComponent.status === Component.Ready) {
@@ -191,11 +241,12 @@ Rectangle {
                                         recentProjectElement.uuid = uuid
                                         recentProjectElement.name = name
                                         recentProjectElement.path = path
+                                        recentProjectElement.valid = enabled
                                         recentProjectElement.anchors.margins = 5
                                         recentProjectElement.Layout.fillWidth = true
                                         recentProjectElement.Layout.minimumHeight = 100
-                                        recentProjectElement.Layout.maximumHeight = 100
                                         recentProjectElement.clickHandler = onRecentProjectClicked
+                                        recentProjectElement.removeClickHandler = onDeleteRecentProjectClicked
                                     } else {
                                         dialogs.warning("Failed to load a recent project")
                                         console.error("Failed to create RecentProject element")
@@ -205,15 +256,6 @@ Rectangle {
                                     console.error("Failed to load RecentProject.qml:", recentProjectComponent.errorString())
                                 }
                             }
-
-                            /*
-                            function filter(name) {
-                                for (let i=0; i<children.length; i++) {
-                                    let child = children[i]
-                                    children[i].visible = child.name.toLowerCase().includes(name.toLowerCase())
-                                }
-                            }
-                            */
                         }
 
                         ScrollBar.vertical: ScrollBar {
@@ -254,8 +296,6 @@ Rectangle {
                 text: "Settings"
                 onClicked: controller.onSettingsClicked()
             }
-
-
         }
     }
 }

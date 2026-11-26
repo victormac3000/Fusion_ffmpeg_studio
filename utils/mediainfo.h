@@ -28,6 +28,19 @@ struct VideoInfo {
     double length_s;
     QString codecName;
     QString codecLongName;
+
+    QString getLengthS() {
+        QString str;
+
+        if (length_s >= 3600) {
+            str.append(QString::number(length_s / 60) + ":");
+        }
+
+        str.append(QString::number(length_s / 60) + ":");
+        str.append(QString::number((int) length_s % 60));
+
+        return str;
+    }
 };
 
 struct AudioInfo {

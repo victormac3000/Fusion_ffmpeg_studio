@@ -39,7 +39,7 @@ BaseDB::BaseDB(const QString &databasePath, const QString &queriesPath)
     QFile queriesFile(queriesPath);
 
     if (!queriesFile.open(QFile::ReadOnly)) {
-        qWarning() << "Cannot read projectdb.json file";
+        qWarning() << "Cannot read" << queriesFile.fileName() << "file";
     }
 
     QJsonParseError docError;
@@ -48,7 +48,7 @@ BaseDB::BaseDB(const QString &databasePath, const QString &queriesPath)
     );
 
     if (docError.error) {
-        qWarning() << "Cannot parse projectdb.json file";
+        qWarning() << "Cannot parse" << queriesFile.fileName() << "file";
     }
 
     for (QString& key: doc.object().keys()) {

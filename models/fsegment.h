@@ -8,20 +8,18 @@
 #include <QSize>
 
 #include "models/fformat.h"
-
-enum VerifyMode {
-    FILES_ONLY, FULL
-};
+#include "utils/mediainfo.h"
 
 class FSegment
 {
 public:
     FSegment(int vid, int id);
-    static FSegment fromRow(int vid, const QVariant& row);
+    static FSegment fromRow(int vid, const QVariant& row, QString projectDirPath = "");
 
     int getVideoId();
     int getId();
     QString getIdString();
+    void generateVideosInfo();
 
     bool setFrontFiles(QString videoPath, QString lrvPath);
     bool setBackFiles(QString videoPath, QString lrvPath, QString audioPath);
@@ -34,7 +32,10 @@ public:
     QString getBackLVideo();
     QString getBackAudio();
 
-    QVariantMap toVariantMap();
+    VideoInfo getFrontVideoInfo();
+    VideoInfo getBackVideoInfo();
+
+    QVariantMap toVariantMap(QString projectDirPath = "");
 
 private:
     int id;
@@ -47,6 +48,8 @@ private:
     QString backLRV;
     QString backWAV;
 
+    VideoInfo front_video_info;
+    VideoInfo back_video_info;
 
 };
 

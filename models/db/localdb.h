@@ -18,6 +18,7 @@ public:
     LocalDB(QString dbPath = "");
     void updateRecentProjects(QString uuid, QString path, QString name, QDateTime savedOn);
     QList<RecentProject> getRecentProjects();
+    void deleteRecentProject(QString uuid);
 
 };
 

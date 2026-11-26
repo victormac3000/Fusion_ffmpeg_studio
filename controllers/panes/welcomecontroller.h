@@ -12,13 +12,16 @@ class WelcomeController : public BaseController
 public:
     explicit WelcomeController(QObject *parent = nullptr);
 
-    Q_INVOKABLE void loadRecentProject(const QJSValue& args,
+    Q_INVOKABLE void loadProject(const QJSValue& args,
                                        const QJSValue& outputCallback,
                                        const QJSValue& errorCallback);
     Q_INVOKABLE void getRecentProjects(const QJSValue& args,
                                        const QJSValue& outputCallback,
                                        const QJSValue& errorCallback);
-    Q_INVOKABLE void onLoadProjectClicked();
+    Q_INVOKABLE void deleteRecentProject(const QJSValue& args,
+                                         const QJSValue& outputCallback,
+                                         const QJSValue& errorCallback);
+
     Q_INVOKABLE void onNewProjectClicked();
     Q_INVOKABLE void onAboutClicked();
     Q_INVOKABLE void onSettingsClicked();

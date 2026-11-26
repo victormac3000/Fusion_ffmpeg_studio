@@ -25,6 +25,7 @@ Rectangle {
                 dialogs.error("Could not detect any valid GoPro Fusion source video files", "No videos", () => {
                     mainController.back()
                 })
+                return
             }
 
             if (data.badVideos.length > 0) {
@@ -135,6 +136,7 @@ Rectangle {
 
     ColumnLayout {
         anchors.fill: parent
+        spacing: 0
 
         Image {
             Layout.fillHeight: true
@@ -148,6 +150,7 @@ Rectangle {
             Layout.fillHeight: true
             Layout.fillWidth: true
             Layout.margins: 10
+            Layout.topMargin: 0
 
             property real leftRightWidth: 45
 
@@ -155,6 +158,7 @@ Rectangle {
                 id: mainProgressRow
                 Layout.fillHeight: true
                 Layout.fillWidth: true
+                Layout.maximumHeight: 30
 
                 Text {
                     id: mainLeftLabel
@@ -190,6 +194,7 @@ Rectangle {
                 visible: false
                 Layout.fillHeight: true
                 Layout.fillWidth: true
+                Layout.maximumHeight: 30
 
                 Text {
                     id: secLeftLabel
@@ -225,6 +230,7 @@ Rectangle {
                 visible: false
                 Layout.fillHeight: true
                 Layout.fillWidth: true
+                Layout.maximumHeight: 30
 
                 Text {
                     id: auxLeftLabel

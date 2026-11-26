@@ -8,24 +8,63 @@ Rectangle {
     property string uuid: ""
     property string name: ""
     property string path: ""
-    property string rectColor: "#00C0FF"
-    property string rectColorHover: "#8AE2FF"
+    property color rectColor: "#00C0FF"
+    property color rectColorHover: "#8AE2FF"
+    property color closeButtonHoverColor: "#ff917e"
+    property color rectColorDisabled: "#b8a5a5"
+    property bool valid: true
     property var clickHandler
+    property var removeClickHandler
 
     id: root
-    color: rectColor
+    color: valid ? rectColor : rectColorDisabled
 
     MouseArea {
+        id: cardMouseArea
+
+        anchors.fill: parent
         hoverEnabled: true
-        anchors.fill: root
+
+        cursorShape: (root.valid ||
+                      (containsMouse && isInsideCloseButton(mouseX, mouseY)))
+                     ? Qt.PointingHandCursor
+                     : Qt.ArrowCursor
+
+        function isInsideCloseButton(x, y) {
+            const pos = closeBtnRectangle.mapToItem(cardMouseArea, 0, 0)
+
+            return x >= pos.x &&
+                   x <= pos.x + closeBtnRectangle.width &&
+                   y >= pos.y &&
+                   y <= pos.y + closeBtnRectangle.height
+        }
+
+        onPositionChanged: function(mouse) {
+            const inside = isInsideCloseButton(mouse.x, mouse.y)
+            closeBtnRectangle.color = inside ? root.closeButtonHoverColor : "transparent"
+        }
+
         onEntered: {
-            root.color = rectColorHover
+            if (!root.valid) return
+            root.color = root.rectColorHover
         }
+
         onExited: {
-            root.color = rectColor
+            if (!root.valid) return
+            root.color = root.rectColor
         }
-        onClicked: {
-            clickHandler(uuid, name, path)
+
+        onClicked: function(mouse) {
+            const insideCloseRect = isInsideCloseButton(mouse.x, mouse.y)
+
+            if (insideCloseRect) {
+                root.removeClickHandler(root.uuid)
+                return
+            }
+
+            if (root.valid) {
+                root.clickHandler(root.uuid, root.name, root.path)
+            }
         }
     }
 
@@ -87,6 +126,7 @@ Rectangle {
         ColumnLayout {
             Layout.fillHeight: true
             Layout.fillWidth: true
+            Layout.margins: 10
 
             Text {
                 id: title
@@ -112,7 +152,37 @@ Rectangle {
                 font.family: "Arial"
             }
         }
+
+        ColumnLayout {
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            Layout.preferredWidth: 60
+            Layout.margins: 10
+            Layout.rightMargin: 30
+
+
+            Rectangle {
+                id: closeBtnRectangle
+
+                Layout.preferredHeight: rowLayout.height * 0.4
+                Layout.fillWidth: true
+
+                radius: 180
+                color: "transparent"
+
+
+                MyText {
+                    anchors.fill: parent
+
+                    autoScale: true
+                    text: "×"
+                    color: "black"
+                    font.family: "Arial"
+
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+            }
+        }
     }
-
-
 }

@@ -3,7 +3,7 @@
 
 #include <QUrl>
 #include <QFileInfo>
-
+#include <QDir>
 
 QString Toolbox::toLocalPath(const QString &path)
 {
@@ -24,3 +24,19 @@ QString Toolbox::toLocalPath(const QString &path)
         "The selected path is not a valid local directory."
     );
 }
+
+QString Toolbox::toAbsolutePath(QString relativePath, QString referenceDirPath)
+{
+    return QDir::cleanPath(
+        QDir(referenceDirPath).absoluteFilePath(relativePath)
+    );
+}
+
+QString Toolbox::toRelativePath(QString absolutePath, QString referenceDirPath)
+{
+    return QDir::toNativeSeparators(
+        QDir(referenceDirPath).relativeFilePath(absolutePath)
+    );
+}
+
+

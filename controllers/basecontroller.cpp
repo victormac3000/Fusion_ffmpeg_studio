@@ -142,11 +142,16 @@ void BaseController::task(const QJSValue &args,
     const QVariantMap arguments = args.toVariant().toMap();
     QVariantMap results;
     QString userError;
+    bool error = true;
 
     try {
         results = workFunction(arguments);
+        error = false;
     } catch (const CustomException& e) {
         userError = QString::fromStdString(e.userMessage());
+        qWarning()
+            << "A custom exception was thrown:"
+            << e.what();
     } catch (const std::exception& e) {
         userError = QStringLiteral("Unknown error");
         qWarning()
@@ -158,7 +163,10 @@ void BaseController::task(const QJSValue &args,
             << "An unknown throwable was thrown";
     }
 
-    if (!userError.isEmpty()) {
+    if (error) {
+        if (userError.isEmpty()) {
+            userError = tr("An unknown error has occurred");
+        }
         errorCallback.call({
             QJSValue(userError)
         });

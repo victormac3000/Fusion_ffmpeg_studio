@@ -1,5 +1,7 @@
 #include "welcomecontroller.h"
 #include "models/db/localdb.h"
+#include "utils/exceptions/loadingexception.h"
+#include "utils/toolbox.h"
 
 #include <QDebug>
 #include <QFile>
@@ -10,17 +12,55 @@ WelcomeController::WelcomeController(QObject *parent)
     qDebug() << "Created WelcomeController";
 }
 
-void WelcomeController::loadRecentProject(const QJSValue &args, const QJSValue &outputCallback, const QJSValue &errorCallback)
+void WelcomeController::loadProject(const QJSValue &args, const QJSValue &outputCallback, const QJSValue &errorCallback)
 {
+    // JS arguments
+    // [operation, projectUUID, projectName, projectPath]
+
     this->task(
         args, outputCallback, errorCallback,
-        [](const QVariantMap &args) {
+        [this](const QVariantMap &args) {
+            QString uuid = args.value("projectUUID").toString();
+            QString path = Toolbox::toLocalPath(args.value("projectPath").toString());
 
-            return args;
+            QVariantMap map = args;
+
+            if (uuid.isEmpty()) {
+                QDir dir(path);
+
+                if (!dir.exists()) {
+                    throw LoadingException(
+                        ("Could not open projectPath: " + path).toStdString(),
+                        tr("You must select project folder").toStdString()
+                    );
+                }
+
+                dir.setNameFilters({"*.db"});
+                QFileInfoList dbFiles = dir.entryInfoList(QDir::Files);
+
+                if (dbFiles.empty()) {
+                    throw LoadingException(
+                        ("Could not find a valid database in project: " + path).toStdString(),
+                        tr("You project folder is corrupted. Could not load main database").toStdString()
+                    );
+                }
+
+                // File database
+                ProjectDB db(dbFiles.first().absoluteFilePath());
+
+                QVariantMap projectInfo = db.getProjectInfo();
+
+                map.insert("projectUUID", projectInfo.value("uuid"));
+                map.insert("projectName", projectInfo.value("name"));
+                map.insert("projectPath", path);
+            }
+
+            m_appController->navigateToM(MainController::Pane::Loading, map);
+
+            return QVariantMap{};
         },
-        [this](const QVariantMap &result,
+        [this](const QVariantMap&,
                const QJSValue &outputCallback) {
-            m_appController->navigateToM(MainController::Pane::Loading, result);
 
             outputCallback.call({});
         }
@@ -39,15 +79,13 @@ void WelcomeController::getRecentProjects(const QJSValue &args, const QJSValue &
             QList<RecentProject> recentProjects = localDB.getRecentProjects();
 
             for (RecentProject& recentProject: recentProjects) {
-                if (!QFile::exists(recentProject.path)) {
-                    qDebug() << "Skipped recent project " + recentProject.name + " (" + recentProject.path + ")"
-                             + " because it does not exist";
-                    break;
-                }
+                bool projectFolderExists = QDir(recentProject.path).exists();
+
                 recentProjectsList.append(QVariantMap{
                     {"uuid", recentProject.uuid},
                     {"name", recentProject.name},
-                    {"path", recentProject.path}
+                    {"path", recentProject.path},
+                    {"enabled", projectFolderExists}
                 });
             }
 
@@ -72,9 +110,32 @@ void WelcomeController::getRecentProjects(const QJSValue &args, const QJSValue &
     );
 }
 
-void WelcomeController::onLoadProjectClicked()
+void WelcomeController::deleteRecentProject(const QJSValue &args, const QJSValue &outputCallback, const QJSValue &errorCallback)
 {
-    qDebug() << "Not yet implemented";
+    QQmlEngine* engine = qmlEngine(this);
+    this->backgroundTask(
+        args, outputCallback, errorCallback,
+        [](const QVariantMap& args) {
+            LocalDB localDB;
+
+            localDB.deleteRecentProject(args.value("uuid").toString());
+
+            return QVariantMap{};
+        },
+        [engine](const QVariantMap &result,
+                 const QString &error,
+                 const QJSValue &outputCallback,
+                 const QJSValue &errorCallback) {
+
+            if (!error.isEmpty()) {
+                qWarning() << "Could not delete the recent project from the list" << error;
+                errorCallback.call({QJSValue(tr("Could not delete the recent project from the list"))});
+                return;
+            }
+
+            outputCallback.call({});
+        }
+    );
 }
 
 void WelcomeController::onNewProjectClicked()

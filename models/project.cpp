@@ -129,7 +129,7 @@ void Project::createProjectSD()
 void Project::loadProject()
 {
     this->loadingProgress.stepID = READ_PROJECT_DIR;
-    this->loadingProgress.stepCount = 2;
+    this->loadingProgress.stepCount = 1;
     this->loadingProgress.stepNumber = 0;
     emit loadProjectUpdate(this->loadingProgress);
 
@@ -165,7 +165,7 @@ void Project::loadProject()
     this->checkVersions(projectInfo);
 
     QString dcimPath;
-    bool dcimLinked = projectInfo.value("dcim_linked").toBool();
+    this->dcimLinked = projectInfo.value("dcim_linked").toBool();
 
     if (dcimLinked) {
         dcimPath = projectInfo.value("dcim_path").toString();
@@ -200,9 +200,12 @@ void Project::loadProject()
     this->frontDir = QDir(frontPath);
     this->backDir = QDir(backPath);
 
-    //this->indexVideos();
+    QString projectDirPath;
+    if (!this->dcimLinked) {
+        projectDirPath = this->dcim.absolutePath();
+    }
 
-    this->videos = this->dbManager->getVideos();
+    this->videos = this->dbManager->getVideos(projectDirPath);
 
     this->save();
 }
@@ -307,21 +310,44 @@ void Project::createProjectTCopyDCIM()
     this->loadingProgress.stepNumber++;
     emit loadProjectUpdate(this->loadingProgress);
 
-    QDir sourceFrontDir(this->loadingInfo.frontVolumePath);
-    qDebug() << "sourceFrontDir" << sourceFrontDir.absolutePath();
-    if (!sourceFrontDir.cd("DCIM") || !sourceFrontDir.cd("100GFRNT")) {
-        throw ProjectException(
-            "Could not find DCIM/100GFRNT folder on source front dir: " +
-            sourceFrontDir.absolutePath().toStdString()
-        );
-    }
 
-    QDir sourceBackDir(this->loadingInfo.backVolumePath);
-    if (!sourceBackDir.cd("DCIM") || !sourceBackDir.cd("100GBACK")) {
-        throw ProjectException(
-            "Could not find DCIM/100GBACK folder on source front dir: " +
-            sourceBackDir.absolutePath().toStdString()
-        );
+    QDir sourceFrontDir;
+    QDir sourceBackDir;
+
+    if (this->dcimLinked) {
+        sourceFrontDir = QDir(this->loadingInfo.frontVolumePath);
+        sourceBackDir = QDir(this->loadingInfo.backVolumePath);
+
+        if (!sourceFrontDir.cd("DCIM") || !sourceFrontDir.cd("100GFRNT")) {
+            throw ProjectException(
+                "Could not find DCIM/100GFRNT folder on source front dir: " +
+                sourceFrontDir.absolutePath().toStdString()
+                );
+        }
+
+        if (!sourceBackDir.cd("DCIM") || !sourceBackDir.cd("100GBACK")) {
+            throw ProjectException(
+                "Could not find DCIM/100GBACK folder on source front dir: " +
+                sourceBackDir.absolutePath().toStdString()
+            );
+        }
+    } else {
+        sourceFrontDir = QDir(this->loadingInfo.dcimPath);
+        sourceBackDir = QDir(this->loadingInfo.dcimPath);
+
+        if (!sourceFrontDir.cd("100GFRNT")) {
+            throw ProjectException(
+                "Could not find 100GFRNT folder on DCIM front dir: " +
+                sourceFrontDir.absolutePath().toStdString()
+            );
+        }
+
+        if (!sourceBackDir.cd("100GBACK")) {
+            throw ProjectException(
+                "Could not find 100GBACK folder on DCIM back dir: " +
+                sourceBackDir.absolutePath().toStdString()
+            );
+        }
     }
 
     QFileInfoList frontFiles = sourceFrontDir.entryInfoList(QDir::NoDotAndDotDot | QDir::Files);
@@ -502,7 +528,6 @@ void Project::indexVideos()
         QString frontThmPath = frontDir.filePath("GPFR" + video.getIdString() + ".THM");
         QString backThmPath = backDir.filePath("GPBK" + video.getIdString() + ".THM");
 
-
         if (!video.setFrontThumbnail(frontThmPath)) {
             badVideos.insert(vidS, "Invalid front thumbnail");
             continue;
@@ -608,7 +633,13 @@ void Project::save()
     if (this->dbManager == nullptr) {
         qWarning() << "dbManager is nullptr";
     } else {
-        this->dbManager->updateVideos(this->videos);
+        QString projectDirPath;
+
+        if (!this->dcimLinked) {
+            projectDirPath = this->dcim.absolutePath();
+        }
+
+        this->dbManager->updateVideos(this->videos, projectDirPath);
     }
 
     if (this->localDBManager == nullptr) {

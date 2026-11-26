@@ -3,12 +3,25 @@ import QtQuick.Controls 2.15
 
 import FusionFFmpegStudio
 
-Window {
+ApplicationWindow {
     id: mainWindow
     visible: true
     width: 800
+    minimumWidth: 800
     height: 600
+    minimumHeight: 600
     title: "Fusion FFmpeg Studio"
+
+    onActiveChanged: {
+        console.log("Main window active:", active)
+    }
+
+    Component.onCompleted: {
+        console.log("Main window:", mainWindow)
+        console.log("Visible:", mainWindow.visible)
+        console.log("Active:", mainWindow.active)
+        console.log("Window visibility:", mainWindow.visibility)
+    }
 
     property double resizeAnimationTime: 350
 
@@ -37,6 +50,34 @@ Window {
         NumberAnimation {
             duration: resizeAnimationTime
             easing.type: Easing.InOutCubic
+        }
+    }
+
+    menuBar: MenuBar {
+        Menu {
+            title: "File"
+
+            Action {
+                text: "Test Action"
+
+                onTriggered: console.log("Test triggered")
+            }
+        }
+
+        Menu {
+            title: "Edit"
+
+            Action {
+                text: "Test Edit"
+            }
+        }
+
+        Menu {
+            title: "Help"
+
+            Action {
+                text: "About"
+            }
         }
     }
 

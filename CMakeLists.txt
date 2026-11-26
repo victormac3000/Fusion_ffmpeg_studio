@@ -78,24 +78,20 @@ qt_policy(SET QTP0004 NEW)
 qt_add_qml_module(FusionFFmpegStudio
     URI FusionFFmpegStudio
     QML_FILES ${QML_FILES}
-    QML_FILES qml/panes/editor/EditorPaneHeader.qml
-    QML_FILES qml/panes/editor/EditorPaneEdit.qml
-    QML_FILES qml/panes/editor/EditorPaneRender.qml
-    QML_FILES qml/panes/editor/EditorPaneEditVideos.qml
-    QML_FILES qml/panes/editor/EditorPaneEditSection.qml
     RESOURCES
-    QML_FILES qml/panes/editor/VideoItemNew.qml
-    QML_FILES qml/components/MyText.qml
-    QML_FILES qml/panes/editor/VideosGroup.qml
-    QML_FILES qml/components/Triangle.qml
-    QML_FILES qml/components/MyTextField.qml
-    QML_FILES qml/components/MySwitch.qml
-    QML_FILES qml/panes/editor/EditorPaneEditPlayer.qml
 )
 
 set_target_properties(FusionFFmpegStudio PROPERTIES
     OUTPUT_NAME "FusionFFmpegStudioApp"
 )
+
+if(APPLE)
+    set_target_properties(FusionFFmpegStudio PROPERTIES
+        MACOSX_BUNDLE TRUE
+        MACOSX_BUNDLE_BUNDLE_NAME "Fusion FFmpeg Studio"
+        MACOSX_BUNDLE_GUI_IDENTIFIER "com.victorcorporation.FusionFFmpegStudio"
+    )
+endif()
 
 target_include_directories(FusionFFmpegStudio PRIVATE
     ${CMAKE_SOURCE_DIR}

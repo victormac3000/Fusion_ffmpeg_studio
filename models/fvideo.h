@@ -3,7 +3,6 @@
 
 #include <QObject>
 
-#include "utils/fformats.h"
 #include "models/fsegment.h"
 
 #define DEFAULT_THUMBNAIL_PATH "qrc:/Qml/Icons/VideoPlayer/no_video.png"
@@ -23,7 +22,7 @@ class FVideo
 {
 public:
     FVideo(int id = -1);
-    static FVideo fromRow(const QVariant& row);
+    static FVideo fromRow(const QVariant& row, QString projectDirPath = "");
 
     int getId();
     QString getIdString();
@@ -39,7 +38,7 @@ public:
     FFormat getFormat();
     QList<FSegment> getSegments();
 
-    QVariantMap toVariantMap();
+    QVariantMap toVariantMap(QString projectDirPath = "");
 
 private:
     int id;

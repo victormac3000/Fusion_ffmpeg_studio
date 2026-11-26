@@ -38,6 +38,7 @@ int main(int argc, char *argv[])
     QElapsedTimer tmr;
     tmr.start();
 
+
     QQmlApplicationEngine engine;
     MainController mainController;
 

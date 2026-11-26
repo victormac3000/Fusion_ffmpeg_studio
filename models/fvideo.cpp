@@ -2,6 +2,7 @@
 #include "fvideo.h"
 #include "utils/fformats.h"
 #include "utils/mediainfo.h"
+#include "utils/toolbox.h"
 
 FVideo::FVideo(int id)
 {
@@ -9,15 +10,27 @@ FVideo::FVideo(int id)
     this->name = getIdString();
 }
 
-FVideo FVideo::fromRow(const QVariant& row)
+FVideo FVideo::fromRow(const QVariant& row, QString projectDirPath)
 {
     QVariantMap map = row.toMap();
 
     FVideo instance(map.value("id").toInt());
 
     instance.setName(map.value("name").toString());
-    instance.setFrontThumbnail(map.value("frontThumbnail").toString());
-    instance.setBackThumbnail(map.value("backThumbnail").toString());
+
+    QStringList mediaList = {
+        map.value("frontThumbnail").toString(),
+        map.value("backThumbnail").toString()
+    };
+
+    if (!projectDirPath.isEmpty()) {
+        for (int i=0; i<mediaList.length(); i++) {
+            mediaList[i] = Toolbox::toAbsolutePath(mediaList[i], projectDirPath);
+        }
+    }
+
+    instance.setFrontThumbnail(mediaList[0]);
+    instance.setBackThumbnail(mediaList[1]);
 
     FFormat format {
         .name = map.value("format_name").toString(),
@@ -110,33 +123,30 @@ FFormat FVideo::getFormat()
     return this->format;
 }
 
-QVariantMap FVideo::toVariantMap()
+QVariantMap FVideo::toVariantMap(QString projectDirPath)
 {
-    QFile frontThumnailFile(this->frontThumbnail);
-    QFile backThumnailFile(this->backThumbnail);
+    VideoInfo firstSegmentInfo = this->segments.first().getFrontVideoInfo();
 
-    QString frontThumbnailB64;
-    QString backThumbnailB64;
-
-    if (frontThumnailFile.open(QFile::ReadOnly)) {
-        frontThumbnailB64 = frontThumnailFile.readAll().toBase64();
-        frontThumnailFile.close();
-    }
-
-    if (backThumnailFile.open(QFile::ReadOnly)) {
-        backThumbnailB64 = backThumnailFile.readAll().toBase64();
-        backThumnailFile.close();
-    }
-
-    QDateTime recordedOn = MediaInfo::getVideoInfo(this->segments.first().getFrontVideo()).date;
+    QDateTime recordedOn = firstSegmentInfo.date;
+    QString durationString = firstSegmentInfo.getLengthS();
 
     QVariantMap map;
+
+    QString frontThumbnail = this->frontThumbnail;
+    QString backThumbnail = this->backThumbnail;
+
+    if (!projectDirPath.isEmpty()) {
+        frontThumbnail = Toolbox::toRelativePath(frontThumbnail, projectDirPath);
+        backThumbnail = Toolbox::toRelativePath(backThumbnail, projectDirPath);
+    }
 
     // Stored
     map.insert("id", id);
     map.insert("name", name);
+
     map.insert("frontThumbnail", frontThumbnail);
     map.insert("backThumbnail", backThumbnail);
+
     map.insert("format_name", format.name);
     map.insert("format_firmware", format.firmware);
     map.insert("format_height", format.height);
@@ -146,12 +156,15 @@ QVariantMap FVideo::toVariantMap()
     // Calculated
 
     map.insert("idString", this->getIdString());
+
     map.insert("front", this->segments.first().getFrontVideo());
     map.insert("frontURL", QUrl::fromLocalFile(this->segments.first().getFrontVideo()));
+
     map.insert("back", this->segments.first().getBackVideo());
     map.insert("backURL", QUrl::fromLocalFile(this->segments.first().getBackVideo()));
+
     map.insert("recordedOn", recordedOn);
-    map.insert("durationString", "01:30");
+    map.insert("durationString", durationString);
 
     return map;
 }

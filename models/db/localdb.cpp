@@ -38,3 +38,11 @@ QList<RecentProject> LocalDB::getRecentProjects()
 
     return recentProjects;
 }
+
+void LocalDB::deleteRecentProject(QString uuid)
+{
+    QVariantMap params;
+    params.insert("uuid", uuid);
+
+    query("DELETE_RECENT_PROJECT", params);
+}
