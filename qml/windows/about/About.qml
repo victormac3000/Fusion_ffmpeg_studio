@@ -51,7 +51,7 @@ Window {
                         minimumPointSize: 10
                         fontSizeMode: Text.Fit
                         font.family: "Arial"
-                        text: "Fusion FFmpeg Studio"
+                        text: mainController.getAppName()
                     }
 
                     Button {

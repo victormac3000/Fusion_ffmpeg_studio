@@ -66,6 +66,26 @@ void MainController::stopApp()
     QGuiApplication::exit(1);
 }
 
+QString MainController::getOSType()
+{
+    QString os = "unknwown";
+    #ifdef Q_OS_MACOS
+        os = "macos";
+    #endif
+    #ifdef Q_OS_WIN
+        os = "windows";
+    #endif
+    #ifdef Q_OS_LINUX
+        os = "linux";
+    #endif
+    return os;
+}
+
+QString MainController::getAppName()
+{
+    return QGuiApplication::applicationName();
+}
+
 void MainController::navigateToM(Pane pane,  const QVariantMap &attributes)
 {
     emit navigateTo(pane, attributes);

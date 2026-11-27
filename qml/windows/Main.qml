@@ -1,7 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 
-import FusionFFmpegStudio
+import FusionFFmpegStudio as FFS
 
 ApplicationWindow {
     id: mainWindow
@@ -11,17 +11,6 @@ ApplicationWindow {
     height: 600
     minimumHeight: 600
     title: "Fusion FFmpeg Studio"
-
-    onActiveChanged: {
-        console.log("Main window active:", active)
-    }
-
-    Component.onCompleted: {
-        console.log("Main window:", mainWindow)
-        console.log("Visible:", mainWindow.visible)
-        console.log("Active:", mainWindow.active)
-        console.log("Window visibility:", mainWindow.visibility)
-    }
 
     property double resizeAnimationTime: 350
 
@@ -53,38 +42,155 @@ ApplicationWindow {
         }
     }
 
-    menuBar: MenuBar {
-        Menu {
-            title: "File"
-
-            Action {
-                text: "Test Action"
-
-                onTriggered: console.log("Test triggered")
-            }
-        }
-
-        Menu {
-            title: "Edit"
-
-            Action {
-                text: "Test Edit"
-            }
-        }
-
-        Menu {
-            title: "Help"
-
-            Action {
-                text: "About"
-            }
-        }
+    MenuBar {
+        id: menuBar
     }
 
     StackView {
         id: stack
         anchors.fill: parent
-        initialItem: Welcome {}
+        initialItem: FFS.Welcome{}
+
+        property var menuRegistry: ({})
+
+        Component {
+            id: dynamicMenuComponent
+            Menu {}
+        }
+
+        Component {
+            id: dynamicMenuItemComponent
+            MenuItem {}
+        }
+
+        function addMenu(title) {
+            if (!title || title.trim() === "") {
+                return null
+            }
+
+            if (menuRegistry[title]) {
+                console.warn("Menu already exists:", title)
+                return menuRegistry[title].menu
+            }
+
+            const menu = dynamicMenuComponent.createObject(menuBar, {
+                "title": title
+            })
+
+            if (!menu) {
+                return null
+            }
+
+            menuBar.addMenu(menu)
+
+            menuRegistry[title] = {
+                menu: menu,
+                items: []
+            }
+
+            return menu
+        }
+
+        function addMenuItem(menuTitle, text, callback, options) {
+            const menuEntry = menuRegistry[menuTitle]
+
+            if (!menuEntry) {
+                console.error("Menu does not exist:", menuTitle)
+                return null
+            }
+
+            if (!text || text.trim() === "") {
+                return null
+            }
+
+            const properties = Object.assign({}, options || {}, {
+                text: text
+            })
+
+            const menuItem = dynamicMenuItemComponent.createObject(
+                menuEntry.menu.contentItem,
+                properties
+            )
+
+            if (!menuItem) {
+                console.error("Failed to create menu item:", text)
+                return null
+            }
+
+            if (callback && typeof callback === "function") {
+                menuItem.triggered.connect(callback)
+            }
+
+            menuEntry.menu.addItem(menuItem)
+
+            menuEntry.items.push({
+                type: "item",
+                text: text,
+                item: menuItem
+            })
+
+            return menuItem
+        }
+
+        function removeMenuItem(menuTitle, text) {
+            const menuEntry = menuRegistry[menuTitle]
+
+            if (!menuEntry) {
+                console.warn("Menu does not exist:", menuTitle)
+                return false
+            }
+
+            for (let i = 0; i < menuEntry.items.length; ++i) {
+                const entry = menuEntry.items[i]
+
+                if (entry.type === "item" && entry.text === text) {
+                    menuEntry.menu.removeItem(entry.item)
+                    entry.item.destroy()
+
+                    menuEntry.items.splice(i, 1)
+
+                    return true
+                }
+            }
+
+            console.warn("Menu item not found:", text)
+            return false
+        }
+
+        function removeMenu(title) {
+            const menuEntry = menuRegistry[title]
+
+            if (!menuEntry) {
+                console.warn("Menu does not exist:", title)
+                return false
+            }
+
+            menuBar.removeMenu(menuEntry.menu)
+
+            menuEntry.menu.destroy()
+
+            delete menuRegistry[title]
+
+            return true
+        }
+
+        function clearMenus() {
+            const menuTitles = Object.keys(menuRegistry)
+
+            for (const title of menuTitles) {
+                removeMenu(title)
+            }
+        }
+
+        function getMenu(title) {
+            const menuEntry = menuRegistry[title]
+
+            return menuEntry ? menuEntry.menu : null
+        }
+
+        function hasMenu(title) {
+            return menuRegistry[title] !== undefined
+        }
 
         function windowMaximize() {
             windowResize(
@@ -100,7 +206,7 @@ ApplicationWindow {
         function windowResizePercent(widthPercent, heightPercent) {
             if (!widthPercent || widthPercent <= 0 || widthPercent > 100 ||
                 !heightPercent || heightPercent <= 0 || heightPercent > 100) {
-                console.error("Could not resize main window: Invalid percent dimensions: " + widthPercent + "x" + heightPercent)
+                console.warn("Could not resize main window: Invalid percent dimensions: " + widthPercent + "x" + heightPercent)
             }
             windowResize(
                 mainWindow.screen.desktopAvailableWidth * (widthPercent/100),
@@ -110,7 +216,7 @@ ApplicationWindow {
 
         function windowResize(width, height) {
             if (width <= 0 || height <= 0) {
-                console.error("Could not resize main window: Invalid dimensions: " + width + "x" + height)
+                console.warn("Could not resize main window: Invalid dimensions: " + width + "x" + height)
                 return
             }
 

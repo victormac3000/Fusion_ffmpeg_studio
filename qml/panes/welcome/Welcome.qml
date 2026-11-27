@@ -38,6 +38,50 @@ Rectangle {
         }
     }
 
+    Component.onCompleted: {
+        setupMenuBar()
+    }
+
+    function setupMenuBar() {
+        const stack = parent
+        const os = mainController.getOSType()
+        var menuName = ""
+
+        if (os === "macos") {
+            menuName = "Help"
+
+            stack.addMenu(menuName)
+
+            stack.addMenuItem(
+                menuName,
+                "About " + mainController.getAppName(),
+                () => controller.onAboutClicked()
+            )
+            stack.addMenuItem(
+                menuName,
+                "Settings",
+                () => controller.onSettingsClicked()
+            )
+        } else {
+            menuName = qsTr("Help")
+
+            stack.addMenu(menuName)
+
+            stack.addMenuItem(
+                menuName,
+                qsTr("About") + " " + mainController.getAppName(),
+                () => controller.onAboutClicked()
+            )
+
+            menuName = qsTr("File")
+            stack.addMenuItem(
+                menuName,
+                qsTr("Settings"),
+                () => controller.onSettingsClicked()
+            )
+        }
+    }
+
     ColumnLayout {
         anchors.fill: parent
 
@@ -63,7 +107,7 @@ Rectangle {
                     Text {
                         objectName: "appTitleLabel"
                         Layout.fillHeight: true
-                        text: "Fusion FFmpeg Studio"
+                        text: mainController.getAppName()
                         font.pointSize: 20
                         minimumPointSize: 10
                         fontSizeMode: Text.Fit

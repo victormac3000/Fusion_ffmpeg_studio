@@ -22,8 +22,14 @@ find_package(Qt6 6.5 REQUIRED COMPONENTS
     QuickControls2
     WebEngineWidgets
     Qml
+    LinguistTools
 )
-qt_standard_project_setup(REQUIRES 6.5)
+
+qt_standard_project_setup(
+    REQUIRES 6.5
+    I18N_SOURCE_LANGUAGE en
+    I18N_TRANSLATED_LANGUAGES es_ES
+)
 
 # Find ffmpeg packages
 if(APPLE OR LINUX)
@@ -79,6 +85,12 @@ qt_add_qml_module(FusionFFmpegStudio
     URI FusionFFmpegStudio
     QML_FILES ${QML_FILES}
     RESOURCES
+)
+
+qt_add_translations(FusionFFmpegStudio
+    TS_FILE_BASE qml
+    TS_FILE_DIR i18n
+    RESOURCE_PREFIX /qt/qml/FusionFFmpegStudio/qml/windows/i18n
 )
 
 set_target_properties(FusionFFmpegStudio PROPERTIES

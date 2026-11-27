@@ -1,6 +1,3 @@
-// Copyright (C) 2021 The Qt Company Ltd.
-// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
-
 import QtQuick
 import QtQuick.Layouts
 
@@ -11,7 +8,6 @@ Rectangle {
     color: "#2e2e2e"
 
     Component.onCompleted: {
-        //parent.windowMaximize()
         parent.windowSetLimits(0, 0, 800, 600)
     }
 

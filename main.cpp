@@ -38,10 +38,11 @@ int main(int argc, char *argv[])
     QElapsedTimer tmr;
     tmr.start();
 
-
-    QQmlApplicationEngine engine;
     MainController mainController;
 
+    QQmlApplicationEngine engine;
+
+    engine.setUiLanguage("es_ES");
     engine.rootContext()->setContextProperty(
         "mainController",
         &mainController

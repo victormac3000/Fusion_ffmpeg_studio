@@ -32,6 +32,8 @@ public:
     Q_INVOKABLE QString paneToUrl(Pane pane) const;
     Q_INVOKABLE QString windowToUrl(Window window) const;
     Q_INVOKABLE void stopApp();
+    Q_INVOKABLE QString getOSType();
+    Q_INVOKABLE QString getAppName();
 
     void navigateToM(Pane pane, const QVariantMap &attributes = {});
     void addWindowM(Window window, bool modal);
