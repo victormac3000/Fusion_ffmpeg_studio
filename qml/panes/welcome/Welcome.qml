@@ -83,6 +83,7 @@ Rectangle {
     }
 
     ColumnLayout {
+        id: mainColumnLayout
         anchors.fill: parent
 
         RowLayout {
@@ -93,6 +94,7 @@ Rectangle {
 
             RowLayout {
                 Layout.fillHeight: true
+                Layout.fillWidth: true
 
                 Image {
                     Layout.fillWidth: true
@@ -124,10 +126,16 @@ Rectangle {
                 }
             }
 
-            RowLayout {
+            Item {
                 Layout.fillHeight: true
                 Layout.fillWidth: true
+            }
+
+            RowLayout {
+                Layout.fillHeight: true
                 Layout.maximumHeight: 50
+                Layout.minimumWidth: (mainColumnLayout.width-20) * 0.35
+                Layout.maximumWidth: (mainColumnLayout.width-20) * 0.35
                 Layout.margins: 10
 
                 MyButton {
@@ -136,9 +144,7 @@ Rectangle {
                     Layout.fillWidth: true
                     Layout.alignment: Qt.AlignRight
                     text: "Load project"
-                    onClicked: {
-                        loadProjectDialog.open()
-                    }
+                    onClicked: loadProjectDialog.open()
                 }
 
                 MyButton {
@@ -149,7 +155,6 @@ Rectangle {
                     text: "New project"
                     onClicked: controller.onNewProjectClicked()
                 }
-
             }
         }
 
@@ -307,38 +312,6 @@ Rectangle {
                         }
                     }
                 }
-            }
-        }
-
-        Rectangle {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            Layout.maximumHeight: 2
-            color: "black"
-        }
-
-        RowLayout {
-            Layout.fillHeight: true
-            Layout.fillWidth: true
-            Layout.maximumHeight: 40
-            Layout.margins: 10
-
-            MyButton {
-                objectName: "aboutButton"
-                Layout.fillHeight: true
-                Layout.fillWidth: true
-                Layout.alignment: Qt.AlignLeft
-                text: "About"
-                onClicked: controller.onAboutClicked()
-            }
-
-            MyButton {
-                objectName: "settingsButton"
-                Layout.fillHeight: true
-                Layout.fillWidth: true
-                Layout.alignment: Qt.AlignLeft
-                text: "Settings"
-                onClicked: controller.onSettingsClicked()
             }
         }
     }
